@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>Decarbonization Pathways in New England, U.S.A.</title>
   </head>
   <body>
     <h1>Environmental, health, and economic tradeoffs of alternative electrical system decarbonization pathways in New England, U.S.A.</h1>
@@ -19,7 +18,7 @@
       <sup>7</sup> Department of Civil and Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA
     </p>
     <p>
-      <strong>* Contact:</strong> rsdc@vt.edu
+      <strong>* Contact:</strong> amirgazar@vt.edu
     </p>
   </body>
 </html>
