@@ -1,0 +1,2 @@
+"Label","Category","Nameplate_Capacity_MW","CF","Ramp","Minimum_Power_Output_MW","Enrichment","Fuel","Life_of_the_Core_Fuel","Burnup_GWd_t","Reactor_Lifetime"
+"SMR300","SMR",300,0.9,1,60,"4.95%","UO2","4 years",50,60

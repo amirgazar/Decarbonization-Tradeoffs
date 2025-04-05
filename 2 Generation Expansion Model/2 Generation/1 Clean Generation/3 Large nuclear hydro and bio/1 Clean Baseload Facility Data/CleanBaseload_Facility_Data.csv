@@ -1,0 +1,4 @@
+"","V1","atb_year","core_metric_key","core_metric_parameter","core_metric_case","tax_credit_case","crpyears","technology","technology_alias","techdetail","techdetail2","resourcedetail","display_name","default","scale","maturity","scenario","core_metric_variable","units","value"
+"1",73332,2024,193525,"CF","Market","PTC",20,"Biopower","Biopower","Dedicated","Biopower","Dedicated","Biopower - Dedicated",1,"Utility","Y","Moderate",2030,"",0.6
+"2",67379,2024,186415,"CF","Market","ITC",20,"Hydropower","Hydropower","NPD5","NPD 5","Hydropower - Lock","Hydropower - NPD 5",0,"Utility","Y","Moderate",2030,"",0.56
+"3",72965,2024,192985,"CF","Market","ITC",20,"Nuclear","Nuclear","Nuclear - Large","Nuclear","Large","Nuclear - Large",1,"Utility","Y","Moderate",2030,"",0.93
