@@ -1,0 +1,296 @@
+---
+title: ""
+output: 
+  pdf_document:
+    latex_engine: pdflatex
+header-includes:
+  - \usepackage{float}
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyhf{}  % Clear all header and footer fields
+  - \renewcommand{\headrulewidth}{0pt}  % Remove the header rule
+  - \renewcommand{\footrulewidth}{0.4pt}  % Add a footer rule
+  - \fancyfoot[C]{\small © 2024 Gazar and Calder. All rights reserved. Licensed under the Creative Commons Attribution 4.0 International License.}
+geometry: margin=0.75in  # Sets all margins to 0.75 inches
+params:
+  facility_name: "Facility Name"
+  facility_id: "Facility ID"
+  unit_id: "Unit ID"
+  state: "State"
+  county: "County"
+  primary_fuel: "Fuel Type"
+  emissions_data_facility: NULL
+  gen_data: NULL
+  npc: NULL
+  min_gen: NULL
+  mean_gen: NULL
+  max_gen: NULL
+  emissions_sum: NULL
+---
+
+
+```{r, echo=FALSE, results="asis"}
+# Load necessary libraries
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+library(tidyr)
+library(knitr)
+
+# Set up facility information
+facility_name <- params$facility_name
+facility_id <- params$facility_id
+unit_id <- params$unit_id
+state <- params$state
+county <- params$county
+primary_fuel <- params$primary_fuel
+emissions_data_facility <- params$emissions_data_facility
+gen_data <- params$gen_data
+npc <- params$npc
+min_gen <- params$min_gen
+mean_gen <- params$mean_gen
+max_gen <- params$max_gen
+emissions_sum <- params$emissions_sum
+
+# Facility name on the top right
+cat(sprintf('
+\\begin{flushright}
+\\huge{\\textbf{%s, %s}}
+\\end{flushright}', facility_name, state))
+
+# Facility details
+cat(sprintf('
+\\textbf{Facility Information}
+
+Facility ID: \\textbf{%s} \\
+Unit ID: \\textbf{%s} \\
+State: \\textbf{%s} \\
+County: \\textbf{%s} \\
+Primary fuel type: \\textbf{%s} \\
+Associated generators - nameplate capacity (MW): \\textbf{%s} \\
+Historical hourly generation (MWh): \\textbf{%s [%s-%s]}
+', facility_id, unit_id, state, county, primary_fuel, npc, mean_gen, min_gen, max_gen))
+
+
+## Table 1
+# Sum the generation and emissions for the relevant percentiles
+summary_table <- data.frame(
+  Metric = c("Electricity generation (GWh)", "CO2 emissions (thousand tons)", "NOx emissions (thousand lbs)", "SO2 emissions (thousand lbs)", "Heat input (thousand mmBtu)"),
+  
+  `P01` = round(c(
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1)] / 1e3, na.rm = TRUE),  # Convert MW to GWh
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$CO2_1)] * emissions_data_facility$CO2_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$CO2_1)] / 1e3, na.rm = TRUE),  # Convert to thousand tons
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$NOx_1)] * emissions_data_facility$NOx_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$NOx_1)] / 1e3, na.rm = TRUE),  # Convert to thousand lbs
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$SO2_1)] * emissions_data_facility$SO2_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$SO2_1)] / 1e3, na.rm = TRUE),  # Convert to thousand lbs
+    sum(emissions_data_facility$HI_1[is.finite(emissions_data_facility$HI_1)], na.rm = TRUE) / 1e3
+  ), 1),
+  
+  `P25` = round(c(
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$CO2_25)] * emissions_data_facility$CO2_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$CO2_25)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$NOx_25)] * emissions_data_facility$NOx_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$NOx_25)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$SO2_25)] * emissions_data_facility$SO2_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$SO2_25)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$HI_25[is.finite(emissions_data_facility$HI_25)], na.rm = TRUE) / 1e3
+  ), 1),
+  
+  `P50` = round(c(
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$CO2_50)] * emissions_data_facility$CO2_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$CO2_50)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$NOx_50)] * emissions_data_facility$NOx_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$NOx_50)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$SO2_50)] * emissions_data_facility$SO2_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$SO2_50)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$HI_50[is.finite(emissions_data_facility$HI_50)], na.rm = TRUE) / 1e3
+  ), 1),
+  
+  `P75` = round(c(
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$CO2_75)] * emissions_data_facility$CO2_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$CO2_75)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$NOx_75)] * emissions_data_facility$NOx_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$NOx_75)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$SO2_75)] * emissions_data_facility$SO2_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$SO2_75)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$HI_75[is.finite(emissions_data_facility$HI_75)], na.rm = TRUE) / 1e3
+  ), 1),
+  
+  `P99` = round(c(
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$CO2_99)] * emissions_data_facility$CO2_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$CO2_99)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$NOx_99)] * emissions_data_facility$NOx_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$NOx_99)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$SO2_99)] * emissions_data_facility$SO2_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$SO2_99)] / 1e3, na.rm = TRUE),
+    sum(emissions_data_facility$HI_99[is.finite(emissions_data_facility$HI_99)], na.rm = TRUE) / 1e3
+  ), 1)
+)
+
+
+# Dynamically create the caption with facility name and unit ID
+caption_text <- sprintf("Stochastic estimation of annual generation and emissions for %s powerplant, %s (Unit ID: %s)", facility_name, state, unit_id)
+
+# Display the summary table with the dynamically generated caption
+kable(summary_table, caption = caption_text, align = "l")
+
+## Table 2
+# Sum the generation and emissions for the relevant percentiles
+summary_table <- data.frame(
+  Metric = c("CO2 emissions (%)", "NOx emissions (%)", "SO2 emissions (%)"),
+  
+  `P01` = round(c(
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$CO2_1)] * emissions_data_facility$CO2_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$CO2_1)] / (10 * emissions_sum$CO2_1), na.rm = TRUE),  # Convert to thousand tons
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$NOx_1)] * emissions_data_facility$NOx_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$NOx_1)] / (10 * emissions_sum$NOx_1), na.rm = TRUE),  # Convert to thousand lbs
+    sum(emissions_data_facility$Gen_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$SO2_1)] * emissions_data_facility$SO2_1[is.finite(emissions_data_facility$Gen_1) & is.finite(emissions_data_facility$SO2_1)] / (10 * emissions_sum$SO2_1) , na.rm = TRUE)
+  ), 1),
+  
+  `P25` = round(c(
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$CO2_25)] * emissions_data_facility$CO2_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$CO2_25)] / (10 * emissions_sum$CO2_25), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$NOx_25)] * emissions_data_facility$NOx_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$NOx_25)] / (10 * emissions_sum$NOx_25), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$SO2_25)] * emissions_data_facility$SO2_25[is.finite(emissions_data_facility$Gen_25) & is.finite(emissions_data_facility$SO2_25)] / (10 * emissions_sum$SO2_25), na.rm = TRUE)
+  ), 1),
+  
+  `P50` = round(c(
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$CO2_50)] * emissions_data_facility$CO2_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$CO2_50)] / (10 * emissions_sum$CO2_50), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$NOx_50)] * emissions_data_facility$NOx_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$NOx_50)] / (10 * emissions_sum$NOx_50), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$SO2_50)] * emissions_data_facility$SO2_50[is.finite(emissions_data_facility$Gen_50) & is.finite(emissions_data_facility$SO2_50)] / (10 * emissions_sum$SO2_50), na.rm = TRUE)
+  ), 1),
+  
+  `P75` = round(c(
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$CO2_75)] * emissions_data_facility$CO2_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$CO2_75)] / (10 * emissions_sum$CO2_75), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$NOx_75)] * emissions_data_facility$NOx_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$NOx_75)] / (10 * emissions_sum$NOx_75), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$SO2_75)] * emissions_data_facility$SO2_75[is.finite(emissions_data_facility$Gen_75) & is.finite(emissions_data_facility$SO2_75)] / (10 * emissions_sum$SO2_75), na.rm = TRUE)
+  ), 1),
+  
+  `P99` = round(c(
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$CO2_99)] * emissions_data_facility$CO2_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$CO2_99)] / (10 * emissions_sum$CO2_99), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$NOx_99)] * emissions_data_facility$NOx_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$NOx_99)] / (10 * emissions_sum$NOx_99), na.rm = TRUE),
+    sum(emissions_data_facility$Gen_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$SO2_99)] * emissions_data_facility$SO2_99[is.finite(emissions_data_facility$Gen_99) & is.finite(emissions_data_facility$SO2_99)] / (10 * emissions_sum$SO2_99), na.rm = TRUE)
+  ), 1)
+)
+
+# Dynamically create the caption with facility name and unit ID
+caption_text <- sprintf("Stochastic estimation of annual emissions for %s powerplant, %s (Unit ID: %s) compared to annual emissions in the state", facility_name, state, unit_id)
+
+# Display the summary table with the dynamically generated caption
+kable(summary_table, caption = caption_text, align = "l")
+
+## Plot 1
+# Convert DayLabel to Date correctly
+emissions_data_facility$Date <- as.Date(emissions_data_facility$DayLabel, format = "%Y-%m-%d")  # Adjust format as needed
+
+# Define Season based on Date
+emissions_data_facility$Season <- case_when(
+  month(emissions_data_facility$Date) %in% c(12, 1, 2) ~ "Winter",
+  month(emissions_data_facility$Date) %in% c(3, 4, 5) ~ "Spring",
+  month(emissions_data_facility$Date) %in% c(6, 7, 8) ~ "Summer",
+  month(emissions_data_facility$Date) %in% c(9, 10, 11) ~ "Fall",
+  TRUE ~ NA_character_
+)
+
+# Prepare the data
+gen_data <- emissions_data_facility %>%
+  select(Hour, Season, Gen_1, Gen_5, Gen_25, Gen_50, Gen_75, Gen_95, Gen_99)
+
+# Ensure that Hour and Season are not missing
+gen_data <- gen_data %>% drop_na(Hour, Season)
+
+# Gather the data into long format
+gen_long <- gen_data %>%
+    pivot_longer(
+        cols = starts_with("Gen_"),
+        names_to = "Percentile",
+        values_to = "Generation"
+    ) %>%
+    mutate(
+        Percentile = as.numeric(sub("Gen_", "", Percentile))
+    )
+
+
+# Filter for the required percentiles
+gen_filtered <- gen_long %>%
+  filter(Percentile %in% c(1, 5, 25, 50, 75, 95, 99))
+
+# Spread the data to wide format for plotting ribbons
+gen_wide <- gen_filtered %>%
+    pivot_wider(
+        names_from = Percentile,
+        values_from = Generation,
+        names_prefix = "P",
+        values_fn = mean  # Use a summary function to handle duplicates
+    )
+
+# Convert 'Hour' to numeric if necessary
+gen_wide$Hour <- as.numeric(as.character(gen_wide$Hour))
+
+# Ensure 'Season' is a factor
+gen_wide$Season <- factor(gen_wide$Season, levels = c("Winter", "Spring", "Summer", "Fall"))
+
+# Identify the generation columns
+gen_cols <- grep("^P", names(gen_wide), value = TRUE)
+
+# Convert generation columns to numeric
+gen_wide[gen_cols] <- lapply(gen_wide[gen_cols], function(x) as.numeric(as.character(x)))
+
+# Handle NAs if necessary
+gen_wide <- gen_wide %>% drop_na(all_of(gen_cols))
+
+# Create a baseline DayLabel from 1 to 366 (for leap year) and Hour from 1 to 24
+daylabel_baseline <- expand.grid(DayLabel = 1:366, Hour = 1:24)
+
+daylabel_baseline$Date <- as.Date(daylabel_baseline$DayLabel, format = "%Y-%m-%d")  # Adjust format as needed
+
+# Define Season based on Date
+# Add the 'Season' column
+daylabel_baseline$Season <- case_when(
+  month(daylabel_baseline$Date) %in% c(12, 1, 2) ~ "Winter",
+  month(daylabel_baseline$Date) %in% c(3, 4, 5) ~ "Spring",
+  month(daylabel_baseline$Date) %in% c(6, 7, 8) ~ "Summer",
+  month(daylabel_baseline$Date) %in% c(9, 10, 11) ~ "Fall",
+  TRUE ~ NA_character_
+)
+
+# Drop 'DayLabel' and 'Date' columns
+daylabel_baseline <- daylabel_baseline[ , !(colnames(daylabel_baseline) %in% c("DayLabel", "Date"))]
+
+# Merge the baseline with your actual generation data (assuming 'DayLabel' and 'Hour' exist in your data)
+gen_wide <- merge(daylabel_baseline, gen_wide, by = c("Season", "Hour"), all.x = TRUE)
+
+```{r, echo=FALSE, fig.width=7, fig.height=4, fig.align='center', warning=FALSE, message=FALSE}
+# Generate the plot with corrected legend and grey background
+ggplot(gen_wide, aes(x = Hour)) +
+  # Shaded area between P1 and P99
+  geom_ribbon(aes(ymin = P1, ymax = P99, fill = 'P1-P99'), alpha = 0.4) +
+  # Shaded area between P5 and P95
+  geom_ribbon(aes(ymin = P5, ymax = P95, fill = 'P5-P95'), alpha = 0.6) +
+  # Shaded area between P25 and P75
+  geom_ribbon(aes(ymin = P25, ymax = P75, fill = 'P25-P75'), alpha = 0.6) +
+  # Median line
+  geom_line(aes(y = P50, color = 'Median'), size = 1) +
+  facet_wrap(~ Season, ncol = 2) +
+  labs(
+    title = sprintf(
+      'Simulated average stochastic hourly electricity generation distribution across seasons \nshowing mean percentile ranges per hour for %s, %s, Unit ID: %s',
+      params$facility_name, params$state, params$unit_id
+    ),
+    x = 'Hour',
+    y = 'Generation (MWh)',
+    caption = 'Note: This plot only shows hours where EPA CAMD data was available for simulation; \nhours with missing data are not plotted.'
+  ) +
+  scale_x_continuous(breaks = seq(1, 24, by = 3)) +  # Fewer x-axis ticks
+  scale_fill_manual(
+    name = NULL,
+    values = c('P1-P99' = 'lightblue', 'P5-P95' = 'skyblue', 'P25-P75' = 'blue'),
+    labels = c('1st-99th Percentile', '5th-95th Percentile', '25th-75th Percentile'),
+    breaks = c('P1-P99', 'P5-P95', 'P25-P75')
+  ) +
+  scale_color_manual(
+    name = NULL,
+    values = c('Median' = 'black'),
+    labels = c('50th Percentile'),
+    breaks = c('Median')
+  ) +
+  theme_gray() +  # Use the default grey theme
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 10),  # Decreased title size from 14 to 12
+    plot.caption = element_text(hjust = 0.5, size = 8),  # Caption size remains the same
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "right",       # Position legend to the right
+    legend.direction = "vertical",   # Make legend vertical
+    legend.title = element_blank(),  # Remove legend title
+    strip.background = element_rect(fill = "grey80"),  # Grey background for facet labels
+    strip.text = element_text(color = "black")         # Black text for facet labels
+  )
+
