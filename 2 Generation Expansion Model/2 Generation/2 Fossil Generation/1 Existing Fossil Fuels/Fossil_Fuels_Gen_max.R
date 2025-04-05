@@ -45,7 +45,7 @@ merged_grid[, is_retired := !is.na(Retirement_year) & Year >= Retirement_year & 
 hourly_totals <- merged_grid[, .(
   max_gen_hr_retirement_MW = sum(max_gen_MW_hr, na.rm = TRUE),
   max_gen_hr_no_retirement_MW  = sum(max_gen_MW_hr[is_retired == FALSE], na.rm = TRUE)
-), by = .(Date, Hour, DayLabel)]
+), by = .(Date, Hour)]
 
 # Check for NA and zero values in the aggregated columns
 if (nrow(hourly_totals[is.na(max_gen_hr_retirement_MW)]) > 0) {
@@ -92,14 +92,14 @@ hourly_totals[, `:=`(
 # If the current value is more than 50% higher than both neighbors or less than 50% of both neighbors,
 # replace it with the average of the neighbors.
 hourly_totals[!is.na(prev_retired) & !is.na(next_retired) & 
-                ((max_gen_hr_retirement_MW > 1.5 * prev_retired & max_gen_hr_retirement_MW > 1.5 * next_retired) |
-                   (max_gen_hr_retirement_MW < 0.5 * prev_retired & max_gen_hr_retirement_MW < 0.5 * next_retired)),
+                ((max_gen_hr_retirement_MW > 1.25 * prev_retired & max_gen_hr_retirement_MW > 1.25 * next_retired) |
+                   (max_gen_hr_retirement_MW < 0.25 * prev_retired & max_gen_hr_retirement_MW < 0.25 * next_retired)),
               max_gen_hr_retirement_MW := (prev_retired + next_retired) / 2]
 
 # Do the same for the no-retirement (active) column:
 hourly_totals[!is.na(prev_no_retired) & !is.na(next_no_retired) &
-                ((max_gen_hr_no_retirement_MW > 1.5 * prev_no_retired & max_gen_hr_no_retirement_MW > 1.5 * next_no_retired) |
-                   (max_gen_hr_no_retirement_MW < 0.5 * prev_no_retired & max_gen_hr_no_retirement_MW < 0.5 * next_no_retired)),
+                ((max_gen_hr_no_retirement_MW > 1.25 * prev_no_retired & max_gen_hr_no_retirement_MW > 1.25 * next_no_retired) |
+                   (max_gen_hr_no_retirement_MW < 0.25 * prev_no_retired & max_gen_hr_no_retirement_MW < 0.25 * next_no_retired)),
               max_gen_hr_no_retirement_MW := (prev_no_retired + next_no_retired) / 2]
 
 # Remove the temporary columns used for the calculation
