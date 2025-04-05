@@ -1,0 +1,17 @@
+bash_script <- "#!/bin/bash
+#SBATCH --account=epadecarb
+#SBATCH --partition=normal_q
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=50
+#SBATCH --cpus-per-task=1  # Reduce the number of cores to avoid OOM
+#SBATCH --time=24:00:00    # Set a more appropriate time limit
+
+module load containers/singularity
+
+singularity exec --bind /work,/projects /projects/arcsingularity/ood-rstudio141717-basic_4.1.0.sif Rscript /home/amirgazar/Capacity_Expansion/Capacity_Expansion_ARC_Hourly_Results.R
+
+module reset"
+
+# Saving the BASH file
+bash_file <- "Capacity_Expansion_Hourly_Results.sh"
+writeLines(bash_script, bash_file)
