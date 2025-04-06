@@ -555,24 +555,33 @@ dispatch_curve_adjustments <- function(results) {
   return(results_updated)
 }
 
-# FUNCTION: Re-calculates Battery Status, Imports and Shortages
+# FUNCTION: Re-calculates Battery Status and Shortages
 dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hourly_results) {
-  result <- fossil_fuels_hourly_results[, 
-                                        lapply(.SD, sum, na.rm = TRUE), 
-                                        by = .(Date, Hour), 
-                                        .SDcols = c("CO2_tons", "NOx_lbs", "SO2_lbs", "HI_mmBtu", "Gen_MWh_adj")
-  ]
-
-  final_results <- result[dispatch_curve_results, on = c("Date", "Hour")]
+  # --- Step 1: Aggregate Adjusted Fossil Fuel Generation and Emissions ---
+  fossil_agg <- fossil_fuels_hourly_results[, 
+                                            .(Old_Fossil_Fuels_adj_MWh = sum(Gen_MWh_adj, na.rm = TRUE),
+                                              CO2_tons = sum(CO2_tons, na.rm = TRUE),
+                                              NOx_lbs = sum(NOx_lbs, na.rm = TRUE),
+                                              SO2_lbs = sum(SO2_lbs, na.rm = TRUE),
+                                              HI_mmBtu  = sum(HI_mmBtu, na.rm = TRUE)),
+                                            by = .(Date, Hour)]
+  
+  # --- Step 2: Merge Aggregated Fossil Data with Dispatch Curve Results ---
+  final_results <- merge(dispatch_curve_results, fossil_agg, by = c("Date", "Hour"), all.x = TRUE)
+  
+  # Replace any missing fossil adjustments with 0
+  final_results[is.na(Old_Fossil_Fuels_adj_MWh), Old_Fossil_Fuels_adj_MWh := 0]
   
   
+  return(final_results)
 }
+
 
 # Function Execution
 dispatch_curve_results <- dispatch_curve(sim = 1, pathway = "B1")
-dispatch_curve_results <- dispatch_curve_results[1:100, ] # Test
+dispatch_curve_results <- dispatch_curve_results[227704:227904, ] # Test
 fossil_fuels_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results)
-final_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results, fossil_fuels_hourly_results)
+final_hourly_results <- dispatch_curve_calibrations(dispatch_curve_results, fossil_fuels_hourly_results)
 
 
 ## ----- OLD ------
