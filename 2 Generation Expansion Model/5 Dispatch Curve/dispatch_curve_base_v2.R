@@ -24,8 +24,8 @@ Fossil_Fuels_NPC <- fread(file_path)
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 New_Fossil_Fuels_NPC <- fread(file_path)
 
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_hr_maximums.csv"
-Fossil_Fuels_hr_max <- fread(file_path)
+file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_hr_maxmin.csv"
+Fossil_Fuels_hr_maxmin <- fread(file_path)
 
 ## 2. Probabilistic Generation Data and Capacity Factors
 # 2.1 Wind and Solar
@@ -66,13 +66,12 @@ setkey(Imports_CF, DayLabel, Percentile)
 setkey(Fossil_Fuels_Gen, DayLabel, Hour, Facility_Unit.ID)
 setkey(Demand_data, Date, Hour)
 setkey(Peak_demand, Date)
-setkey(Fossil_Fuels_hr_max, Date, Hour)
-
+setkey(Fossil_Fuels_hr_maxmin, Date, Hour)
 
 # Fossil Fuel Sampling Function
 library(data.table)
 
-fossil_sampler_by_hour <- function(dispatch_data, idx_fossil) {
+fossil_sampler <- function(dispatch_data, idx_fossil) {
   # Convert dispatch_data and fossil data to data.table if they aren't already
   dispatch_dt <- as.data.table(dispatch_data)
   fossil_dt   <- as.data.table(Fossil_Fuels_Gen)
@@ -276,9 +275,16 @@ dispatch_curve <- function(sim, pathway) {
   NFF_CF <- New_Fossil_Fuels_NPC$CF
   dispatch_data[, New_Fossil_Fuel_MWh := `New NG` * NFF_CF]
   
-  # Old Fossil Fuels
-  Old_Fossil_CF <- fossil_sampler(dispatch_data, idx_fossil)
-  
+  # Old Fossil Fuels (Maximum Hourly) Posterior distribution
+  if (pathway %in% c("A", "D")) {
+    dispatch_data <- merge(dispatch_data,
+                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_maxmin_MWh = max_gen_hr_no_retirement_MW)],
+                           by = c("Date", "Hour"), all.x = TRUE)
+  } else {
+    dispatch_data <- merge(dispatch_data,
+                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_maxmin_MWh = max_gen_hr_retirement_MW)],
+                           by = c("Date", "Hour"), all.x = TRUE)
+  }
   
   # --- Step 5: Calculate Fossil Fuel and Import Generation Requirements ---
   # Order by Date and Hour
@@ -289,11 +295,6 @@ dispatch_curve <- function(sim, pathway) {
   dispatch_data[, Import_NYISO := `Imports NYISO` * Import_NYISO_CF]
   dispatch_data[, Import_NBSO  := `Imports NBSO` * Import_NBSO_CF]
   dispatch_data[, Total_import_MWh := Import_QC + Import_NYISO + Import_NBSO]
-  
-  
-  # Fossil fuel generation is the residual if clean generation does not meet demand.
-  dispatch_data[, Fossil_required_MWh := pmax(Demand - Clean_MWh - Total_import_MWh, 0)]
-  
   
   # --- Step 6: Battery Storage Integration ---
   # Here we simulate battery operations:
@@ -351,17 +352,23 @@ dispatch_curve <- function(sim, pathway) {
   dispatch_data[, Battery_discharge := ifelse(Battery_flow < 0, -Battery_flow, 0)]
   
   # Now update fossil fuel requirements.
+  # Fossil fuel generation is the residual if clean generation does not meet demand.
+  dispatch_data[, Fossil_required_MWh := pmax(Demand - Clean_MWh - Total_import_MWh - Battery_discharge, 0)]
+  dispatch_data[, Old_Fossil_Fuels_net_MWh := pmin(Old_Fossil_Fuels_hr_maxmin_MWh, Fossil_required_MWh)]
+  # Apply constraints
+  Old_Fossil_Fuels_actual_MWh
+  
   # Effective generation is Clean_MWh plus contributions from battery discharge and imports.
   dispatch_data[, Shortage_MWh := pmax(Demand - (Clean_MWh + Battery_discharge + 
-                                                  Total_import_MWh + Old_Fossil_Fuels_hr_max_MWh + New_Fossil_Fuel_MWh), 0)]
+                                                  Total_import_MWh + Old_Fossil_Fuels_hr_maxmin_MWh + New_Fossil_Fuel_MWh), 0)]
   
   # Optionally, remove temporary net_energy column.
   dispatch_data[, c("net_energy", "Percentile_ImpNBSO", "Percentile_ImpNYISO", 
                     "Percentile_ImpQC", "Percentile_Offshore", "Percentile_Onshore", "Percentile_Solar") := NULL]
   
   # Posterior distribution 1) Old Fossil Fuels, 2) Imports
-  
-  # Posterior distribution: if there is a shortage, re-sample imports using max CF
+
+  # Imports Posterior distribution: if there is a shortage, re-sample imports using max CF
   dispatch_data[Shortage_MWh > 0, `:=`(
     Import_QC    = `Imports QC` * imports_max_CF,
     Import_NYISO = `Imports NYISO` * imports_max_CF,
@@ -370,19 +377,10 @@ dispatch_curve <- function(sim, pathway) {
   
   dispatch_data[Shortage_MWh > 0, Total_import_MWh := Import_QC + Import_NYISO + Import_NBSO]
   # Re-calculation battery charging/discharging
-  if (pathway %in% c("A", "D")) {
-    dispatch_data <- merge(dispatch_data,
-                           Fossil_Fuels_hr_max[, .(Date, Hour, Old_Fossil_Fuels_hr_max_MWh = max_gen_hr_no_retirement_MW)],
-                           by = c("Date", "Hour"), all.x = TRUE)
-  } else {
-    dispatch_data <- merge(dispatch_data,
-                           Fossil_Fuels_hr_max[, .(Date, Hour, Old_Fossil_Fuels_hr_max_MWh = max_gen_hr_retirement_MW)],
-                           by = c("Date", "Hour"), all.x = TRUE)
-  }
-  
+
   # Re-calculation shortages
   dispatch_data[, Shortage_MWh := pmax(
-    Demand - (Clean_MWh + Battery_discharge + Total_import_MWh + Old_Fossil_Fuels_hr_max_MWh + New_Fossil_Fuel_MWh),
+    Demand - (Clean_MWh + Battery_discharge + Total_import_MWh + Old_Fossil_Fuels_hr_maxmin_MWh + New_Fossil_Fuel_MWh),
     0
   )]
   
