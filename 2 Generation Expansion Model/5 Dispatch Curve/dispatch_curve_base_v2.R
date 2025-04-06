@@ -372,36 +372,27 @@ dispatch_curve_adjustments <- function(results) {
   
   # --- Adjust Generation to Meet Capacity Constraints ---
   results_updated <- results_updated[, {
-    total_gen <- sum(Gen_MWh)
-    net_cap <- unique(Old_Fossil_Fuels_net_MWh)
+    dt <- copy(.SD)  # Create a modifiable copy of .SD
+    total_gen <- sum(dt$Gen_MWh)
+    net_cap <- unique(dt$Old_Fossil_Fuels_net_MWh)
     
     if (total_gen <= net_cap) {
-      # If total generation is within capacity, no adjustment is needed.
-      .SD[, Gen_MWh_used := Gen_MWh]
+      dt[, Gen_MWh_used := Gen_MWh]
+      dt  # Return the modified copy
     } else {
-      # Otherwise, adjust generation:
-      # 1. Order by lowest capacity factor.
-      .SD_sorted <- .SD[order(CF_hr)]
-      
-      # 2. Determine the amount of generation that exceeds the net capacity.
+      dt_sorted <- dt[order(CF_hr)]
       overage <- total_gen - net_cap
-      
-      Gen_MWh_orig <- .SD_sorted$Gen_MWh
-      
-      # 3. Calculate the maximum reducible generation for each row.
+      Gen_MWh_orig <- dt_sorted$Gen_MWh
       reducible_raw <- pmin(Gen_MWh_orig, overage)
       cumulative_reducible <- cumsum(reducible_raw)
-      reducible <- ifelse(cumulative_reducible <= overage, reducible_raw, pmax(0, overage - shift(cumulative_reducible, fill = 0)))
-      
-      # 4. Adjust generation by subtracting the reducible amount.
+      reducible <- ifelse(cumulative_reducible <= overage, reducible_raw,
+                          pmax(0, overage - shift(cumulative_reducible, fill = 0)))
       Gen_MWh_adj <- Gen_MWh_orig - reducible
-      
-      .SD_sorted[, Gen_MWh_used := Gen_MWh_adj]
-      
-      # Restore the original order within the group.
-      .SD_sorted[order(match(Facility_Unit.ID, .SD$Facility_Unit.ID))]
+      dt_sorted[, Gen_MWh_used := Gen_MWh_adj]
+      dt_sorted  # Return the modified sorted copy
     }
   }, by = .(Date, Hour)]
+  
   
   # --- Reorder Data Chronologically ---
   setorder(results_updated, Facility_Unit.ID, Date, Hour)
@@ -568,17 +559,71 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
   
   # --- Step 2: Merge Aggregated Fossil Data with Dispatch Curve Results ---
   final_results <- merge(dispatch_curve_results, fossil_agg, by = c("Date", "Hour"), all.x = TRUE)
-  
-  # Replace any missing fossil adjustments with 0
   final_results[is.na(Old_Fossil_Fuels_adj_MWh), Old_Fossil_Fuels_adj_MWh := 0]
   
+  # --- Step 3: Recalculate Battery Integration Using Calibrated Net Energy ---
+  # The idea: fossil fuels now contribute to net energy. If net energy is negative,
+  # battery discharges (covering shortage); if positive, excess generation charges battery.
+  # Assumptions: 
+  #  - dispatch_curve_results has columns: Clean_MWh, New_Fossil_Fuel_MWh, Total_import_MWh, 
+  #    Storage_MW, and Demand.
+  #  - Battery power limit is Storage_MW/8.
+  final_results[, battery_power_limit := Storage_MW / 8]
+  
+  rt_eff <- 0.85
+  eta <- sqrt(rt_eff)
+  
+  # Calculate calibrated net energy (without battery) by including fossil generation
+  final_results[, net_energy_calibrated := (Clean_MWh + Old_Fossil_Fuels_adj_MWh + 
+                                              New_Fossil_Fuel_MWh + Total_import_MWh) - Demand]
+  # Limit the net energy to battery charging/discharging power limits:
+  final_results[, net_energy_calibrated := pmin(pmax(net_energy_calibrated, -battery_power_limit), battery_power_limit)]
+  
+  # Ensure the data is ordered chronologically:
+  setorder(final_results, Date, Hour)
+  storage_status_initial <- 0
+  
+  # Simulate battery state hour-by-hour using a similar dynamic approach as in dispatch_curve.
+  storage_status_vec <- Reduce(function(prev, i) {
+    net <- final_results$net_energy_calibrated[i]
+    capacity <- final_results$Storage_MW[i]
+    new_storage <- if (net >= 0) prev + net * eta else prev + net / eta
+    min(max(new_storage, 0), capacity)
+  }, seq_len(nrow(final_results)), init = storage_status_initial, accumulate = TRUE)[-1]
+  
+  final_results[, Calibrated_Storage_status := storage_status_vec]
+  final_results[, Calibrated_Battery_flow := c(0, diff(Calibrated_Storage_status))]
+  final_results[, Calibrated_Battery_charge := ifelse(Calibrated_Battery_flow > 0, Calibrated_Battery_flow, 0)]
+  final_results[, Calibrated_Battery_discharge := ifelse(Calibrated_Battery_flow < 0, -Calibrated_Battery_flow, 0)]
+  
+  # --- Step 4: Adjust Imports Based on Calibrated Shortage ---
+  # First, compute the preliminary shortage after battery adjustments:
+  final_results[, Calibrated_Shortage_MWh := round(
+    pmax(Demand - (Clean_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh +
+                     Total_import_MWh + Calibrated_Battery_discharge), 0), 2)]
+  
+  # If a shortage remains, allow additional imports (up to the maximum limit) to help cover it.
+  final_results[, Calibrated_Total_import_net_MWh := ifelse(
+    Calibrated_Shortage_MWh > 0,
+    Total_import_MWh + pmin(Calibrated_Shortage_MWh, Total_import_max_MWh - Total_import_MWh),
+    Total_import_MWh
+  )]
+  
+  # Recalculate the final shortage with the adjusted imports:
+  final_results[, Calibrated_Shortage_MWh := round(
+    pmax(Demand - (Clean_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh +
+                     Calibrated_Total_import_net_MWh + Calibrated_Battery_discharge), 0), 2)]
+  
+  # --- (Optional) Step 5: Compute a Net Energy Balance ---
+  final_results[, Calibrated_net_energy := (Clean_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh +
+                                              Calibrated_Total_import_net_MWh + Calibrated_Battery_discharge) - Demand]
   
   return(final_results)
 }
 
 
 # Function Execution
-dispatch_curve_results <- dispatch_curve(sim = 1, pathway = "B1")
+dispatch_curve_results <- dispatch_curve(sim = 1, pathway = "A")
 dispatch_curve_results <- dispatch_curve_results[227704:227904, ] # Test
 fossil_fuels_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results)
 final_hourly_results <- dispatch_curve_calibrations(dispatch_curve_results, fossil_fuels_hourly_results)
