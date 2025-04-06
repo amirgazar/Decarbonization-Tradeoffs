@@ -360,7 +360,7 @@ dispatch_curve_adjustments <- function(results) {
   
   # Calculate CF
   results_joined$CF_hr <- results_joined$Gen_MWh / results_joined$Estimated_NameplateCapacity_MW
-  results_joined$Ramp_MWh <- results_joined$Ramp /results_joined$Estimated_NameplateCapacity_MW
+  results_joined$Ramp_MWh <- results_joined$Estimated_NameplateCapacity_MW/ results_joined$Ramp
   setorder(results_joined, Date, Hour, CF_hr)
   
   results_adjusted <- results_joined[, {
