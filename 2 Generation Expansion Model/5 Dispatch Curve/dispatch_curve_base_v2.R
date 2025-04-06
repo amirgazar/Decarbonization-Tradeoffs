@@ -504,48 +504,7 @@ dispatch_curve_adjustments <- function(results) {
   # Step 3: Merge average intensities into the main table
   results_updated <- merge(results_updated, mean_intensities, by = "Facility_Unit.ID", all.x = TRUE)
   
-  # Get mapping from Fossil_Fuels_NPC
-  similar_mapping <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Similar_Facility_Unit_ID)]
-  
-  missing_rows <- results_updated[
-    is.na(mean_CO2_ton_per_MWh) | is.nan(mean_CO2_ton_per_MWh) |
-      is.na(mean_NOx_lb_per_MWh)  | is.nan(mean_NOx_lb_per_MWh)  |
-      is.na(mean_SO2_lb_per_MWh)  | is.nan(mean_SO2_lb_per_MWh)  |
-      is.na(mean_HI_mmbtu_per_MWh) | is.nan(mean_HI_mmbtu_per_MWh)
-  ]
-  
-  
-  # Join missing rows with similar_mapping
-  missing_rows <- merge(missing_rows, similar_mapping, by = "Facility_Unit.ID", all.x = TRUE)
-  
-  # Pull in estimates from mean_intensities for similar units
-  mean_intensity_lookup <- mean_intensities[, .(Similar_Facility_Unit_ID = Facility_Unit.ID, 
-                                                mean_CO2_ton_per_MWh_sim = mean_CO2_ton_per_MWh,
-                                                mean_NOx_lb_per_MWh_sim = mean_NOx_lb_per_MWh,
-                                                mean_SO2_lb_per_MWh_sim = mean_SO2_lb_per_MWh,
-                                                mean_HI_mmbtu_per_MWh_sim = mean_HI_mmbtu_per_MWh)]
-  
-  missing_rows <- merge(missing_rows, mean_intensity_lookup, by = "Similar_Facility_Unit_ID", all.x = TRUE)
-  # Fill in the missing estimates with the values from similar units
-  missing_rows[, `:=`(
-    mean_CO2_ton_per_MWh = fifelse(is.na(mean_CO2_ton_per_MWh), mean_CO2_ton_per_MWh_sim, mean_CO2_ton_per_MWh),
-    mean_NOx_lb_per_MWh = fifelse(is.na(mean_NOx_lb_per_MWh), mean_NOx_lb_per_MWh_sim, mean_NOx_lb_per_MWh),
-    mean_SO2_lb_per_MWh = fifelse(is.na(mean_SO2_lb_per_MWh), mean_SO2_lb_per_MWh_sim, mean_SO2_lb_per_MWh),
-    mean_HI_mmbtu_per_MWh = fifelse(is.na(mean_HI_mmbtu_per_MWh), mean_HI_mmbtu_per_MWh_sim, mean_HI_mmbtu_per_MWh)
-  )]
-  # Drop helper columns
-  missing_rows[, c("Similar_Facility_Unit_ID", 
-                   "mean_CO2_ton_per_MWh_sim", 
-                   "mean_NOx_lb_per_MWh_sim", 
-                   "mean_SO2_lb_per_MWh_sim", 
-                   "mean_HI_mmbtu_per_MWh_sim") := NULL]
-  
-  # Update the original dataset with the filled rows
-  results_updated <- rbindlist(list(
-    results_updated[!Facility_Unit.ID %in% missing_rows$Facility_Unit.ID],
-    missing_rows
-  ), use.names = TRUE, fill = TRUE)
-  
+ 
   # Calculate global means
   global_means <- mean_intensities[, .(
     global_mean_CO2 = mean(mean_CO2_ton_per_MWh, na.rm = TRUE),
@@ -571,6 +530,8 @@ dispatch_curve_adjustments <- function(results) {
   
   # Step 5: Drop the raw intensity columns (you keep the mean_* versions)
   results_updated[, c("CO2_intensity", "NOx_intensity", "SO2_intensity", "HI_intensity") := NULL]
+  results_updated$Pathway <- pathway
+  results_updated$Simulation <- sim
   
   return(results_updated)
 }
