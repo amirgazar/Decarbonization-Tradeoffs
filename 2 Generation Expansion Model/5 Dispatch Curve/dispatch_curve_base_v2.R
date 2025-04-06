@@ -282,7 +282,6 @@ dispatch_curve <- function(sim, pathway) {
                     "Percentile_ImpHQ", "Percentile_Offshore", "Percentile_Onshore", "Percentile_Solar", 
                     "Fossil_required_MWh") := NULL]
   
-  
   return(dispatch_data)
 }
 
