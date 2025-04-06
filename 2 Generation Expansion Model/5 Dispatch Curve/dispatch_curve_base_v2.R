@@ -68,131 +68,45 @@ setkey(Demand_data, Date, Hour)
 setkey(Peak_demand, Date)
 setkey(Fossil_Fuels_hr_maxmin, Date, Hour)
 
-# Fossil Fuel Sampling Function
-library(data.table)
-
-fossil_sampler <- function(dispatch_data, idx_fossil) {
-  # Convert dispatch_data and fossil data to data.table if they aren't already
-  dispatch_dt <- as.data.table(dispatch_data)
-  fossil_dt   <- as.data.table(Fossil_Fuels_Gen)
-  
-  # Create a master list of fossil facility IDs from your NPC table.
-  unique_units <- unique(Fossil_Fuels_NPC$Facility_Unit.ID)
-  
-  # Define the variable prefixes to sample.
-  var_prefixes <- c("Gen_", "CO2_", "NOx_", "HI_")
-  
-  # Loop over each row (each time step) in dispatch data.
-  results <- lapply(seq_len(nrow(dispatch_dt)), function(i) {
-    # Get current time from dispatch row.
-    curr_day  <- dispatch_dt[i, DayLabel]
-    curr_hour <- dispatch_dt[i, Hour]
-    
-    # Subset fossil data for the current DayLabel and Hour.
-    fossil_subset <- fossil_dt[DayLabel == curr_day & Hour == curr_hour]
-    if (nrow(fossil_subset) == 0) return(NULL)
-    
-    # For each facility present at this time step:
-    facility_results <- lapply(unique(fossil_subset$Facility_Unit.ID), function(unit) {
-      # Take the first available row for the facility.
-      facility_row <- fossil_subset[Facility_Unit.ID == unit][1]
-      
-      # Determine the facility's index in the master list.
-      unit_idx <- which(unique_units == unit)
-      if (length(unit_idx) == 0) return(NULL)
-      
-      # Get the precomputed random index for this facility at this hour.
-      rand_idx <- idx_fossil[i, unit_idx]
-      
-      # For each variable prefix, use lapply to sample a value.
-      sampled_vals <- lapply(var_prefixes, function(prefix) {
-        # Find columns that start with the prefix.
-        cols <- grep(paste0("^", prefix), names(facility_row), value = TRUE)
-        if (length(cols) == 0) return(NA_real_)
-        # Adjust rand_idx to the number of columns available.
-        col_idx <- ((rand_idx - 1) %% length(cols)) + 1
-        as.numeric(facility_row[[cols[col_idx]]])
-      })
-      
-      # Name the sampled values as Sampled_Gen, Sampled_CO2, etc.
-      names(sampled_vals) <- paste0("Sampled_", sub("_$", "", var_prefixes))
-      
-      # Return a one-row data.table with the time, facility ID, and sampled values.
-      data.table(
-        DayLabel = curr_day,
-        Hour = curr_hour,
-        Facility_Unit.ID = unit,
-        sampled_vals
-      )
-    })
-    
-    # Combine the facility results for the current time step.
-    rbindlist(facility_results)
-  })
-  
-  # Combine all time steps into one data.table.
-  result_dt <- rbindlist(results, fill = TRUE)
-  return(result_dt)
-}
-
-fossil_constraints <- 
-
-# Example usage:
-sampled_fossil <- fossil_sampler_by_hour(dispatch_data, idx_fossil)
-
-# Dispatch Curve
+# FUNCTION: Applies Dispatch Curve
 dispatch_curve <- function(sim, pathway) {
-  
-  # --- Step 1: Filter and Merge Data ---
-  # Filter capacity data for the chosen pathway and year 2025.
+  #####################################################################
+  # STEP 1: Filter and Merge Data
+  #####################################################################
+  # Filter capacity data for the chosen pathway (years ≥2025) and merge with demand data.
   cap_data <- Hourly_Installed_Capacity[Pathway == pathway & Year >= 2025]
-  
-  # Merge with Demand_data on Date and Hour.
   dispatch_data <- merge(Demand_data, cap_data, by = c("Date", "Hour"))
-  
-  # Order by Date and Hour
+  dispatch_data[, Simulation := sim]
   setorder(dispatch_data, Date, Hour)
   
-  # --- Step 2: Extract Random Percentile Indices ---
+  #####################################################################
+  # STEP 2: Extract Random Percentile Indices
+  #####################################################################
+  # Retrieve random vector and compute indices for each asset.
   random_vector <- Random_sequence[[sim]]
   n_random <- length(random_vector)
-  
-  # Number of hours (rows) in the dispatch simulation
   n_hours <- nrow(dispatch_data)
-  
-  # Fossil fuels
-  unique_units <- unique(Fossil_Fuels_NPC$Facility_Unit.ID)
-  n_units <- length(unique_units)
-  
-  n_total_rand <- 6 + n_units
-  
-  # For each hour we need 6 random numbers.
-  # Compute a base index for each hour; note that these indices are 0-indexed.
+  n_total_rand <- 6
   base_indices <- ((0:(n_hours - 1)) * n_total_rand)
   
-  # For each asset, compute the index into the random_vector (using modulo to cycle)
   idx_solar    <- (base_indices + 0) %% n_random + 1
   idx_onshore  <- (base_indices + 1) %% n_random + 1
   idx_offshore <- (base_indices + 2) %% n_random + 1
-  idx_impQC    <- (base_indices + 3) %% n_random + 1
+  idx_impHQ    <- (base_indices + 3) %% n_random + 1   # For Quebec (HQ) imports
   idx_impNYISO <- (base_indices + 4) %% n_random + 1
   idx_impNBSO  <- (base_indices + 5) %% n_random + 1
   
-  shift_values <- 6:(6 + n_units - 1) #fossil 
-  idx_fossil <- sapply(shift_values, function(s) (base_indices + s) %% n_random + 1)
-  
-  # Assign the random numbers as the percentile indices for each asset.
-  # (Assumes the random_vector values are integers corresponding to available percentiles.)
   dispatch_data[, Percentile_Solar    := random_vector[idx_solar]]
   dispatch_data[, Percentile_Onshore  := random_vector[idx_onshore]]
   dispatch_data[, Percentile_Offshore := random_vector[idx_offshore]]
-  dispatch_data[, Percentile_ImpQC    := random_vector[idx_impQC]]
+  dispatch_data[, Percentile_ImpHQ    := random_vector[idx_impHQ]]
   dispatch_data[, Percentile_ImpNYISO := random_vector[idx_impNYISO]]
   dispatch_data[, Percentile_ImpNBSO  := random_vector[idx_impNBSO]]
-
-  # --- Step 3: Lookup CF Values from the CF Datasets ---
-  # (Assumes that the CF datasets are keyed on DayLabel, Hour, and Percentile)
-  # Solar CF lookup
+  
+  #####################################################################
+  # STEP 3: Lookup Capacity Factor (CF) Values
+  #####################################################################
+  # Merge CF data for Solar.
   dispatch_data <- merge(dispatch_data, 
                          Solar_CF[, .(DayLabel, Hour, Percentile, CF)],
                          by.x = c("DayLabel", "Hour", "Percentile_Solar"),
@@ -200,7 +114,7 @@ dispatch_curve <- function(sim, pathway) {
                          all.x = TRUE)
   setnames(dispatch_data, "CF", "Solar_CF")
   
-  # Onshore Wind CF lookup
+  # Merge CF data for Onshore Wind.
   dispatch_data <- merge(dispatch_data, 
                          Onwind_CF[, .(DayLabel, Hour, Percentile, CF)],
                          by.x = c("DayLabel", "Hour", "Percentile_Onshore"),
@@ -208,7 +122,7 @@ dispatch_curve <- function(sim, pathway) {
                          all.x = TRUE)
   setnames(dispatch_data, "CF", "Onshore_CF")
   
-  # Offshore Wind CF lookup
+  # Merge CF data for Offshore Wind.
   dispatch_data <- merge(dispatch_data, 
                          Offwind_CF[, .(DayLabel, Hour, Percentile, CF)],
                          by.x = c("DayLabel", "Hour", "Percentile_Offshore"),
@@ -216,18 +130,15 @@ dispatch_curve <- function(sim, pathway) {
                          all.x = TRUE)
   setnames(dispatch_data, "CF", "Offshore_CF")
   
-  
-
-  # Imports CF lookups (assumes Imports_CF is keyed by DayLabel and Percentile)
-  # Import QC
+  # Merge CF data for Quebec (HQ) imports.
   dispatch_data <- merge(dispatch_data, 
                          Imports_CF[, .(DayLabel, Percentile, imports_QC)],
-                         by.x = c("DayLabel", "Percentile_ImpQC"),
+                         by.x = c("DayLabel", "Percentile_ImpHQ"),
                          by.y = c("DayLabel", "Percentile"),
                          all.x = TRUE)
-  setnames(dispatch_data, "imports_QC", "Import_QC_CF")
+  setnames(dispatch_data, "imports_QC", "Import_HQ_CF")
   
-  # Import NYISO
+  # Merge CF data for NYISO imports.
   dispatch_data <- merge(dispatch_data, 
                          Imports_CF[, .(DayLabel, Percentile, imports_NYISO)],
                          by.x = c("DayLabel", "Percentile_ImpNYISO"),
@@ -235,7 +146,7 @@ dispatch_curve <- function(sim, pathway) {
                          all.x = TRUE)
   setnames(dispatch_data, "imports_NYISO", "Import_NYISO_CF")
   
-  # Import NBSO
+  # Merge CF data for NBSO imports.
   dispatch_data <- merge(dispatch_data, 
                          Imports_CF[, .(DayLabel, Percentile, imports_NBSO)],
                          by.x = c("DayLabel", "Percentile_ImpNBSO"),
@@ -243,154 +154,306 @@ dispatch_curve <- function(sim, pathway) {
                          all.x = TRUE)
   setnames(dispatch_data, "imports_NBSO", "Import_NBSO_CF")
   
-
-  # --- Step 4: Calculate Clean Generation ---
-  # For variable renewables, multiply installed capacity by the looked-up CF values.
-  dispatch_data[, Solar_MWh    := Solar * Solar_CF]
-  dispatch_data[, Onshore_MWh  := `Onshore Wind` * Onshore_CF]
-  dispatch_data[, Offshore_MWh := `Offshore Wind` * Offshore_CF]
+  #####################################################################
+  # STEP 4: Calculate Clean Generation
+  #####################################################################
+  # Compute generation for variable renewables (in MWh).
+  dispatch_data[, Solar_MWh    := Solar_MW * Solar_CF]
+  dispatch_data[, Onshore_MWh  := Onshore_Wind_MW * Onshore_CF]
+  dispatch_data[, Offshore_MWh := Offshore_Wind_MW * Offshore_CF]
   
-  # For baseload assets, use fixed CF values from CleanBaseload_Facility_Data.
+  # Compute generation for baseload assets using fixed CF values.
   nuclear_CF <- as.numeric(CleanBaseload_Facility_Data[technology == "Nuclear", value])
   hydro_CF   <- as.numeric(CleanBaseload_Facility_Data[technology == "Hydropower", value])
   bio_CF     <- as.numeric(CleanBaseload_Facility_Data[technology == "Biopower", value])
   
-  dispatch_data[, Nuclear_MWh := Nuclear * nuclear_CF]
-  dispatch_data[, Hydro_MWh   := Hydropower * hydro_CF]
-  dispatch_data[, Biomass_MWh := Biomass * bio_CF]
+  dispatch_data[, Nuclear_MWh := Nuclear_MW * nuclear_CF]
+  dispatch_data[, Hydro_MWh   := Hydropower_MW * hydro_CF]
+  dispatch_data[, Biomass_MWh := Biomass_MW * bio_CF]
   
-  # Maxmimum Imports CF
-  imports_max_CF <- 0.95
-  
-  # SMRs
+  # Compute generation from SMRs.
   SMR_CF <- SMR_Facility_Data$CF
-  dispatch_data[, SMR_MWh := SMR * SMR_CF]
-
-  # Sum clean generation from all sources.
+  dispatch_data[, SMR_MWh := SMR_MW * SMR_CF]
+  
+  # Sum all clean generation.
   dispatch_data[, Clean_MWh := Solar_MWh + Onshore_MWh + Offshore_MWh +
                   Nuclear_MWh + Hydro_MWh + Biomass_MWh + SMR_MWh]
-  
-  # New Fossil Fuels
-  New_Fossil_Fuels_NPC <- New_Fossil_Fuels_NPC[1]
-  NFF_CF <- New_Fossil_Fuels_NPC$CF
-  dispatch_data[, New_Fossil_Fuel_MWh := `New NG` * NFF_CF]
-  
-  # Old Fossil Fuels (Maximum Hourly) Posterior distribution
-  if (pathway %in% c("A", "D")) {
-    dispatch_data <- merge(dispatch_data,
-                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_maxmin_MWh = max_gen_hr_no_retirement_MW)],
-                           by = c("Date", "Hour"), all.x = TRUE)
-  } else {
-    dispatch_data <- merge(dispatch_data,
-                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_maxmin_MWh = max_gen_hr_retirement_MW)],
-                           by = c("Date", "Hour"), all.x = TRUE)
-  }
-  
-  # --- Step 5: Calculate Fossil Fuel and Import Generation Requirements ---
-  # Order by Date and Hour
   setorder(dispatch_data, Date, Hour)
   
-  # Calculate import generation using the looked-up CFs.
-  dispatch_data[, Import_QC    := `Imports QC` * Import_QC_CF]
-  dispatch_data[, Import_NYISO := `Imports NYISO` * Import_NYISO_CF]
-  dispatch_data[, Import_NBSO  := `Imports NBSO` * Import_NBSO_CF]
-  dispatch_data[, Total_import_MWh := Import_QC + Import_NYISO + Import_NBSO]
-  
-  # --- Step 6: Battery Storage Integration ---
-  # Here we simulate battery operations:
-  #   - When Clean_MWh exceeds Demand, surplus energy charges the battery.
-  #   - When Demand exceeds Clean_MWh, the battery discharges to help meet demand.
-  #
-  # We assume that the maximum battery capacity is given in the "Storage" column
-  # (from the capacity data) and that the initial storage level is provided.
-  # Initial storage state (in energy units, e.g. MWh)
-  # Initial storage state (in energy units, e.g. MWh)
+  #####################################################################
+  # STEP 5: Battery Storage Integration
+  #####################################################################
+  # Calculate net energy (clean generation minus demand) for battery operations.
   storage_status_initial <- 0
+  rt_eff <- 0.85          # Round-trip efficiency
+  eta <- sqrt(rt_eff)     # Charging/discharging efficiency
   
-  # Define round-trip efficiency and derive charging/discharging efficiency.
-  rt_eff <- 0.85
-  eta <- sqrt(rt_eff)  # ~0.922
-  
-  # Compute net energy balance per hour (positive = surplus; negative = deficit)
   dispatch_data[, net_energy := Clean_MWh - Demand]
-  
-  # Optionally, enforce a row-specific power limit.
-  # For an 8‑hour battery, the max charge/discharge per hour is (row capacity)/8.
-  dispatch_data[, battery_power_limit := Storage / 8]
+  dispatch_data[, battery_power_limit := Storage_MW / 8]
   dispatch_data[, net_energy := pmin(pmax(net_energy, -battery_power_limit), battery_power_limit)]
   
-  # Use Reduce to compute the storage state row-by-row.
-  # We iterate over row indices so that each iteration can access the corresponding capacity.
+  # Compute storage state hour-by-hour.
   storage_status_vec <- Reduce(
     function(prev, i) {
       net <- dispatch_data$net_energy[i]
-      capacity <- dispatch_data$Storage[i]
-      
-      # Apply efficiency: if charging (net >= 0), use charging efficiency; if discharging, adjust accordingly.
-      new_storage <- if (net >= 0) {
-        prev + net * eta
-      } else {
-        prev + net / eta
-      }
-      
-      # Constrain the new storage to lie between 0 and the current row's capacity.
+      capacity <- dispatch_data$Storage_MW[i]
+      new_storage <- if (net >= 0) prev + net * eta else prev + net / eta
       min(max(new_storage, 0), capacity)
     },
     seq_len(nrow(dispatch_data)),
     init = storage_status_initial,
     accumulate = TRUE
-  )[-1]  # Remove the initial value
+  )[-1]
   
-  # Update the data table with the computed storage state.
   dispatch_data[, Storage_status := storage_status_vec]
-  
-  # Compute battery flow (change in storage from the previous hour).
   dispatch_data[, Battery_flow := c(0, diff(Storage_status))]
-  
-  # Separate battery flow into charging and discharging components.
   dispatch_data[, Battery_charge := ifelse(Battery_flow > 0, Battery_flow, 0)]
   dispatch_data[, Battery_discharge := ifelse(Battery_flow < 0, -Battery_flow, 0)]
   
-  # Now update fossil fuel requirements.
-  # Fossil fuel generation is the residual if clean generation does not meet demand.
+  #####################################################################
+  # STEP 6: Fossil Fuel Generation Requirements
+  #####################################################################
+  # Compute generation from new fossil fuels.
+  New_Fossil_Fuels_NPC <- New_Fossil_Fuels_NPC[1]
+  NFF_CF <- New_Fossil_Fuels_NPC$CF
+  dispatch_data[, New_Fossil_Fuel_MWh := New_NG_MW * NFF_CF]
+  
+  # Merge maximum hourly capacity for old fossil fuels.
+  if (pathway %in% c("A", "D")) {
+    dispatch_data <- merge(dispatch_data,
+                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_max_MWh = max_gen_hr_no_retirement_MW)],
+                           by = c("Date", "Hour"), all.x = TRUE)
+  } else {
+    dispatch_data <- merge(dispatch_data,
+                           Fossil_Fuels_hr_maxmin[, .(Date, Hour, Old_Fossil_Fuels_hr_max_MWh = max_gen_hr_retirement_MW)],
+                           by = c("Date", "Hour"), all.x = TRUE)
+  }
+  
+  #####################################################################
+  # STEP 7: Import Generation and Splitting QC Imports
+  #####################################################################
+  # Calculate total import generation (in MWh) for each source.
+  dispatch_data[, Spot_Market_Imports_HQ_MWh := Spot_Market_Imports_HQ_MW * Import_HQ_CF]
+  dispatch_data[, Import_NYISO_MWh    := Imports_NYISO_MW * Import_NYISO_CF]
+  dispatch_data[, Import_NBSO_MWh     := Imports_NBSO_MW * Import_NBSO_CF]
+  
+  #  long-term.
+  imports_max_CF <- 0.95
+  dispatch_data[, Long_Term_Imports_HQ_MWh := Long_Term_Imports_HQ_MW * imports_max_CF]
+  
+  # Sum total imports
+  dispatch_data[, Total_import_MWh := Long_Term_Imports_HQ_MWh + Spot_Market_Imports_HQ_MWh + Import_NYISO_MWh + Import_NBSO_MWh]
+  dispatch_data[, Total_import_max_MWh := (Imports_NBSO_MW + Imports_NYISO_MW + Imports_HQ_MW) * imports_max_CF]
+  
+  #####################################################################
+  # STEP 8: Fossil Generation and Shortage Calculation (Posterior Distribution)
+  #####################################################################
+  # Compute fossil generation needed to cover remaining demand.
   dispatch_data[, Fossil_required_MWh := pmax(Demand - Clean_MWh - Total_import_MWh - Battery_discharge, 0)]
-  dispatch_data[, Old_Fossil_Fuels_net_MWh := pmin(Old_Fossil_Fuels_hr_maxmin_MWh, Fossil_required_MWh)]
-  # Apply constraints
-  Old_Fossil_Fuels_actual_MWh
+  dispatch_data[, Old_Fossil_Fuels_net_MWh := pmin(Old_Fossil_Fuels_hr_max_MWh, Fossil_required_MWh)]
   
-  # Effective generation is Clean_MWh plus contributions from battery discharge and imports.
-  dispatch_data[, Shortage_MWh := pmax(Demand - (Clean_MWh + Battery_discharge + 
-                                                  Total_import_MWh + Old_Fossil_Fuels_hr_maxmin_MWh + New_Fossil_Fuel_MWh), 0)]
+  dispatch_data[, Shortage_MWh := round(pmax(Demand - (Clean_MWh + Battery_discharge + 
+                                                         Total_import_MWh + Old_Fossil_Fuels_net_MWh + New_Fossil_Fuel_MWh), 0), 2)]
   
-  # Optionally, remove temporary net_energy column.
-  dispatch_data[, c("net_energy", "Percentile_ImpNBSO", "Percentile_ImpNYISO", 
-                    "Percentile_ImpQC", "Percentile_Offshore", "Percentile_Onshore", "Percentile_Solar") := NULL]
-  
-  # Posterior distribution 1) Old Fossil Fuels, 2) Imports
-
-  # Imports Posterior distribution: if there is a shortage, re-sample imports using max CF
-  dispatch_data[Shortage_MWh > 0, `:=`(
-    Import_QC    = `Imports QC` * imports_max_CF,
-    Import_NYISO = `Imports NYISO` * imports_max_CF,
-    Import_NBSO  = `Imports NBSO` * imports_max_CF
+  # Resample imports if a shortage exists.
+  dispatch_data[, Total_import_net_MWh := ifelse(
+    Shortage_MWh > 0,
+    Total_import_MWh + pmin(Shortage_MWh, Total_import_max_MWh - Total_import_MWh),
+    pmax(0, pmin(Total_import_MWh, Demand - (Clean_MWh + Battery_discharge + Old_Fossil_Fuels_net_MWh + New_Fossil_Fuel_MWh)))
   )]
   
-  dispatch_data[Shortage_MWh > 0, Total_import_MWh := Import_QC + Import_NYISO + Import_NBSO]
-  # Re-calculation battery charging/discharging
-
-  # Re-calculation shortages
-  dispatch_data[, Shortage_MWh := pmax(
-    Demand - (Clean_MWh + Battery_discharge + Total_import_MWh + Old_Fossil_Fuels_hr_maxmin_MWh + New_Fossil_Fuel_MWh),
+  # Recalculate shortage.
+  dispatch_data[, Shortage_MWh := round(pmax(
+    Demand - (Clean_MWh + Battery_discharge + Total_import_net_MWh + Old_Fossil_Fuels_net_MWh + New_Fossil_Fuel_MWh),
     0
+  ), 2)]
+  
+  # Calculate Curtailments rounded to 2 decimal points
+  dispatch_data[, Curtailments_MWh := round(
+    pmax(0, (Clean_MWh + Battery_discharge + Old_Fossil_Fuels_net_MWh + New_Fossil_Fuel_MWh + Total_import_net_MWh) - Demand - Battery_charge), 
+    2
   )]
+  
+  #####################################################################
+  # STEP 9: Adjust columns
+  #####################################################################
+  # Remove temporary columns.
+  dispatch_data[, c("net_energy", "Percentile_ImpNBSO", "Percentile_ImpNYISO", 
+                    "Percentile_ImpHQ", "Percentile_Offshore", "Percentile_Onshore", "Percentile_Solar", 
+                    "Fossil_required_MWh") := NULL]
+  
   
   return(dispatch_data)
 }
 
-# Example usage:
-result <- dispatch_curve(sim = 1, pathway = "B2")
-head(result[, .(Date, Hour, Demand, Clean_MWh, Fossil_required_MWh)])
 
+# FUNCTION: Applies Fossil Fuel Constraints, Calculates Emissions 
+# and re-calculates Battery Status and Shortages
+dispatch_curve_adjustments <- function(results) {
+  # --- Preliminaries ---
+  sim <- results$Simulation[1]
+  random_vector <- Random_sequence[[sim]]
+  n_random <- length(random_vector)
+  n_hours <- nrow(results)
+
+  # Fossil fuels
+  # Filter rows where Retirement_year > 2025
+  Fossil_Fuels_NPC <- Fossil_Fuels_NPC[Fossil_Fuels_NPC$Retirement_year > 2025, ]
+  # Get unique Facility_Unit.ID values from the filtered data
+  unique_units <- unique(Fossil_Fuels_NPC$Facility_Unit.ID)
+  n_units <- length(unique_units)
+  n_total_rand <- 6 + n_units
+  
+  # Compute a base index for each hour; note that these indices are 0-indexed.
+  base_indices <- ((0:(n_hours - 1)) * n_total_rand)
+  
+  # For each asset, compute the index into the random_vector (using modulo to cycle)
+  shift_values <- 6:(6 + n_units - 1) #fossil 
+  idx_fossil <- sapply(shift_values, function(s) (base_indices + s) %% n_random + 1)
+  # Build a long data.table of percentiles
+  percentiles_dt <- rbindlist(
+    lapply(seq_along(unique_units), function(j) {
+      data.table(
+        Date = results$Date,
+        DayLabel = results$DayLabel,
+        Hour = results$Hour,
+        Facility_Unit.ID = unique_units[j],
+        Percentile = random_vector[idx_fossil[, j]]
+      )
+    })
+  )
+  
+  # Keep only relevant columns from gen_dt
+  melt_metrics <- function(prefix, dt) {
+    metric_cols <- grep(paste0("^", prefix, "_"), names(dt), value = TRUE)
+    melt(dt[, c("DayLabel", "Hour", "Facility_Unit.ID", ..metric_cols)],
+         id.vars = c("DayLabel", "Hour", "Facility_Unit.ID"),
+         variable.name = "UnitVar",
+         value.name = prefix)
+  }
+  
+  gen_long  <- melt_metrics("Gen", Fossil_Fuels_Gen)
+  co2_long  <- melt_metrics("CO2", Fossil_Fuels_Gen)
+  nox_long  <- melt_metrics("NOx", Fossil_Fuels_Gen)
+  so2_long  <- melt_metrics("SO2", Fossil_Fuels_Gen)
+  
+  
+  
+  
+  results[, (paste0("Percentile_", unique_units)) := 
+            lapply(seq_along(unique_units), function(j) { 
+              random_vector[idx_fossil[, j] ]
+            })]
+  
+
+  # (Fossil_Fuels_Gen is assumed to have DayLabel, Hour, Facility_Unit.ID and many Gen_*, CO2_* columns.)
+  gen_dt <- copy(Fossil_Fuels_Gen)
+  # Ensure gen_dt is keyed by DayLabel and Hour for an efficient join.
+  setkey(gen_dt, DayLabel, Hour)
+  
+  
+  # --- Create Simulation Mapping ---
+  # For each simulation hour in results, record a simulation index and a flag (net_selected) determined by comparing net vs. max fossil values.
+  sim_map <- results[, .(Date, Hour, DayLabel,
+                         sim_index = .I,
+                         net_selected = (Old_Fossil_Fuels_net_MWh < Old_Fossil_Fuels_hr_max_MWh))]
+  
+  # We'll create two datasets: one for hours where net is selected (use Gen) and one for hours where it is not (use NPC).
+  
+  # --- Case 1: net_selected = TRUE, use Fossil_Fuels_Gen ---
+  # (Fossil_Fuels_Gen is assumed to have DayLabel, Hour, Facility_Unit.ID and many Gen_*, CO2_* columns.)
+  gen_dt <- copy(Fossil_Fuels_Gen)
+  # Ensure gen_dt is keyed by DayLabel and Hour for an efficient join.
+  setkey(gen_dt, DayLabel, Hour)
+  
+  # Merge sim_map for net hours with gen_dt on DayLabel and Hour.
+  sim_net <- sim_map[net_selected == TRUE]
+  # Use a join (each simulation hour may have many fossil rows from Gen)
+  net_adj <- gen_dt[sim_net, on = .(DayLabel, Hour), allow.cartesian = TRUE]
+  # net_adj now has columns from gen_dt plus the simulation columns from sim_net.
+  
+  # --- Case 2: net_selected = FALSE, use Fossil_Fuels_NPC ---
+  # Fossil_Fuels_NPC is static (one row per fossil unit). For each simulation hour that is not net-selected,
+  # we want one copy per fossil unit. So we do a cross join.
+  npc_dt <- copy(Fossil_Fuels_NPC)
+  # For a cross join, get the sim_map for non-net hours:
+  sim_non_net <- sim_map[net_selected == FALSE]
+  # Cross join: each simulation hour with every fossil unit from npc_dt.
+  # data.table’s CJ or merge(..., by = NULL) can be used.
+  npc_adj <- merge(sim_non_net, npc_dt, by = NULL)
+  
+  # --- Combine the Two Cases ---
+  # Add an indicator of which fossil dataset was used:
+  net_adj[, dataset_used := "Gen"]
+  npc_adj[, dataset_used := "NPC"]
+  
+  # Combine the two results (they have different columns, so we'll keep common simulation columns and add the fossil columns)
+  fossil_adj <- rbindlist(list(net_adj, npc_adj), fill = TRUE)
+  
+  # --- Compute the Adjustment Factor ---
+  # For each row, compute:
+  #   base_index = (sim_index - 1) * n_total_rand
+  #   effective index = (base_index + shift_value) %% n_random + 1
+  fossil_adj[, base_index := (sim_index - 1) * n_total_rand]
+  
+  # Join with fossil_lookup to get shift_value.
+  # For Gen data, Facility_Unit.ID should already be present.
+  # For NPC data, it comes from npc_dt.
+  setkey(fossil_adj, Facility_Unit.ID)
+  setkey(fossil_lookup, Facility_Unit.ID)
+  fossil_adj <- fossil_lookup[fossil_adj]
+  # Now each row has 'shift_value', 'base_index', and 'sim_index'.
+  fossil_adj[, random_idx := ((base_index + shift_value) %% n_random) + 1]
+  fossil_adj[, adjustment := random_vector[random_idx]]
+  
+  # --- Apply the Adjustment ---
+  # Depending on the dataset used, adjust the relevant columns.
+  # For Gen data, adjust columns starting with "Gen_" and "CO2_".
+  # For NPC data, adjust (for example) "max_gen_MW" and "min_gen_MW" (modify as needed).
+  # It is assumed that the relevant columns are numeric.
+  
+  # Identify columns by dataset:
+  # Note: because rbindlist(fill=TRUE) was used, not all rows have all columns.
+  fossil_adj[dataset_used == "Gen", {
+    # Identify generation and emission columns that exist.
+    gen_cols <- grep("^Gen_", names(.SD), value = TRUE)
+    co2_cols <- grep("^CO2_", names(.SD), value = TRUE)
+    cols_to_adjust <- c(gen_cols, co2_cols)
+    # Adjust in place if any columns are found.
+    if (length(cols_to_adjust) > 0) {
+      for (col in cols_to_adjust) {
+        set(.SD, j = col, value = .SD[[col]] * adjustment)
+      }
+    }
+    NULL
+  }, by = .I]
+  
+  fossil_adj[dataset_used == "NPC", {
+    # For NPC, adjust selected capacity columns (example: max_gen_MW and min_gen_MW)
+    cols_to_adjust <- intersect(c("max_gen_MW", "min_gen_MW"), names(.SD))
+    if (length(cols_to_adjust) > 0) {
+      for (col in cols_to_adjust) {
+        set(.SD, j = col, value = .SD[[col]] * adjustment)
+      }
+    }
+    NULL
+  }, by = .I]
+  
+  # --- Prepare Final Output ---
+  # Remove helper columns (base_index, random_idx, adjustment, shift_value) if desired.
+  fossil_adj[, c("base_index", "random_idx", "adjustment", "shift_value") := NULL]
+  
+  # Order the dataset by simulation hour (sim_index) and fossil unit
+  setorder(fossil_adj, sim_index, Facility_Unit.ID)
+  
+  return(fossil_adj)
+}
+
+
+# Function Execution
+results <- dispatch_curve(sim = 1, pathway = "B1")
+results <- results[1:100, ] # Test
+adjusted_results <- dispatch_curve_adjustments(results)
 
 
 # Prepare pathways and unique dates/hours

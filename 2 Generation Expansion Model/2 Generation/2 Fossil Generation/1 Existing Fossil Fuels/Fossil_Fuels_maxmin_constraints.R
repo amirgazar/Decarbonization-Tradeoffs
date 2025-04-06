@@ -140,6 +140,24 @@ ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
        title = "Hourly Total Maximum Generation by Retirement Status") +
   theme_minimal()
 
+hourly_long <- melt(hourly_totals, 
+                    id.vars = c("Date", "DayLabel", "Hour"), 
+                    measure.vars = c("min_gen_hr_retirement_MW", "min_gen_hr_no_retirement_MW"),
+                    variable.name = "Retirement_Status", 
+                    value.name = "Total_Gen")
+
+# Rename the retirement status labels for clarity
+hourly_long[, Retirement_Status := fifelse(Retirement_Status == "min_gen_hr_retirement_MW", 
+                                           "No-Retirements", "Retirements")]
+ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
+  geom_line() +
+  facet_grid(Retirement_Status ~ format(Date, "%Y"), scales = "free_x") +
+  labs(x = "Day Label (Day of Year)",
+       y = "Total Min Generation (MW/hr)",
+       color = "Hour",
+       title = "Hourly Total Minimum Generation by Retirement Status") +
+  theme_minimal()
+
 # Save the processed results to CSV (includes both max and min generation columns)
 dir_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions"
 if (!dir.exists(dir_path)) {

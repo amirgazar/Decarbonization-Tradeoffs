@@ -59,6 +59,27 @@ final_table <- merge(
   allow.cartesian = TRUE
 )
 
+# Extract the spot market benchmark from 2024
+spot_capacity <- final_table[Year == 2024, unique(`Imports QC`)]
+# In case there are multiple values, take the first one:
+spot_capacity <- spot_capacity[1]
+
+# For each row, if the QC imports exceed the 2024 level, assign:
+# - Spot market imports: the 2024 benchmark (or the available amount if below that)
+# - Long-term imports: the excess capacity above the 2024 level
+final_table[, Spot_Market_QC_Imports := ifelse(`Imports QC` < spot_capacity, `Imports QC`, spot_capacity)]
+final_table[, Long_Term_QC_Imports := ifelse(`Imports QC` > spot_capacity, `Imports QC` - spot_capacity, 0)]
+
+# Rename capacity-related columns to include the _MW suffix
+setnames(final_table,
+         old = c("Nuclear", "Hydropower", "Biomass", "Solar", "Onshore Wind", "Offshore Wind", 
+                 "SMR", "New NG", "Imports QC", "Imports NBSO", "Imports NYISO", "Storage",
+                 "Spot_Market_QC_Imports", "Long_Term_QC_Imports"),
+         new = c("Nuclear_MW", "Hydropower_MW", "Biomass_MW", "Solar_MW", "Onshore_Wind_MW", "Offshore_Wind_MW", 
+                 "SMR_MW", "New_NG_MW", "Imports_HQ_MW", "Imports_NBSO_MW", "Imports_NYISO_MW", "Storage_MW",
+                 "Spot_Market_Imports_HQ_MW", "Long_Term_Imports_HQ_MW"))
+
+
 # Save the final table to the output file
 output_file_path <- file.path(dirname(file_path), "Hourly_Installed_Capacity.csv")
 fwrite(final_table, output_file_path)
