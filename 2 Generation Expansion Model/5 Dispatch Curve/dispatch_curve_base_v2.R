@@ -350,7 +350,7 @@ dispatch_curve_adjustments <- function(results) {
   results_updated <- results_updated[, .(Date, DayLabel, Hour, Facility_Unit.ID, Old_Fossil_Fuels_net_MWh,
                                        Gen_MWh, CO2_tons, NOx_lbs, SO2_lbs, HI_mmBtu)]
   
-  Fossil_Fuels_NPC_subset <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, Max_Hourly_HI_Rate,
+  Fossil_Fuels_NPC_subset <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, 
                                                   min_gen_MW, max_gen_MW, Ramp, Ramp_MWh, Retirement_year)]
   
   results_updated <- Fossil_Fuels_NPC_subset[results_updated, on = .(Facility_Unit.ID), nomatch = 0]
@@ -474,6 +474,104 @@ dispatch_curve_adjustments <- function(results) {
   results_updated[, min_gen_MW := nafill(min_gen_MW, type = "locf"), by = Facility_Unit.ID]
   results_updated[, Gen_MWh_adj := round(pmax(Gen_MWh_adj, min_gen_MW), 2)]
 
+  
+  results_updated[, c("Ramp", "Ramp_MWh", "Estimated_NameplateCapacity_MW", 
+                      "min_gen_MW", "max_gen_MW", "Retirement_year", "Gen_MWh_used", 
+                      "CF_hr", "timestamp") := NULL]
+  
+  results_updated[, DayLabel := as.integer(format(Date, "%j"))]
+  results_updated[is.na(Old_Fossil_Fuels_net_MWh), Old_Fossil_Fuels_net_MWh := 0]
+ 
+  # Step 1: Calculate intensity ratios
+  results_updated[, `:=`(
+    CO2_intensity = CO2_tons / Gen_MWh,
+    NOx_intensity = NOx_lbs / Gen_MWh,
+    SO2_intensity = SO2_lbs / Gen_MWh,
+    HI_intensity  = HI_mmBtu / Gen_MWh
+  )]
+  
+  # Step 2: Compute mean intensities per Facility_Unit.ID with descriptive names
+  mean_intensities <- results_updated[
+    , .(
+      mean_CO2_ton_per_MWh = mean(CO2_intensity[is.finite(CO2_intensity)], na.rm = TRUE),
+      mean_NOx_lb_per_MWh  = mean(NOx_intensity[is.finite(NOx_intensity)], na.rm = TRUE),
+      mean_SO2_lb_per_MWh  = mean(SO2_intensity[is.finite(SO2_intensity)], na.rm = TRUE),
+      mean_HI_mmbtu_per_MWh = mean(HI_intensity[is.finite(HI_intensity)], na.rm = TRUE)
+    ),
+    by = Facility_Unit.ID
+  ]
+  
+  # Step 3: Merge average intensities into the main table
+  results_updated <- merge(results_updated, mean_intensities, by = "Facility_Unit.ID", all.x = TRUE)
+  
+  # Get mapping from Fossil_Fuels_NPC
+  similar_mapping <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Similar_Facility_Unit_ID)]
+  
+  missing_rows <- results_updated[
+    is.na(mean_CO2_ton_per_MWh) | is.nan(mean_CO2_ton_per_MWh) |
+      is.na(mean_NOx_lb_per_MWh)  | is.nan(mean_NOx_lb_per_MWh)  |
+      is.na(mean_SO2_lb_per_MWh)  | is.nan(mean_SO2_lb_per_MWh)  |
+      is.na(mean_HI_mmbtu_per_MWh) | is.nan(mean_HI_mmbtu_per_MWh)
+  ]
+  
+  
+  # Join missing rows with similar_mapping
+  missing_rows <- merge(missing_rows, similar_mapping, by = "Facility_Unit.ID", all.x = TRUE)
+  
+  # Pull in estimates from mean_intensities for similar units
+  mean_intensity_lookup <- mean_intensities[, .(Similar_Facility_Unit_ID = Facility_Unit.ID, 
+                                                mean_CO2_ton_per_MWh_sim = mean_CO2_ton_per_MWh,
+                                                mean_NOx_lb_per_MWh_sim = mean_NOx_lb_per_MWh,
+                                                mean_SO2_lb_per_MWh_sim = mean_SO2_lb_per_MWh,
+                                                mean_HI_mmbtu_per_MWh_sim = mean_HI_mmbtu_per_MWh)]
+  
+  missing_rows <- merge(missing_rows, mean_intensity_lookup, by = "Similar_Facility_Unit_ID", all.x = TRUE)
+  # Fill in the missing estimates with the values from similar units
+  missing_rows[, `:=`(
+    mean_CO2_ton_per_MWh = fifelse(is.na(mean_CO2_ton_per_MWh), mean_CO2_ton_per_MWh_sim, mean_CO2_ton_per_MWh),
+    mean_NOx_lb_per_MWh = fifelse(is.na(mean_NOx_lb_per_MWh), mean_NOx_lb_per_MWh_sim, mean_NOx_lb_per_MWh),
+    mean_SO2_lb_per_MWh = fifelse(is.na(mean_SO2_lb_per_MWh), mean_SO2_lb_per_MWh_sim, mean_SO2_lb_per_MWh),
+    mean_HI_mmbtu_per_MWh = fifelse(is.na(mean_HI_mmbtu_per_MWh), mean_HI_mmbtu_per_MWh_sim, mean_HI_mmbtu_per_MWh)
+  )]
+  # Drop helper columns
+  missing_rows[, c("Similar_Facility_Unit_ID", 
+                   "mean_CO2_ton_per_MWh_sim", 
+                   "mean_NOx_lb_per_MWh_sim", 
+                   "mean_SO2_lb_per_MWh_sim", 
+                   "mean_HI_mmbtu_per_MWh_sim") := NULL]
+  
+  # Update the original dataset with the filled rows
+  results_updated <- rbindlist(list(
+    results_updated[!Facility_Unit.ID %in% missing_rows$Facility_Unit.ID],
+    missing_rows
+  ), use.names = TRUE, fill = TRUE)
+  
+  # Calculate global means
+  global_means <- mean_intensities[, .(
+    global_mean_CO2 = mean(mean_CO2_ton_per_MWh, na.rm = TRUE),
+    global_mean_NOx = mean(mean_NOx_lb_per_MWh, na.rm = TRUE),
+    global_mean_SO2 = mean(mean_SO2_lb_per_MWh, na.rm = TRUE),
+    global_mean_HI  = mean(mean_HI_mmbtu_per_MWh, na.rm = TRUE)
+  )]
+  
+  # Fill in NAs with global values
+  results_updated[is.na(mean_CO2_ton_per_MWh), mean_CO2_ton_per_MWh := global_means$global_mean_CO2]
+  results_updated[is.na(mean_NOx_lb_per_MWh), mean_NOx_lb_per_MWh := global_means$global_mean_NOx]
+  results_updated[is.na(mean_SO2_lb_per_MWh), mean_SO2_lb_per_MWh := global_means$global_mean_SO2]
+  results_updated[is.na(mean_HI_mmbtu_per_MWh), mean_HI_mmbtu_per_MWh := global_means$global_mean_HI]
+  
+  # Step 4: Estimate emissions using Gen_MWh_adj
+  results_updated[, `:=`(
+    CO2_tons  = Gen_MWh_adj * mean_CO2_ton_per_MWh,
+    NOx_lbs   = Gen_MWh_adj * mean_NOx_lb_per_MWh,
+    SO2_lbs   = Gen_MWh_adj * mean_SO2_lb_per_MWh,
+    HI_mmBtu  = Gen_MWh_adj * mean_HI_mmbtu_per_MWh
+  )]
+  
+  
+  # Step 5: Drop the raw intensity columns (you keep the mean_* versions)
+  results_updated[, c("CO2_intensity", "NOx_intensity", "SO2_intensity", "HI_intensity") := NULL]
+  
   return(results_updated)
 }
 
