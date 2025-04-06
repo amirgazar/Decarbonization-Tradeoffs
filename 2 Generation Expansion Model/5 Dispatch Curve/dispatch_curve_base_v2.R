@@ -292,6 +292,7 @@ dispatch_curve <- function(sim, pathway) {
 dispatch_curve_adjustments <- function(results) {
   # --- Preliminaries ---
   sim <- results$Simulation[1]
+  pathway <- results$Pathway[1]
   random_vector <- Random_sequence[[sim]]
   n_random <- length(random_vector)
   n_hours <- nrow(results)
@@ -311,26 +312,147 @@ dispatch_curve_adjustments <- function(results) {
   shift_values <- 6:(6 + n_units - 1) #fossil 
   idx_fossil <- sapply(shift_values, function(s) (base_indices + s) %% n_random + 1)
   # Build a long data.table of percentiles
-  percentiles_dt <- rbindlist(
+  results_updated <- rbindlist(
     lapply(seq_along(unique_units), function(j) {
       data.table(
         Date = results$Date,
         DayLabel = results$DayLabel,
         Hour = results$Hour,
+        Old_Fossil_Fuels_net_MWh = results$Old_Fossil_Fuels_net_MWh,
         Facility_Unit.ID = unique_units[j],
         Percentile = random_vector[idx_fossil[, j]]
       )
     })
   )
   
+  # Step 1: Join percentiles_dt with Fossil_Fuels_Gen by DayLabel, Hour, Facility_Unit.ID
+  setkey(results_updated, DayLabel, Hour, Facility_Unit.ID)
+  setkey(Fossil_Fuels_Gen, DayLabel, Hour, Facility_Unit.ID)
+  
+  results_joined <- Fossil_Fuels_Gen[results_updated, nomatch = 0]
+  
+  # List of fields to extract per percentile
+  fields <- c("Gen", "CO2", "NOx", "SO2", "HI")
+  
+  # Use mapply to extract all fields in one go
+  for (field in fields) {
+    results_joined[[paste0(field, "_value")]] <- mapply(function(p, row) {
+      colname <- paste0(field, "_", p)
+      if (colname %in% names(row)) row[[colname]] else NA_real_
+    }, results_joined$Percentile, split(results_joined, seq_len(nrow(results_joined))))
+  }
+  
+  setnames(results_joined, old = c("Gen_value", "CO2_value", "NOx_value", "SO2_value", "HI_value"),
+           new = c("Gen_MWh", "CO2_tons", "NOx_lbs", "SO2_lbs", "HI_mmBtu"))
+  
+  # Keep only relevant output
+  results_joined <- results_joined[, .(Date, DayLabel, Hour, Facility_Unit.ID, Old_Fossil_Fuels_net_MWh,
+                                       Gen_MWh, CO2_tons, NOx_lbs, SO2_lbs, HI_mmBtu)]
+  
+  Fossil_Fuels_NPC_subset <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, Max_Hourly_HI_Rate,
+                                                  min_gen_MW, max_gen_MW, Ramp, Retirement_year)]
+  
+  results_joined <- Fossil_Fuels_NPC_subset[results_joined, on = .(Facility_Unit.ID), nomatch = 0]
+  
+  # Remove retired facilities
+  if (!(pathway %in% c("A", "D"))) {
+    results_joined <- results_joined[results_joined$Retirement_year >= year(results_joined$Date), ]
+  }
+  
+  # Calculate CF
+  results_joined$CF_hr <- results_joined$Gen_MWh / results_joined$Estimated_NameplateCapacity_MW
+  results_joined$Ramp_MWh <- results_joined$Ramp /results_joined$Estimated_NameplateCapacity_MW
+  setorder(results_joined, Date, Hour, CF_hr)
+  
+  results_adjusted <- results_joined[, {
+    total_gen <- sum(Gen_MWh)
+    net_cap <- unique(Old_Fossil_Fuels_net_MWh)
+    
+    if (total_gen <= net_cap) {
+      .SD[, Gen_MWh_used := Gen_MWh]  # No change needed, just copy original to used
+    } else {
+      # Order by lowest capacity factor
+      .SD_sorted <- .SD[order(CF_hr)]
+      
+      overage <- total_gen - net_cap
+      
+      Gen_MWh_orig <- .SD_sorted$Gen_MWh
+      
+      # Calculate how much can be reduced from each row
+      reducible_raw <- pmin(Gen_MWh_orig, overage)
+      cumulative_reducible <- cumsum(reducible_raw)
+      reducible <- ifelse(cumulative_reducible <= overage, reducible_raw, pmax(0, overage - shift(cumulative_reducible, fill = 0)))
+      
+      # Calculate adjusted values
+      Gen_MWh_adj <- Gen_MWh_orig - reducible
+      
+      .SD_sorted[, Gen_MWh_used := Gen_MWh_adj]
+      
+      # Restore original row order within group
+      .SD_sorted[order(match(Facility_Unit.ID, .SD$Facility_Unit.ID))]
+    }
+  }, by = .(Date, Hour)]
+  
+  # Ensure chronological order
+  setorder(results_adjusted, Facility_Unit.ID, Date, Hour)
+  
+  # -------------------------------
+  # 1. Calculate Previous Hour's and Next 24 Hour Generation
+  # -------------------------------
+  results_adjusted[, DateTime := as.POSIXct(paste(Date, Hour), format = "%Y-%m-%d %H", tz = "UTC")]
+  results_adjusted[, Prev_Gen_MWh := shift(Gen_MWh_used, type = "lag"), by = Facility_Unit.ID]
+  results_adjusted[, Ramp_Required := {
+    n <- .N
+    output <- numeric(n)
+    for (i in 1:n) {
+      current_time <- DateTime[i]
+      # Get indices for the next 24 hours
+      idx <- which(DateTime > current_time & DateTime <= current_time + Ramp * 3600)
+      
+      if (length(idx) > 0) {
+        # Take the max, ignoring NA
+        val <- max(Gen_MWh_used[idx], na.rm = TRUE)
+        # If all values are NA, max() returns -Inf; replace with 0
+        output[i] <- ifelse(is.finite(val), val, 0)
+      } else {
+        # No matching rows in next 24h
+        output[i] <- 0
+      }
+    }
+    output
+  }, by = Facility_Unit.ID]
   
   
-  # --- Prepare Final Output ---
-  # Remove helper columns (base_index, random_idx, adjustment, shift_value) if desired.
-  fossil_adj[, c("base_index", "random_idx", "adjustment", "shift_value") := NULL]
+  # Fill first hour with min or 0 (you can choose your default here)
+  results_adjusted[is.na(Prev_Gen_MWh), Prev_Gen_MWh := 0]
   
-  # Order the dataset by simulation hour (sim_index) and fossil unit
-  setorder(fossil_adj, sim_index, Facility_Unit.ID)
+  # -------------------------------
+  # 2. Apply Ramping Constraints
+  # -------------------------------
+  results_adjusted[, max_gen_hour_MWh := pmin(Prev_Gen_MWh + Estimated_NameplateCapacity_MW/Ramp, Estimated_NameplateCapacity_MW * CF_hr)]
+  results_adjusted[, min_gen_hour_MWh := pmax(Prev_Gen_MWh - Estimated_NameplateCapacity_MW/Ramp, 0)]
+
+  # -------------------------------
+  # 3. Apply Min/Max Gen Boundaries
+  # -------------------------------
+  results_adjusted[, Gen_MWh_ramp_limited := pmin(
+    pmax(Gen_MWh_used, min_gen_hour_MWh),
+    max_gen_hour_MWh
+  )]
+  
+  # -------------------------------
+  # 4. Heat Input Constraint (HI Rate)
+  # -------------------------------
+  # Calculate hourly HI rate (mmBtu per MWh)
+  results_adjusted[, HI_X := HI_mmBtu / Gen_MWh_ramp_limited]
+  
+  # Adjust generation if HI rate exceeds max allowed
+  results_adjusted[HI_X > Max_Hourly_HI_Rate, Gen_MWh_final := Gen_MWh_ramp_limited * (Max_Hourly_HI_Rate / HI_X)]
+  
+  # Keep unchanged if within limit
+  results_adjusted[is.na(Gen_MWh_final), Gen_MWh_final := Gen_MWh_ramp_limited]
+  
+  
   
   return(fossil_adj)
 }
