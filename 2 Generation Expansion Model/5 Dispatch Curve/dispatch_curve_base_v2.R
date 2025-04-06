@@ -395,16 +395,93 @@ dispatch_curve_adjustments <- function(results) {
   
   # Ensure chronological order
   setorder(results_updated, Facility_Unit.ID, Date, Hour)
+
+  # Assuming your original data.table is named 'results_updated'
+  # and contains columns: Date (YYYY-MM-DD), Hour (numeric),
+  # Facility_Unit.ID, Gen_MWh_used, Ramp_MWh, etc.
   
+  ### Step 1: Create a timestamp from Date and Hour.
+  results_updated[, timestamp := as.POSIXct(paste(Date, sprintf("%02d:00:00", (Hour - 1))), format = "%Y-%m-%d %H:%M:%S", tz = "America/New_York")]
+  
+  ### Step 2: For each facility, create a complete hourly sequence.
+  results_updated <- results_updated[, {
+    ts_seq <- seq(min(timestamp), max(timestamp), by = "hour")
+    dt_complete <- data.table(timestamp = ts_seq)
+    merge(dt_complete, .SD, by = "timestamp", all.x = TRUE)
+  }, by = Facility_Unit.ID]
+  
+  ### Step 3: Update Date and Hour from the timestamp.
+  results_updated[, Date := as.Date(format(timestamp, tz = "America/New_York"))]
+  results_updated[, Hour := hour(timestamp) + 1]
+  
+  ### Step 4: Fill missing Ramp_MWh values (since it’s fixed per facility).
+  results_updated[, Ramp_MWh := nafill(Ramp_MWh, type = "locf"), by = Facility_Unit.ID]
+  results_updated[, Ramp_MWh := nafill(Ramp_MWh, type = "nocb"), by = Facility_Unit.ID]
+  
+  ### Step 5: Create a new column for adjusted generation.
+  results_updated[, Gen_MWh_adj := Gen_MWh_used]
+  results_updated[is.na(Gen_MWh_adj), Gen_MWh_adj := 0]
+  
+  ### Step 6: Backward pass.
+  # For each facility, loop from the end backward so that if a later hour
+  # requires higher generation, previous hours are adjusted upward gradually.
+  results_updated[, Gen_MWh_adj := {
+    temp <- Gen_MWh_adj
+    ramp <- unique(Ramp_MWh)[1]
+    if (is.na(ramp)) ramp <- 24
+    n <- .N
+    if (n < 2) {
+      temp
+    } else {
+      for (i in n:2) {
+        if (i - 1 < 1) next
+        if (!is.na(temp[i])) {
+          required_prev <- temp[i] - ramp
+          if (!is.na(required_prev)) {
+            if (length(temp[i-1]) == 0 || is.na(temp[i-1]) || temp[i-1] < required_prev) {
+              temp[i-1] <- required_prev
+            }
+          }
+        }
+      }
+      temp
+    }
+  }, by = Facility_Unit.ID]
+  
+  ### Step 7: Forward pass.
+  # This pass makes sure that the increase from one hour to the next does not
+  # exceed the ramp limit.
+  results_updated[, Gen_MWh_adj := {
+    temp <- Gen_MWh_adj
+    ramp <- unique(Ramp_MWh)[1]
+    if (is.na(ramp)) ramp <- 24
+    n <- .N
+    if (n < 2) {
+      temp
+    } else {
+      for (i in 2:n) {
+        if (!is.na(temp[i - 1]) && !is.na(temp[i])) {
+          delta <- temp[i] - temp[i - 1]
+          if (delta < -ramp) {
+            temp[i] <- temp[i - 1] - ramp
+          }
+        }
+      }
+      temp
+    }
+  }, by = Facility_Unit.ID]
+  
+  results_updated[, min_gen_MW := nafill(min_gen_MW, type = "locf"), by = Facility_Unit.ID]
+  results_updated[, Gen_MWh_adj := round(pmax(Gen_MWh_adj, min_gen_MW), 2)]
 
   return(results_updated)
 }
 
 
 # Function Execution
-results <- dispatch_curve(sim = 1, pathway = "B1")
-results <- results[1:100, ] # Test
-adjusted_results <- dispatch_curve_adjustments(results)
+dispatch_curve_results <- dispatch_curve(sim = 1, pathway = "B1")
+results <- dispatch_curve_results[1:100, ] # Test
+fossi_fuels_results <- dispatch_curve_adjustments(results)
 
 
 # Prepare pathways and unique dates/hours
