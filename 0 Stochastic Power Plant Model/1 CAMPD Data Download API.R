@@ -9,7 +9,7 @@ library(tools)
 library(dplyr)
 
 # Define a helper function to log messages to console and a file
-log_file <- file.path("/Users/amirgazar/Documents/GitHub/U.S. EPA CAMPD Data", "process_log.txt")
+log_file <- file.path("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD Data", "process_log.txt")
 
 log_message <- function(msg) {
   # Create a timestamped message
@@ -22,7 +22,7 @@ log_message <- function(msg) {
 
 # Define the function to download facilities and emissions data
 download_state_emissions_data <- function(apiKEY, years, timeOfLastRun, chunk_size = 1, 
-                                          base_dir = "/Users/amirgazar/Documents/GitHub/U.S. EPA CAMPD Data") {
+                                          base_dir = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD Data") {
   
   # API base URL
   apiUrlBase <- "https://api.epa.gov/easey"

@@ -37,7 +37,7 @@ stateCodes <- "AL"
 state <- "AL"
 
 # Define the base directory (adjust this to your folder location)
-base_dir <- "/Users/amirgazar/Documents/GitHub/U.S. EPA CAMPD Data"
+base_dir <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD Data"
 
 # Loop over each state in stateCodes
 for (state in stateCodes) {

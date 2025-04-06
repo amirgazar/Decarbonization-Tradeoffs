@@ -9,7 +9,7 @@ library(data.table)
 
 # --- Parameters ---
 # Define the base directory where data is saved
-base_dir <- "/Users/amirgazar/Documents/GitHub/U.S. EPA CAMPD Data"
+base_dir <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD Data"
 
 # Define the states to process. You can use all states or a subset.
 stateCodes <- c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", 

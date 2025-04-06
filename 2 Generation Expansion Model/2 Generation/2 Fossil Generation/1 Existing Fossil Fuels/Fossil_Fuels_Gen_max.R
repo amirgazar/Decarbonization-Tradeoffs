@@ -46,6 +46,7 @@ hourly_totals <- merged_grid[, .(
   max_gen_hr_retirement_MW = sum(max_gen_MW_hr, na.rm = TRUE),
   max_gen_hr_no_retirement_MW  = sum(max_gen_MW_hr[is_retired == FALSE], na.rm = TRUE)
 ), by = .(Date, Hour)]
+hourly_totals[, DayLabel := as.integer(strftime(Date, format = "%j"))]
 
 # Check for NA and zero values in the aggregated columns
 if (nrow(hourly_totals[is.na(max_gen_hr_retirement_MW)]) > 0) {
@@ -74,37 +75,33 @@ if (nrow(hourly_totals[max_gen_hr_no_retirement_MW == 0]) > 0) {
 
 #-- ADJUSTMENTS --- THIS SHOULD BE FIXED ---
 # First, ensure your data is sorted by Hour and Date
-setorder(hourly_totals, Hour, Date)
+# Ensure data is keyed
+setkey(hourly_totals, Date, Hour)
 
-# For the "retirement" generation column, create lag and lead values
-hourly_totals[, `:=`(
-  prev_retired = shift(max_gen_hr_retirement_MW, n = 1, type = "lag"),
-  next_retired = shift(max_gen_hr_retirement_MW, n = 1, type = "lead")
-), by = Hour]
+# Create a subset of Day 366 rows
+day366 <- hourly_totals[DayLabel == 366]
 
-# For the "no retirement" (active) generation column, create lag and lead values
-hourly_totals[, `:=`(
-  prev_no_retired = shift(max_gen_hr_no_retirement_MW, n = 1, type = "lag"),
-  next_no_retired = shift(max_gen_hr_no_retirement_MW, n = 1, type = "lead")
-), by = Hour]
+# Create prev/next date columns for joining
+day366[, prev_date := Date - 1]
+day366[, next_date := Date + 1]
 
-# Check and interpolate outliers for the retired column:
-# If the current value is more than 50% higher than both neighbors or less than 50% of both neighbors,
-# replace it with the average of the neighbors.
-hourly_totals[!is.na(prev_retired) & !is.na(next_retired) & 
-                ((max_gen_hr_retirement_MW > 1.25 * prev_retired & max_gen_hr_retirement_MW > 1.25 * next_retired) |
-                   (max_gen_hr_retirement_MW < 0.25 * prev_retired & max_gen_hr_retirement_MW < 0.25 * next_retired)),
-              max_gen_hr_retirement_MW := (prev_retired + next_retired) / 2]
+# Perform the joins using those temp columns
+hourly_totals[DayLabel == 366, `:=`(
+  prev_retired = hourly_totals[day366, on = .(Date = prev_date, Hour), x.max_gen_hr_retirement_MW],
+  next_retired = hourly_totals[day366, on = .(Date = next_date, Hour), x.max_gen_hr_retirement_MW],
+  prev_no_retired = hourly_totals[day366, on = .(Date = prev_date, Hour), x.max_gen_hr_no_retirement_MW],
+  next_no_retired = hourly_totals[day366, on = .(Date = next_date, Hour), x.max_gen_hr_no_retirement_MW]
+)]
 
-# Do the same for the no-retirement (active) column:
-hourly_totals[!is.na(prev_no_retired) & !is.na(next_no_retired) &
-                ((max_gen_hr_no_retirement_MW > 1.25 * prev_no_retired & max_gen_hr_no_retirement_MW > 1.25 * next_no_retired) |
-                   (max_gen_hr_no_retirement_MW < 0.25 * prev_no_retired & max_gen_hr_no_retirement_MW < 0.25 * next_no_retired)),
-              max_gen_hr_no_retirement_MW := (prev_no_retired + next_no_retired) / 2]
 
-# Remove the temporary columns used for the calculation
+# Now, for leap day rows where both previous and next day values exist, update by interpolation.
+hourly_totals[DayLabel == 366 & !is.na(prev_retired) & !is.na(next_retired), `:=`(
+  max_gen_hr_retirement_MW = (prev_retired + next_retired) / 2,
+  max_gen_hr_no_retirement_MW = (prev_no_retired + next_no_retired) / 2
+)]
+
+# Remove the temporary columns created for leap day interpolation
 hourly_totals[, c("prev_retired", "next_retired", "prev_no_retired", "next_no_retired") := NULL]
-
 
 
 #----- END ADJUSTMENTS ----
@@ -131,6 +128,11 @@ ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
   theme_minimal()
 
 # Save the processed results to CSV
-gen_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_hr_maximums.csv"
+dir_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions"
+if (!dir.exists(dir_path)) {
+  dir.create(dir_path, recursive = TRUE)
+}
+gen_path <- file.path(dir_path, "Fossil_Fuel_hr_maximums.csv")
 fwrite(hourly_totals, file = gen_path)
+
 

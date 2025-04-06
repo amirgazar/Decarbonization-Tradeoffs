@@ -24,6 +24,9 @@ Fossil_Fuels_NPC <- fread(file_path)
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 New_Fossil_Fuels_NPC <- fread(file_path)
 
+file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_hr_maximums.csv"
+Fossil_Fuels_hr_max <- fread(file_path)
+
 ## 2. Probabilistic Generation Data and Capacity Factors
 # 2.1 Wind and Solar
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/1 Wind and Solar/1 Wind and Solar CF/offwind_CF.csv"
@@ -63,6 +66,7 @@ setkey(Imports_CF, DayLabel, Percentile)
 setkey(Fossil_Fuels_Gen, DayLabel, Hour, Facility_Unit.ID)
 setkey(Demand_data, Date, Hour)
 setkey(Peak_demand, Date)
+setkey(Fossil_Fuels_hr_max, Date, Hour)
 
 dispatch_curve <- function(sim, pathway) {
   
