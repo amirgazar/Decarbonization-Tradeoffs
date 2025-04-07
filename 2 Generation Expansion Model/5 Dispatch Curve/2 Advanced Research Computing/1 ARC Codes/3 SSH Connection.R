@@ -44,10 +44,9 @@ for (bash_file in bash_files) {
   bash_file_name <- basename(bash_file)
   ssh::scp_upload(session, bash_file, to = remote_folder)
   # Execute the uploaded Bash script on the remote server
-  commands <- paste0("cd ", remote_folder, " && sbatch -A epadecarb ", bash_file_name)
+  commands <- paste0('cd "', remote_folder, '" && sbatch -A epadecarb ', bash_file_name)
   ssh::ssh_exec_wait(session, command = commands)
 }
-
 
 #------- 
 # CHECK JOB STATUS
@@ -55,7 +54,7 @@ ssh::ssh_exec_wait(session, command = "seff 2559171")
 ssh::ssh_exec_wait(session, command = "sacct --job=2559171")
 
 # Cancel JOB
-ssh::ssh_exec_wait(session, command = "scancel 2553375")
+ssh::ssh_exec_wait(session, command = "scancel 3012136")
 
 
 # Disconnect

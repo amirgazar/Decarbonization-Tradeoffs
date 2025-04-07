@@ -608,16 +608,15 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
 }
 
 
-## ----- 3. Run the simulations #  ------
 ## ----- 3. Run the simulations ------
 # Set all pathways from Hourly_Installed_Capacity$Pathway
 pathways <- unique(Hourly_Installed_Capacity$Pathway)
-# For example, if you only want the second pathway:
-pathways <- pathways[1:3]
-n_simulations <- 1
+n_simulations <- 10
+sim_start <- 1
+sim_idx <- sim_start:(n_simulations + sim_start - 1)
 
 # Loop over each simulation and pathway combination
-for(sim in 1:n_simulations) {
+for(sim in sim_idx) {
   for(pathway in pathways) {
     cat("Running simulation:", sim, "\n")
     cat("Processing pathway:", pathway, "\n")
@@ -625,6 +624,7 @@ for(sim in 1:n_simulations) {
     # Execute the dispatch curve for the current simulation and pathway
     dispatch_curve_results <- dispatch_curve(sim, pathway)
     
+    #dispatch_curve_results <- dispatch_curve_results[1:10, ] # Test the code
     # Get fossil fuels hourly adjustments based on the dispatch results
     fossil_fuels_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results)
     
