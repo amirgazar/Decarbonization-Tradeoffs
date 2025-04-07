@@ -612,7 +612,7 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
 # Set all pathways from Hourly_Installed_Capacity$Pathway
 pathways <- unique(Hourly_Installed_Capacity$Pathway)
 n_simulations <- 10
-sim_start <- 1
+sim_start <- 400
 sim_idx <- sim_start:(n_simulations + sim_start - 1)
 
 # Loop over each simulation and pathway combination
