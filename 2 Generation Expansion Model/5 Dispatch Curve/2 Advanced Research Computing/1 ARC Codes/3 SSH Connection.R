@@ -60,6 +60,7 @@ ssh::ssh_exec_wait(session, command = "scancel 3012136")
 # Disconnect
 #-----
 ssh::ssh_disconnect(session)
+#test
 
 
 # Otherstuff
