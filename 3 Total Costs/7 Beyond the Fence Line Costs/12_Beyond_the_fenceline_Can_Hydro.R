@@ -211,6 +211,8 @@ write.csv(npv_results, file = file.path(output_path, "CAPEX_FOM_CAN_Hydro.csv"),
 # Define the parameters from the provided dam data
 surface_area_km2 <- 602.9
 mg_CH4_C_m2_d1 <- 9.43  # Methane emission rate in mg CH4-C per m² per day
+factor <- 12/16 # Convert CH4-C to CH4, 12 g of CH4-C = 16 g CH4
+mg_CH4_C_m2_d1 <- mg_CH4_C_m2_d1 * factor
 
 # Convert surface area from km² to m²
 surface_area_m2 <- surface_area_km2 * 1e6  # 1 km² = 1e6 m²
