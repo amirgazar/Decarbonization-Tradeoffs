@@ -8,10 +8,10 @@ bash_script <- "#!/bin/bash
 
 module load containers/singularity
 
-singularity exec --bind /work,/projects /projects/arcsingularity/ood-rstudio141717-basic_4.1.0.sif Rscript /projects/epadecarb/Decarb_Paper/GEM_ARC_Stepwise_Summary.R
+singularity exec --bind /projects /projects/arcsingularity/ood-rstudio141717-basic_4.1.0.sif Rscript \"/projects/epadecarb/2 Generation Expansion Model/2 R Codes/6_Summarization_Code.R\"
 
 module reset"
 
 # Saving the BASH file
-bash_file <- "GEM_Stepwise_Summary.sh"
+bash_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/BASH_Summary.sh"
 writeLines(bash_script, bash_file)
