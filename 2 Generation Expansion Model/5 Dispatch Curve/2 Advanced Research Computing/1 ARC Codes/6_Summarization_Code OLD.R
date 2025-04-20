@@ -1,3 +1,4 @@
+# Dispatch curve, offsetting demand with generation
 # Specify the existing library path
 lib_path <- "/projects/epadecarb/2 Generation Expansion Model/1 Environment/env"
 
@@ -18,83 +19,35 @@ load_packages("zoo", lib_path)
 
 # Load EVOLL curve
 path <- "/projects/epadecarb/2 Generation Expansion Model/3 Datasets/evoll_curve.csv"
+#path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/ISO-NE Unmet Demand/evoll_curve.csv"
 Cost_Curve <- fread(path)
-
 # Old/existing fossil fuels
 path <- "/projects/epadecarb/2 Generation Expansion Model/3 Datasets/Fossil_Fuel_Facilities_Data.csv"
+#path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC <- fread(path)
 # Remove unnecessary columns from Fossil_Fuels_NPC
-Fossil_Fuels_NPC <- Fossil_Fuels_NPC[, .(
-  Facility_Unit.ID, 
-  State, 
-  Fuel_type_1 = Primary_Fuel_Type, 
-  Fuel_type_2 = Secondary_Fuel_Type, 
-  latitude = Latitude, 
-  longitude = Longitude, 
-  Ramp_hr = Ramp, 
-  Fossil.NPC_MW = Estimated_NameplateCapacity_MW, 
-  Max_Hourly_HI_Rate
-)]
+Fossil_Fuels_NPC <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, State, Fuel_type_1 = Primary_Fuel_Type, Fuel_type_2 = Secondary_Fuel_Type, latitude = Latitude, longitude = Longitude, Ramp_hr = Ramp, Fossil.NPC_MW = Estimated_NameplateCapacity_MW, Max_Hourly_HI_Rate)]
 
-# Define the results summary directory used later in the script
-summary_results_path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized/"
-
-# --- NEW STEP: Identify already processed simulation+pathway combinations ---
-# This helper function reads existing summary CSVs (for a given pattern) and extracts the unique Simulation||Pathway keys.
-get_existing_simulation_pathways <- function(pattern, path = summary_results_path) {
-  files <- list.files(path = path, pattern = pattern, full.names = TRUE)
-  keys <- character()
-  if (length(files) > 0) {
-    for (file in files) {
-      # Read only the required columns; adjust column names if needed
-      dt <- fread(file, select = c("Simulation", "Pathway"))
-      # Create keys by concatenating Simulation and Pathway (using a unique separator)
-      file_keys <- paste(dt$Simulation, dt$Pathway, sep = "||")
-      keys <- unique(c(keys, file_keys))
-    }
-  }
-  return(keys)
-}
-
-# Get existing (Simulation, Pathway) keys from summary outputs.
-existing_sim_hourly <- get_existing_simulation_pathways("Yearly_Results_Chunk_.*\\.csv")
-existing_sim_facility <- get_existing_simulation_pathways("Yearly_Facility_Level_Results_Chunk_.*\\.csv")
-
-# --- Load Capacity data ---
+# Load Capacity data
 path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/1 Stepwise"
+#path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/0 Test"
+#path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/Test Results"
 files <- list.files(path = path, pattern = "\\.csv$", full.names = TRUE)
 
 # Separate files based on type
-facility_files_all <- grep("Facility_Level_Results", files, value = TRUE)
-hourly_files_all <- grep("Hourly_Results", files, value = TRUE)
+facility_files <- grep("Facility_Level_Results", files, value = TRUE)
+hourly_files <- grep("Hourly_Results", files, value = TRUE)
 
-# --- NEW FUNCTION: Filter files based on Simulation and Pathway ---
-filter_files_by_sim_pathway <- function(file_list, existing_keys) {
-  filtered <- character(0)
-  for (f in file_list) {
-    # Read only the first row to extract Simulation and Pathway
-    dt <- fread(f, nrows = 1, select = c("Simulation", "Pathway"))
-    # Construct the key (adjust the separator if needed)
-    key <- paste(dt$Simulation[1], dt$Pathway[1], sep = "||")
-    if (!(key %in% existing_keys)) {
-      filtered <- c(filtered, f)
-    }
-  }
-  return(filtered)
-}
-
-# Filter out files already processed (using both Simulation and Pathway)
-facility_files <- filter_files_by_sim_pathway(facility_files_all, existing_sim_facility)
-hourly_files   <- filter_files_by_sim_pathway(hourly_files_all, existing_sim_hourly)
-
-# --- Split files into chunks (only with files that haven't been processed) ---
+# Split files into chunks of 10
 facility_chunks <- split(facility_files, ceiling(seq_along(facility_files) / 10))
-hourly_chunks   <- split(hourly_files, ceiling(seq_along(hourly_files) / 200))
+hourly_chunks <- split(hourly_files, ceiling(seq_along(hourly_files) / 200))
 
 # Function to process facility files
 process_facility_files <- function(chunk_files, chunk_index) {
   # Define base results directory
   results_path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized/"
+  #results_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/Test Results/"
+  
   Facility_Level_Results <- data.table()
   
   # Read and process each file in the chunk
@@ -169,6 +122,8 @@ process_hourly_files <- function(chunk_files, chunk_index) {
   
   # Define the output path
   results_path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized/"
+  #results_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/Test Results/"
+
   
   # Read and process each file in the chunk
   for (i in seq_along(chunk_files)) {
@@ -177,10 +132,14 @@ process_hourly_files <- function(chunk_files, chunk_index) {
   }
   
   # Summarizing hourly generation data for this chunk
+  # Get all numeric columns
   numeric_columns <- names(Hourly_Results)[sapply(Hourly_Results, is.numeric)]
+  
+  # Define exclusion patterns or exact names
   excluded_columns <- c("Hour", "DayLabel", "Year", "Simulation")
   excluded_patterns <- "_CF$"
   
+  # Filter out the unwanted columns
   unit_columns <- numeric_columns[
     !numeric_columns %in% excluded_columns & 
       !grepl(excluded_patterns, numeric_columns)
@@ -194,10 +153,18 @@ process_hourly_files <- function(chunk_files, chunk_index) {
   
   # Summarizing shortages for this chunk 
   Hourly_Results[, Shortage_ratio := Calibrated_Shortage_MWh / Demand]
+  shortage_columns <- "Shortage_ratio"
+  
+  # Interpolate the $/MWh values for Shortage_ratio
   Hourly_Results[, Cost_USD_per_MWh := approx(Cost_Curve$Percentage, Cost_Curve$Cost_per_MWh, Shortage_ratio)$y]
+  
+  # Replace NA values in Cost_USD_per_MWh with zero
   Hourly_Results[is.na(Cost_USD_per_MWh), Cost_USD_per_MWh := 0]
+  
+  # Calculate total costs
   Hourly_Results[, Unmet_Demand_USD := Demand * Shortage_ratio * Cost_USD_per_MWh]
   
+  # Summarize data for Sim, Pathway, year
   Yearly_Results_Shortages <- Hourly_Results[, .(
     Unmet_Demand_total_MWh = sum(Calibrated_Shortage_MWh, na.rm = TRUE), 
     Unmet_Demand_USD_total = sum(Unmet_Demand_USD, na.rm = TRUE)
@@ -206,22 +173,22 @@ process_hourly_files <- function(chunk_files, chunk_index) {
   write.csv(Yearly_Results_Shortages, paste0(results_path, "Yearly_Results_Shortages_Chunk_", chunk_index, ".csv"))
 }
 
-# --- Process each chunk of hourly files ---
+# Process each chunk of hourly files
 for (chunk_index in seq_along(hourly_chunks)) {
   process_hourly_files(hourly_chunks[[chunk_index]], chunk_index)
 }
 
-# --- Process each chunk of facility files ---
+# Process each chunk of facility files
 for (chunk_index in seq_along(facility_chunks)) {
   process_facility_files(facility_chunks[[chunk_index]], chunk_index)
 }
 
 # Load and combine intermediate results into final data sets
-results_path_final <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized"
-yearly_files <- list.files(results_path_final, pattern = "Yearly_Results_Chunk_.*\\.csv$", full.names = TRUE)
-yearly_facility_files <- list.files(results_path_final, pattern = "Yearly_Facility_Level_Results_Chunk_.*\\.csv$", full.names = TRUE)
-monthly_facility_files <- list.files(results_path_final, pattern = "Monthly_Facility_Level_Results_Chunk_.*\\.csv$", full.names = TRUE)
-shortages_files <- list.files(results_path_final, pattern = "Yearly_Results_Shortages_Chunk_.*\\.csv$", full.names = TRUE)
+results_path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized"
+yearly_files <- list.files(results_path, pattern = "Yearly_Results_Chunk_.*\\.csv$", full.names = TRUE)
+yearly_facility_files <- list.files(results_path, pattern = "Yearly_Facility_Level_Results_Chunk_.*\\.csv$", full.names = TRUE)
+monthly_facility_files <- list.files(results_path, pattern = "Monthly_Facility_Level_Results_Chunk_.*\\.csv$", full.names = TRUE)
+shortages_files <- list.files(results_path, pattern = "Yearly_Results_Shortages_Chunk_.*\\.csv$", full.names = TRUE)
 
 Yearly_Results <- rbindlist(lapply(yearly_files, fread))
 Yearly_Facility_Level_Results <- rbindlist(lapply(yearly_facility_files, fread))
@@ -229,11 +196,11 @@ Monthly_Facility_Level_Results <- rbindlist(lapply(monthly_facility_files, fread
 Yearly_Results_Shortages <- rbindlist(lapply(shortages_files, fread))
 
 # Save final combined datasets
-results_path_final <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized/Final/"
-write.csv(Yearly_Results, file.path(results_path_final, "Yearly_Results.csv"))
-write.csv(Yearly_Facility_Level_Results, file.path(results_path_final, "Yearly_Facility_Level_Results.csv"))
-write.csv(Monthly_Facility_Level_Results, file.path(results_path_final, "Monthly_Facility_Level_Results.csv"))
-write.csv(Yearly_Results_Shortages, file.path(results_path_final, "Yearly_Results_Shortages.csv"))
+results_path <- "/projects/epadecarb/2 Generation Expansion Model/4 Results/2 Stepwise Summarized/Final/"
+write.csv(Yearly_Results, file.path(results_path, "Yearly_Results.csv"))
+write.csv(Yearly_Facility_Level_Results, file.path(results_path, "Yearly_Facility_Level_Results.csv"))
+write.csv(Monthly_Facility_Level_Results, file.path(results_path, "Monthly_Facility_Level_Results.csv"))
+write.csv(Yearly_Results_Shortages, file.path(results_path, "Yearly_Results_Shortages.csv"))
 
 # Pushover alert - Pushover credentials
 pushover_user <- "u52e6wsanmq1r129cccczuitn4a15y"
