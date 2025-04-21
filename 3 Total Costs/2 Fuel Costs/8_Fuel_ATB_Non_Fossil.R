@@ -17,19 +17,10 @@ ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
 
 # Load Generation data
 #-- Stepwise
-file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
-file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
-#-- Rep Days
-#file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Facility_Level_Results_rep_days.csv"
-#file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/2 Representative Days Costs/"
+file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
-Facility_Level_Results <- as.data.table(fread(file_path_1))
-Facility_Level_Results[, V1 := NULL]
-Facility_Level_Results[, V1 := NULL]
-
-Yearly_Results <- as.data.table(fread(file_path_2))
+Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results[, V1 := NULL]
 Yearly_Results[, V1 := NULL]
 
@@ -74,9 +65,9 @@ pathways <- unique(Yearly_Results$Pathway)
 
 # Process each tech for each combination of simulation and Pathway
 technologies <- list(
-  list(tech = "Nuclear", detail = "Nuclear - Large", column_name = "Nuclear.gen_hr_TWh"),
-  list(tech = "Nuclear", detail = "Nuclear - Small", column_name = "SMR.gen_hr_TWh"),
-  list(tech = "Biopower", detail = "Dedicated", column_name = "Bio.gen_hr_TWh")
+  list(tech = "Nuclear", detail = "Nuclear - Large", column_name = "Nuclear_TWh"),
+  list(tech = "Nuclear", detail = "Nuclear - Small", column_name = "SMR_TWh"),
+  list(tech = "Biopower", detail = "Dedicated", column_name = "Biomass_TWh")
 )
 
 npv_results <- list()
