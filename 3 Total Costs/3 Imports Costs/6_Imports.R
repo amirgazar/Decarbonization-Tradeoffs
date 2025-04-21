@@ -70,9 +70,6 @@ upper_Imports_QC <- CHPE_cost # $/MWh/1000 miles
 #-- Stepwise
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
-#-- Rep Days
-#file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/2 Representative Days Costs/"
 
 Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results[, V1 := NULL]
@@ -104,16 +101,30 @@ process_imports <- function(import_costs, yearly_results, pathway, simulation, j
   # Merge the costs with yearly results
   merged_data <- merge(yearly, costs, by = "Year")
   
-  # Ensure the correct columns are selected for calculations
-  lower_cost_col <- paste0(jurisdiction, "_USD_TWh_lower")
-  upper_cost_col <- paste0(jurisdiction, "_USD_TWh_upper")
-  import_col <- paste0("Import.", jurisdiction, "_hr_TWh")
+  # Map correct column names
+  if (jurisdiction == "QC") {
+    # Sum spot + long-term imports
+    merged_data[, Import_QC_TWh := Spot_Market_Imports_HQ_TWh + Long_Term_Imports_HQ_TWh]
+    import_col <- "Import_QC_TWh"
+    lower_cost_col <- "QC_USD_TWh_lower"
+    upper_cost_col <- "QC_USD_TWh_upper"
+  } else if (jurisdiction == "NYISO") {
+    import_col <- "Import_NYISO_TWh"
+    lower_cost_col <- "NYISO_USD_TWh_lower"
+    upper_cost_col <- "NYISO_USD_TWh_upper"
+  } else if (jurisdiction == "NB") {
+    import_col <- "Import_NBSO_TWh"
+    lower_cost_col <- "NB_USD_TWh_lower"
+    upper_cost_col <- "NB_USD_TWh_upper"
+  } else {
+    stop("Invalid jurisdiction specified.")
+  }
   
-  # Calculate the actual cost for each year
+  # Calculate actual costs
   merged_data[, Actual_Cost_Lower := get(lower_cost_col) * get(import_col)]
   merged_data[, Actual_Cost_Upper := get(upper_cost_col) * get(import_col)]
   
-  # Calculate NPV for the lower and upper costs
+  # Calculate NPV
   npv_lower <- calculate_npv(merged_data, discount_rate, base_year, "Actual_Cost_Lower")
   npv_upper <- calculate_npv(merged_data, discount_rate, base_year, "Actual_Cost_Upper")
   
