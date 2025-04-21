@@ -18,8 +18,8 @@ library(scales)
 
 # Listing all files in the folder and subfolders
 #--- Stepwise
-file_paths <- list.files(path = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive", recursive = TRUE, full.names = TRUE)
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/11 Total Costs Results Final"
+file_paths <- list.files(path = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results", recursive = TRUE, full.names = TRUE)
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/10 Total Costs Results Final"
   
   
 data_tables <- lapply(file_paths, function(file) {

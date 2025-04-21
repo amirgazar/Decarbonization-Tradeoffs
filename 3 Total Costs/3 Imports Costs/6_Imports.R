@@ -69,7 +69,7 @@ upper_Imports_QC <- CHPE_cost # $/MWh/1000 miles
 # Load Generation data
 #-- Stepwise
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results[, V1 := NULL]
