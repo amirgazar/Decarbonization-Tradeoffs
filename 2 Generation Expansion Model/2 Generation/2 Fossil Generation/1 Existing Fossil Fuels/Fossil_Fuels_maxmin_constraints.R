@@ -40,14 +40,15 @@ merged_grid <- merge(
 
 # Flag records as retired if the simulation Year is greater than or equal to the facility's Retirement_year.
 # Facilities with NA in Retirement_year are assumed active.
+merged_grid <- merged_grid[Retirement_year >= 2025]
 merged_grid[, is_retired := !is.na(Retirement_year) & Year >= Retirement_year & Year >= 2025]
 
 # Aggregate generation by Date, Hour, and DayLabel.
 hourly_totals <- merged_grid[, .(
-  max_gen_hr_retirement_MW = sum(max_gen_MW_hr, na.rm = TRUE),
-  max_gen_hr_no_retirement_MW  = sum(max_gen_MW_hr[is_retired == FALSE], na.rm = TRUE),
-  min_gen_hr_retirement_MW = sum(min_gen_MW_hr, na.rm = TRUE),
-  min_gen_hr_no_retirement_MW  = sum(min_gen_MW_hr[is_retired == FALSE], na.rm = TRUE)
+  max_gen_hr_retirement_MW = sum(max_gen_MW_hr[is_retired == FALSE], na.rm = TRUE),
+  max_gen_hr_no_retirement_MW  = sum(max_gen_MW_hr, na.rm = TRUE),
+  min_gen_hr_retirement_MW = sum(min_gen_MW_hr[is_retired == FALSE], na.rm = TRUE),
+  min_gen_hr_no_retirement_MW  = sum(min_gen_MW_hr, na.rm = TRUE)
 ), by = .(Date, Hour)]
 hourly_totals[, DayLabel := as.integer(strftime(Date, format = "%j"))]
 
@@ -126,10 +127,6 @@ hourly_long <- melt(hourly_totals,
                     variable.name = "Retirement_Status", 
                     value.name = "Total_Gen")
 
-# Rename the retirement status labels for clarity
-hourly_long[, Retirement_Status := fifelse(Retirement_Status == "max_gen_hr_retirement_MW", 
-                                           "No-Retirements", "Retirements")]
-
 # Plot by DayLabel, faceted by Retirement_Status and simulation year (extracted from Date)
 ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
   geom_line() +
@@ -146,9 +143,6 @@ hourly_long <- melt(hourly_totals,
                     variable.name = "Retirement_Status", 
                     value.name = "Total_Gen")
 
-# Rename the retirement status labels for clarity
-hourly_long[, Retirement_Status := fifelse(Retirement_Status == "min_gen_hr_retirement_MW", 
-                                           "No-Retirements", "Retirements")]
 ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
   geom_line() +
   facet_grid(Retirement_Status ~ format(Date, "%Y"), scales = "free_x") +

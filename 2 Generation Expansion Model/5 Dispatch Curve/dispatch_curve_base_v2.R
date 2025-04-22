@@ -23,6 +23,9 @@ file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Gene
 Fossil_Fuels_NPC <- fread(file_path)
 Fossil_Fuels_NPC$Ramp <- ceiling(Fossil_Fuels_NPC$Ramp)
 Fossil_Fuels_NPC$Ramp_MWh <- Fossil_Fuels_NPC$Estimated_NameplateCapacity_MW/ Fossil_Fuels_NPC$Ramp
+# Retain only facilities scheduled to retire after 2025.
+Fossil_Fuels_NPC <- Fossil_Fuels_NPC[Retirement_year >= 2025]
+
 
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 New_Fossil_Fuels_NPC <- fread(file_path)
@@ -295,9 +298,7 @@ dispatch_curve_adjustments <- function(results) {
   n_hours <- nrow(results)
   
   # --- Fossil Fuels: Filter and Prepare Facility Data ---
-  # Retain only facilities scheduled to retire after 2025.
-  FF_NPC <- Fossil_Fuels_NPC[Retirement_year >= 2025]
-  unique_units <- unique(FF_NPC$Facility_Unit.ID)
+  unique_units <- unique(Fossil_Fuels_NPC$Facility_Unit.ID)
   n_units <- length(unique_units)
   n_total_rand <- 6 + n_units
   
@@ -355,10 +356,12 @@ dispatch_curve_adjustments <- function(results) {
   results_updated <- results_updated[, .(Date, DayLabel, Hour, Facility_Unit.ID, Old_Fossil_Fuels_net_MWh,
                                          Gen_MWh, CO2_tons, NOx_lbs, SO2_lbs, HI_mmBtu)]
   
-  # Merge additional facility details from the FF_NPC dataset.
-  FF_NPC_subset <- FF_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, 
-                              min_gen_MW, max_gen_MW, Ramp, Ramp_MWh, Retirement_year)]
-  results_updated <- merge(FF_NPC_subset, results_updated, by = "Facility_Unit.ID", all.y = TRUE)
+  # Merge additional facility details from the Fossil_Fuels_NPC dataset.
+  Fossil_Fuels_NPC_subset <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, 
+                              min_gen_MW, max_gen_MW, Ramp, Ramp_MWh, Retirement_year, 
+                              mean_CO2_tons_MW_estimate, mean_CO2_tons_MW, mean_NOx_lbs_MW_estimate,
+                              mean_NOx_lbs_MW, mean_SO2_lbs_MW_estimate, mean_SO2_lbs_MW, mean_HI_mmBtu_per_MW_estimate = mean_HI_mmBtu_per_MW)]
+  results_updated <- merge(Fossil_Fuels_NPC_subset, results_updated, by = "Facility_Unit.ID", all.y = TRUE)
   
   # --- Filter Out Retired Facilities ---
   if (!(pathway %in% c("A", "D"))) {
@@ -481,38 +484,95 @@ dispatch_curve_adjustments <- function(results) {
     mean_CO2_ton_per_MWh = mean(CO2_intensity[is.finite(CO2_intensity)], na.rm = TRUE),
     mean_NOx_lb_per_MWh  = mean(NOx_intensity[is.finite(NOx_intensity)], na.rm = TRUE),
     mean_SO2_lb_per_MWh  = mean(SO2_intensity[is.finite(SO2_intensity)], na.rm = TRUE),
-    mean_HI_mmbtu_per_MWh = mean(HI_intensity[is.finite(HI_intensity)], na.rm = TRUE)
+    mean_HI_mmBtu_per_MWh = mean(HI_intensity[is.finite(HI_intensity)], na.rm = TRUE)
   ), by = Facility_Unit.ID]
-  
-  # Merge facility mean intensities back.
-  results_updated <- merge(results_updated, mean_intensities, by = "Facility_Unit.ID", all.x = TRUE)
   
   # Calculate overall global mean intensities.
   global_means <- mean_intensities[, .(
     global_mean_CO2 = mean(mean_CO2_ton_per_MWh, na.rm = TRUE),
     global_mean_NOx = mean(mean_NOx_lb_per_MWh, na.rm = TRUE),
     global_mean_SO2 = mean(mean_SO2_lb_per_MWh, na.rm = TRUE),
-    global_mean_HI  = mean(mean_HI_mmbtu_per_MWh, na.rm = TRUE)
+    global_mean_HI  = mean(mean_HI_mmBtu_per_MWh, na.rm = TRUE)
   )]
   
   # Replace any missing facility mean intensities with the corresponding global means.
-  results_updated[is.na(mean_CO2_ton_per_MWh), mean_CO2_ton_per_MWh := global_means$global_mean_CO2]
-  results_updated[is.na(mean_NOx_lb_per_MWh), mean_NOx_lb_per_MWh := global_means$global_mean_NOx]
-  results_updated[is.na(mean_SO2_lb_per_MWh), mean_SO2_lb_per_MWh := global_means$global_mean_SO2]
-  results_updated[is.na(mean_HI_mmbtu_per_MWh), mean_HI_mmbtu_per_MWh := global_means$global_mean_HI]
+  mean_intensities[is.na(mean_CO2_ton_per_MWh), mean_CO2_ton_per_MWh := global_means$global_mean_CO2]
+  mean_intensities[is.na(mean_NOx_lb_per_MWh), mean_NOx_lb_per_MWh := global_means$global_mean_NOx]
+  mean_intensities[is.na(mean_SO2_lb_per_MWh), mean_SO2_lb_per_MWh := global_means$global_mean_SO2]
+  mean_intensities[is.na(mean_HI_mmBtu_per_MWh), mean_HI_mmBtu_per_MWh := global_means$global_mean_HI]
+  
+  # Merge facility mean intensities back.
+  results_updated <- merge(results_updated, mean_intensities, by = "Facility_Unit.ID", all.x = TRUE)
+  
+  # For CO2: Create a new column 'CO2_ton_per_MWh'
+  results_updated[, CO2_ton_per_MWh := ifelse(
+    !is.na(mean_CO2_tons_MW), 
+    mean_CO2_tons_MW, 
+    ifelse(
+      !is.na(mean_CO2_tons_MW_estimate),
+      mean_CO2_tons_MW_estimate,
+      mean_CO2_ton_per_MWh
+    )
+  )]
+  
+  # For NOx: Create 'NOx_lb_per_MWh'
+  results_updated[, NOx_lb_per_MWh := ifelse(
+    !is.na(mean_NOx_lbs_MW),
+    mean_NOx_lbs_MW,
+    ifelse(
+      !is.na(mean_NOx_lbs_MW_estimate),
+      mean_NOx_lbs_MW_estimate,
+      mean_NOx_lb_per_MWh
+    )
+  )]
+  
+  # For SO2: Create 'SO2_lb_per_MWh'
+  results_updated[, SO2_lb_per_MWh := ifelse(
+    !is.na(mean_SO2_lbs_MW),
+    mean_SO2_lbs_MW,
+    ifelse(
+      !is.na(mean_SO2_lbs_MW_estimate),
+      mean_SO2_lbs_MW_estimate,
+      mean_SO2_lb_per_MWh
+    )
+  )]
+  
+  # For HI: Create a new column 'HI_mmBtu_per_MW'
+  results_updated[, HI_mmBtu_per_MWh := ifelse(
+    !is.na(mean_HI_mmBtu_per_MW_estimate),
+    mean_HI_mmBtu_per_MW_estimate,
+    mean_HI_mmBtu_per_MWh
+  )]
   
   # Estimate emissions based on adjusted generation.
-  results_updated[, `:=`(
-    CO2_tons = fcoalesce(Gen_MWh_adj, 0) * fcoalesce(mean_CO2_ton_per_MWh, 0),
-    NOx_lbs  = fcoalesce(Gen_MWh_adj, 0) * fcoalesce(mean_NOx_lb_per_MWh, 0),
-    SO2_lbs  = fcoalesce(Gen_MWh_adj, 0) * fcoalesce(mean_SO2_lb_per_MWh, 0),
-    HI_mmBtu = fcoalesce(Gen_MWh_adj, 0) * fcoalesce(mean_HI_mmbtu_per_MWh, 0)
-  )]
+  # Update CO2_tons only if its value is NA, infinite, or zero.
+  results_updated[
+    is.na(CO2_tons) | is.infinite(CO2_tons) | (CO2_tons == 0),
+    CO2_tons := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(CO2_ton_per_MWh, 0)
+  ]
+  
+  # Update NOx_lbs only if its value is NA, infinite, or zero.
+  results_updated[
+    is.na(NOx_lbs) | is.infinite(NOx_lbs) | (NOx_lbs == 0),
+    NOx_lbs := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(NOx_lb_per_MWh, 0)
+  ]
+  
+  # Update SO2_lbs only if its value is NA, infinite, or zero.
+  results_updated[
+    is.na(SO2_lbs) | is.infinite(SO2_lbs) | (SO2_lbs == 0),
+    SO2_lbs := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(SO2_lb_per_MWh, 0)
+  ]
+  
+  # Update HI_mmBtu only if its value is NA, infinite, or zero.
+  results_updated[
+    is.na(HI_mmBtu) | is.infinite(HI_mmBtu) | (HI_mmBtu == 0),
+    HI_mmBtu := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(HI_mmBtu_per_MWh, 0)
+  ]
   
   
   # Remove raw intensity columns, keeping only the mean values.
   results_updated[, c("CO2_intensity", "NOx_intensity", "SO2_intensity", "HI_intensity",
-                      "mean_HI_mmbtu_per_MWh", "mean_SO2_lb_per_MWh", "mean_NOx_lb_per_MWh", "mean_CO2_ton_per_MWh") := NULL]
+                      "mean_HI_mmBtu_per_MWh", "mean_SO2_lb_per_MWh", "mean_NOx_lb_per_MWh", "mean_CO2_ton_per_MWh") := NULL]
   
   return(results_updated)
 }
@@ -596,7 +656,6 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
 # Set all pathways from Hourly_Installed_Capacity$Pathway
 pathways <- unique(Hourly_Installed_Capacity$Pathway)
 n_simulations <- 1
-pathways <- pathways[2]
 
 # Use lapply to run all simulations over all pathways
 simulation_results <- lapply(1:n_simulations, function(sim) {
@@ -607,7 +666,7 @@ simulation_results <- lapply(1:n_simulations, function(sim) {
     # Execute the dispatch curve for the current simulation and pathway
     dispatch_curve_results <- dispatch_curve(sim, pathway)
     
-    dispatch_curve_results <- dispatch_curve_results[1:1000, ] # Test the code
+    dispatch_curve_results <- dispatch_curve_results[200000:201000, ] # Test the code
     # Get fossil fuels hourly adjustments based on the dispatch results
     fossil_fuels_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results)
     
@@ -654,4 +713,49 @@ response <- POST("https://api.pushover.net/1/messages.json",
                    message = "The code executed successfully."
                  ),
                  encode = "form")
+
+# ----- 6. Plot emissions-----
+# Split the data by Pathway:
+pathway_groups <- split(combined_final_hourly_results, combined_final_hourly_results$Pathway)
+
+# Create a set of colors – one per pathway:
+colors <- rainbow(length(pathway_groups))
+
+# If you have a time variable, e.g. a column named "Time", you can use that for the x-axis.
+# Otherwise, we use the row index for each group.
+if("Time" %in% names(combined_final_hourly_results)) {
+  # Determine x-axis limits from your Time values:
+  xlims <- range(combined_final_hourly_results$Time)
+  ylims <- range(combined_final_hourly_results$CO2_tons)
+  
+  # Create an empty plot with these limits:
+  plot(NA, xlim = xlims, ylim = ylims, xlab = "Time", ylab = "CO2 Tons",
+       main = "CO2 Tons by Pathway")
+  
+  # Loop over each pathway, adding a line for its CO2_tons:
+  i <- 1
+  for(group in pathway_groups) {
+    lines(group$Time, group$CO2_tons, col = colors[i])
+    i <- i + 1
+  }
+} else {
+  # Use row numbers if no Time variable exists
+  # Determine the maximum number of rows among the groups:
+  max_index <- max(sapply(pathway_groups, nrow))
+  ylims <- range(combined_final_hourly_results$CO2_tons)
+  
+  # Create an empty plot:
+  plot(NA, xlim = c(1, max_index), ylim = ylims, xlab = "Index", ylab = "CO2 Tons",
+       main = "CO2 Tons by Pathway")
+  
+  # Plot each group using its row indices:
+  i <- 1
+  for(group in pathway_groups) {
+    lines(1:nrow(group), group$CO2_tons, col = colors[i])
+    i <- i + 1
+  }
+}
+
+# Add a legend with the pathway names:
+legend("topright", legend = names(pathway_groups), col = colors, lty = 1)
 

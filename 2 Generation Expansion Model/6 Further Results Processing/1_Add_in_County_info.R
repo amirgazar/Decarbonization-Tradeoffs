@@ -7,8 +7,8 @@ library(tigris)
 library(data.table)
 
 # Load the GeoJSON files
-us_boundary <- st_read('/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Geo Data/US.json')
-county_boundaries <- st_read('/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Geo Data/county_boundaries.json')
+us_boundary <- st_read('/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. Census Geo Data/US.json')
+county_boundaries <- st_read('/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. Census Geo Data/New_England_county_boundaries.json')
 
 # Set CRS for county_boundaries if missing
 if (is.na(st_crs(county_boundaries))) {
@@ -19,9 +19,6 @@ if (is.na(st_crs(county_boundaries))) {
 #-- Stepwise
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/"
-#-- Rep Days
-#file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Facility_Level_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/"
 
 Yearly_Facility_Level_Results <- fread(file_path)
 Yearly_Facility_Level_Results[, V1 := NULL]

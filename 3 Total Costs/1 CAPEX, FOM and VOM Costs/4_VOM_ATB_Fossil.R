@@ -19,7 +19,7 @@ ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
 #-- Stepwise
 file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
 file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Facility_Level_Results <- as.data.table(fread(file_path_1))
 Yearly_Results <- as.data.table(fread(file_path_2))
@@ -48,7 +48,7 @@ Yearly_Facility_Level_Results[, Fuel_Category := fcase(
 
 # Summarize based on Fuel Type, sim, year and pathway
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
-  total_generation_GWh = sum(total_generation_GWh, na.rm = TRUE),
+  Fossil_gen_TWh = sum(total_generation_GWh, na.rm = TRUE)/1e3,
   total_CO2_tons = sum(total_CO2_tons, na.rm = TRUE),
   total_NOx_lbs = sum(total_NOx_lbs, na.rm = TRUE),
   total_SO2_lbs = sum(total_SO2_lbs, na.rm = TRUE)
@@ -57,17 +57,17 @@ Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
 
 # Summarize Hourly results for New Gas generation
 Yearly_Results_summary <- Yearly_Results[, .(
-  total_generation_GWh = sum(Fossil_new.gen_hr_TWh, na.rm = TRUE),
-  total_CO2_tons = sum(CO2.total_hr_tons, na.rm = TRUE),
-  total_NOx_lbs = sum(NOx.total_hr_lbs, na.rm = TRUE),
-  total_SO2_lbs = sum(SO2.total_hr_lbs, na.rm = TRUE),
+  Fossil_gen_TWh = sum(New_Fossil_Fuel_TWh, na.rm = TRUE),
+  total_CO2_tons = sum(CO2_tons, na.rm = TRUE),
+  total_NOx_lbs = sum(NOx_lbs, na.rm = TRUE),
+  total_SO2_lbs = sum(SO2_lbs, na.rm = TRUE),
   Fuel_Category = "Gas_CC"
 ), by = .(Year, Simulation, Pathway)]
 
 # Combine all data
 Yearly_Facility_Level_Results <- rbind(Yearly_Facility_Level_Results, Yearly_Results_summary)
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
-  total_generation_GWh = sum(total_generation_GWh, na.rm = TRUE),
+  Fossil_gen_TWh = sum(Fossil_gen_TWh, na.rm = TRUE),
   total_CO2_tons = sum(total_CO2_tons, na.rm = TRUE),
   total_NOx_lbs = sum(total_NOx_lbs, na.rm = TRUE),
   total_SO2_lbs = sum(total_SO2_lbs, na.rm = TRUE)
@@ -115,11 +115,11 @@ pathways <- unique(Yearly_Facility_Level_Results$Pathway)
 
 # Process each fossil fuel for each combination of simulation and Pathway
 fossil_fuels <- list(
-  list(tech = "Coal_FE", detail = "Coal-IGCC-90%-CCS", column_name = "total_generation_GWh", fuel_type = "Coal"),
-  list(tech = "Biopower", detail = "Dedicated", column_name = "total_generation_GWh", fuel_type = "Wood"),
-  list(tech = "NaturalGas_FE", detail = "NG 1-on-1 Combined Cycle (H-Frame)", column_name = "total_generation_GWh", fuel_type = "Gas_CC"),
-  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "total_generation_GWh", fuel_type = "Gas_CT"),
-  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "total_generation_GWh", fuel_type = "Oil")
+  list(tech = "Coal_FE", detail = "Coal-IGCC-90%-CCS", column_name = "Fossil_gen_TWh", fuel_type = "Coal"),
+  list(tech = "Biopower", detail = "Dedicated", column_name = "Fossil_gen_TWh", fuel_type = "Wood"),
+  list(tech = "NaturalGas_FE", detail = "NG 1-on-1 Combined Cycle (H-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Gas_CC"),
+  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Gas_CT"),
+  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Oil")
 )
 
 npv_results_fossil <- list()

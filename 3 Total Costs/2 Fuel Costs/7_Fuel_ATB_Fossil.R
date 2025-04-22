@@ -34,7 +34,7 @@ all_sheets <- lapply(sheet_names, function(sheet) read_excel(file_path, sheet = 
 names(all_sheets) <- sheet_names
 
 # Combine all data frames into one
-ATB_2021 <- do.call(rbind, all_sheets)
+ATB_2021 <- as.data.table(do.call(rbind, all_sheets))
 ATB_2024 <- ATB_2021 %>%
   mutate(across(-1, ~ . * conversion_rate))
 
@@ -65,14 +65,9 @@ setDT(ATB_2024)
 #-- Stepwise
 file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
 file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
-#-- Rep Days
-#file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Facility_Level_Results_rep_days.csv"
-#file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/2 Representative Days Costs/"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Facility_Level_Results <- as.data.table(fread(file_path_1))
-Facility_Level_Results[, V1 := NULL]
 Facility_Level_Results[, V1 := NULL]
 
 Yearly_Results <- as.data.table(fread(file_path_2))
@@ -120,7 +115,7 @@ Facility_Level_Results <- Facility_Level_Results[, .(
 Facility_Level_Results$Year <- as.numeric(as.character(Facility_Level_Results$Year))
 
 # Add new natural gas costs
-Fossil_new_gen <- Yearly_Results[, .(Year, Simulation, Pathway, Fuel_Category = as.character("Gas_CC"), total_generation_GWh = Fossil_new.gen_hr_TWh * 1e3)]
+Fossil_new_gen <- Yearly_Results[, .(Year, Simulation, Pathway, Fuel_Category = as.character("Gas_CC"), total_generation_GWh = New_Fossil_Fuel_TWh * 1e3)]
 ATB_2024[, Year := as.integer(as.character(Year))]
 Fossil_new_gen <- merge(Fossil_new_gen, 
                         ATB_2024[, .(Fuel_Category, Year, Cost_USD_per_MWh)], 

@@ -4,10 +4,10 @@ library(data.table)
 # Define paths and parameters
 original_R_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/2 Dispatch Curve.R" # Full path to the original R file
 output_folder <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 RCodes to submit/1 Comp Days" # Full path to the folder where new files will be saved
-n_sim <- 120  # Number of iterations
+n_sim <- 50  # Number of iterations batches n_sim*10 = total sims
 # Loop to generate R and Bash files for each pathway and iteration,
 # with 'i' taking values 10, 20, ..., 200.
-for (i in seq(10, n_sim * 10, by = 10)) {
+for (i in seq(1, n_sim * 10, by = 10)) {
   # ----- Modify R File -----
   # Read the original R file
   content <- readLines(original_R_file)
@@ -27,7 +27,7 @@ for (i in seq(10, n_sim * 10, by = 10)) {
   # Define bash script content
   bash_script <- paste0("#!/bin/bash
 #SBATCH --account=epadecarb
-#SBATCH --partition=normal_q
+#SBATCH --partition=preemptable_q
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=80
 #SBATCH --cpus-per-task=1  # Reduce the number of cores to avoid OOM

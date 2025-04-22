@@ -33,6 +33,8 @@ file_path <- "/projects/epadecarb/2 Generation Expansion Model/3 Datasets/Fossil
 Fossil_Fuels_NPC <- fread(file_path)
 Fossil_Fuels_NPC$Ramp <- ceiling(Fossil_Fuels_NPC$Ramp)
 Fossil_Fuels_NPC$Ramp_MWh <- Fossil_Fuels_NPC$Estimated_NameplateCapacity_MW / Fossil_Fuels_NPC$Ramp
+# Retain only facilities scheduled to retire after 2025.
+Fossil_Fuels_NPC <- Fossil_Fuels_NPC[Retirement_year >= 2025]
 
 file_path <- "/projects/epadecarb/2 Generation Expansion Model/3 Datasets/New_Fossil_Fuel_Facilities_Data.csv"
 New_Fossil_Fuels_NPC <- fread(file_path)
@@ -311,9 +313,7 @@ dispatch_curve_adjustments <- function(results) {
   n_hours <- nrow(results)
   
   # --- Fossil Fuels: Filter and Prepare Facility Data ---
-  # Retain only facilities scheduled to retire after 2025.
-  FF_NPC <- Fossil_Fuels_NPC[Retirement_year >= 2025]
-  unique_units <- unique(FF_NPC$Facility_Unit.ID)
+  unique_units <- unique(Fossil_Fuels_NPC$Facility_Unit.ID)
   n_units <- length(unique_units)
   n_total_rand <- 6 + n_units
   
@@ -371,10 +371,10 @@ dispatch_curve_adjustments <- function(results) {
   results_updated <- results_updated[, .(Date, DayLabel, Hour, Facility_Unit.ID, Old_Fossil_Fuels_net_MWh,
                                          Gen_MWh, CO2_tons, NOx_lbs, SO2_lbs, HI_mmBtu)]
   
-  # Merge additional facility details from the FF_NPC dataset.
-  FF_NPC_subset <- FF_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, 
+  # Merge additional facility details from the Fossil_Fuels_NPC dataset.
+  Fossil_Fuels_NPC_subset <- Fossil_Fuels_NPC[, .(Facility_Unit.ID, Estimated_NameplateCapacity_MW, 
                               min_gen_MW, max_gen_MW, Ramp, Ramp_MWh, Retirement_year)]
-  results_updated <- merge(FF_NPC_subset, results_updated, by = "Facility_Unit.ID", all.y = TRUE)
+  results_updated <- merge(Fossil_Fuels_NPC_subset, results_updated, by = "Facility_Unit.ID", all.y = TRUE)
   
   # --- Filter Out Retired Facilities ---
   if (!(pathway %in% c("A", "D"))) {

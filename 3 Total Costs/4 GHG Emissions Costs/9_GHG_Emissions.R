@@ -3,6 +3,9 @@ library(data.table)
 library(readxl)
 library(sf)
 library(fredr)
+library(dplyr)
+library(lubridate)
+
 
 ### All emissions data is presented in units of metric tons of carbon dioxide equivalent using GWP's from IPCC's AR4
 # Load Results - Facility level gen (old facilities)
@@ -169,8 +172,18 @@ combined_npvs <- rbindlist(lapply(names(npv_results), function(name) {
   data.table(Simulation = parts[1], Pathway = parts[2], NPV = npv_results[[name]])
 }), fill = TRUE)
 
+combined_npvs <- combined_npvs[NPV != 0,]
+combined_npvs <- combined_npvs %>%
+  group_by(Pathway) %>%
+  summarise(
+    NPV_max = max(NPV),
+    NPV_mean = mean(NPV),
+    NPV_min = min(NPV)
+  ) 
+
+
 # New fossil fuel emissions
-Yearly_Results$Fossil_new.CO2_tons <- GHG_Fuels_NPC_new$mean_CO2_tons_MW * Yearly_Results$Fossil_new.gen_hr_TWh * 1e6
+Yearly_Results$Fossil_new.CO2_tons <- GHG_Fuels_NPC_new$mean_CO2_tons_MW * Yearly_Results$New_Fossil_Fuel_TWh * 1e6
 Yearly_Results$Fossil_new.CH4_tons_eq <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_CH4_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"] 
 Yearly_Results$Fossil_new.N2O_tons_eq <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_N2O_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"] 
 Yearly_Results$Fossil_new.CO2_tons_eq <- Yearly_Results$Fossil_new.CO2_tons + Yearly_Results$Fossil_new.CH4_tons_eq + Yearly_Results$Fossil_new.N2O_tons_eq 
@@ -187,14 +200,20 @@ Yearly_Results_Summary <- merge(Yearly_Results_Summary, GHG_Costs, by = "Year", 
 Yearly_Results_Summary[, total_cost_CO2_eq := total_GHG_tons_CO2_eq * CO2_cost]
 
 
+# Set up correct loop inputs
+simulations_summary <- unique(as.character(Yearly_Results_Summary$Simulation))
+pathways_summary <- unique(as.character(Yearly_Results_Summary$Pathway))
+
+# Recalculate
 npv_results_hourly <- list()
 
-for (sim in simulations) {
-  for (scen in Pathways) {
+for (sim in simulations_summary) {
+  for (scen in pathways_summary) {
     npv <- process_GHG(sim, scen, Yearly_Results_Summary)
     npv_results_hourly[[paste0(sim, "_", scen, "_Total_GHG_NPV")]] <- npv
   }
 }
+
 
 # Combine NPV results into a single data.table
 combined_npvs_hourly <- rbindlist(lapply(names(npv_results_hourly), function(name) {
@@ -202,16 +221,23 @@ combined_npvs_hourly <- rbindlist(lapply(names(npv_results_hourly), function(nam
   data.table(Simulation = parts[1], Pathway = parts[2], NPV_newNG = npv_results_hourly[[name]])
 }), fill = TRUE)
 
+combined_npvs_hourly <- combined_npvs_hourly %>%
+  group_by(Pathway) %>%
+  summarise(
+    NPV_newNG_max = max(NPV_newNG),
+    NPV_newNG_mean = mean(NPV_newNG),
+    NPV_newNG_min = min(NPV_newNG)
+  ) 
 
-combined_npvs <- merge(combined_npvs, combined_npvs_hourly, by = c("Simulation", "Pathway"))
-combined_npvs$NPV <- combined_npvs$NPV + combined_npvs$NPV_newNG
-combined_npvs[, NPV_newNG := NULL ]
-combined_npvs <- combined_npvs[NPV != 0,]
 
-combined_npvs_summary_2 <- combined_npvs[NPV != 0, .(
-  mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
-  sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway)] 
+combined_npvs <- merge(combined_npvs, combined_npvs_hourly, by = c("Pathway"))
+combined_npvs$NPV_mean <- combined_npvs$NPV_mean + combined_npvs$NPV_newNG_mean
+combined_npvs$NPV_max <- combined_npvs$NPV_max + combined_npvs$NPV_newNG_max
+combined_npvs$NPV_min <- combined_npvs$NPV_min + combined_npvs$NPV_newNG_min
+combined_npvs <- as.data.table(combined_npvs)
+combined_npvs[, NPV_newNG_mean := NULL ]
+combined_npvs[, NPV_newNG_max := NULL ]
+combined_npvs[, NPV_newNG_min := NULL ]
 
 # Save combined NPV results to a single CSV file
 write.csv(combined_npvs, file = file.path(output_path, "GHG_Emissions.csv"), row.names = FALSE)
