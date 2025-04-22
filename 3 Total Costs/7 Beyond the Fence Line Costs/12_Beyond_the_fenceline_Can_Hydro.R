@@ -15,7 +15,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
 discount_rate <- 0.03
 base_year <- 2024
 n_hours_in_year <- 8760
-hydro_CF <- 60.3/100
+hydro_CF <- 65/100 # From Hydro quebec
 
 # API KEY 63522eae4ec927d6f1d9d86bf7826cc8
 fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
@@ -115,6 +115,12 @@ Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results[, V1 := NULL]
 Yearly_Results[, V1 := NULL]
 Yearly_Results <- Yearly_Results[ Pathway == pathway_B3, ]
+Yearly_Results$Import_diff <- Yearly_Results$Calibrated_Total_import_net_TWh - Yearly_Results$Total_import_net_TWh
+imports_max_CF <- 0.95
+Yearly_Results[, Total_QC_import_max_MWh := (Imports_HQ_MW) * imports_max_CF]
+Yearly_Results[, Total_NYISO_import_max_MWh := (Imports_NYISO_MW) * imports_max_CF]
+Yearly_Results[, Total_NBSO_import_max_MWh := (Imports_NBSO_MW) * imports_max_CF]
+
 
 
 # Calculate mean, max, and min for Import.QC_hr_TWh by Year and Scenario
