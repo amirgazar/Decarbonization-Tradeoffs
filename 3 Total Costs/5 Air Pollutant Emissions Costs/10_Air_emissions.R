@@ -23,17 +23,12 @@ ton_conversion <- 0.907185 # Conversion factor from US tons to metric tons
 #-- Stepwise
 file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results_County_added_in.csv"
 file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
-
-#-- Rep Days
-#file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Facility_Level_Results_County_added_in.csv"
-#file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/2 Representative Days Costs/"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Facility_Level_Results <- fread(file_path_1)
 
 Yearly_Results <- as.data.table(fread(file_path_2))
-Yearly_Results <- Yearly_Results[, .(Simulation, Year, Pathway, Fossil_new.gen_hr_TWh)]
+Yearly_Results <- Yearly_Results[, .(Simulation, Year, Pathway, New_Fossil_Fuel_TWh)]
 
 # Nameplate Capacity
 # Load facilities data
@@ -475,11 +470,11 @@ Fossil_Fuels_NPC_new <- merge(selected_cols, Fossil_Fuels_NPC_new, by = "Facilit
 
 # Add in parameters to generation
 Yearly_Results <- merge(Yearly_Results, Fossil_Fuels_NPC_new, by = "Year", all.x = TRUE)
-Yearly_Results <- Yearly_Results[Fossil_new.gen_hr_TWh > 0, ]
+Yearly_Results <- Yearly_Results[New_Fossil_Fuel_TWh > 0, ]
 
 # Calculate emissions and costs
 # Calculate emissions and costs for Gas_CC facilities
-Yearly_Results[, total_HI_mmBtu := Fossil_new.gen_hr_TWh * 1e6 * mean_Heat_Input_mmBtu / Estimated_NameplateCapacity_MW]
+Yearly_Results[, total_HI_mmBtu := New_Fossil_Fuel_TWh * 1e6 * mean_Heat_Input_mmBtu / Estimated_NameplateCapacity_MW]
 Yearly_Results[, PM.total_tons := total_HI_mmBtu * PM_lbs_mmBTU * lbs_tons_conversion]
 
 # Calculate PM2.5 and PM10 specifically for Gas_CC
@@ -487,8 +482,8 @@ Yearly_Results[, PM2.5_tons := PM.total_tons]
 Yearly_Results[, PM10_tons := 0]  
 
 # NOx and SO2 emissions (convert lbs to tons)
-Yearly_Results[, total_NOx_tons := Fossil_new.gen_hr_TWh * 1e6 * mean_NOx_lbs_MW * lbs_tons_conversion]
-Yearly_Results[, total_SO2_tons := Fossil_new.gen_hr_TWh * 1e6 * mean_SO2_lbs_MW * lbs_tons_conversion]
+Yearly_Results[, total_NOx_tons := New_Fossil_Fuel_TWh * 1e6 * mean_NOx_lbs_MW * lbs_tons_conversion]
+Yearly_Results[, total_SO2_tons := New_Fossil_Fuel_TWh * 1e6 * mean_SO2_lbs_MW * lbs_tons_conversion]
 
 # CO emissions for Gas_CC
 Yearly_Results[, CO_tons := total_HI_mmBtu * 3.0e-02 * lbs_tons_conversion]  # Emission factor for Gas_CC
