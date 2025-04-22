@@ -106,28 +106,108 @@ Hydropower <- Hydropower %>%
 # Load Imports data#left_join() Load Imports data
 #-- Stepwise
 file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results Comperhensive"
-#-- Rep Days
-#file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/2 Representative Days Summary Results/Yearly_Results_rep_days.csv"
-#output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/2 Representative Days Costs/"
+output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results[, V1 := NULL]
 Yearly_Results[, V1 := NULL]
 Yearly_Results <- Yearly_Results[ Pathway == pathway_B3, ]
-Yearly_Results$Import_diff <- Yearly_Results$Calibrated_Total_import_net_TWh - Yearly_Results$Total_import_net_TWh
+# Compute base imports from each source (in TWh)
+Yearly_Results[, Total_QC_import_TWh := Spot_Market_Imports_HQ_TWh + Long_Term_Imports_HQ_TWh]
+Yearly_Results[, Total_base_import_TWh := Total_QC_import_TWh + Import_NYISO_TWh + Import_NBSO_TWh]
+
+# Calculate fractional shares from the base values
+Yearly_Results[, QC_import_share := Total_QC_import_TWh / Total_base_import_TWh]
+Yearly_Results[, NYISO_import_share := Import_NYISO_TWh / Total_base_import_TWh]
+Yearly_Results[, NBSO_import_share := Import_NBSO_TWh / Total_base_import_TWh]
+
+# Calculate maximum import capacities from the installed capacity columns,
+# converting from MWh to TWh (1 TWh = 1,000 MWh) using the factor 0.95 for the max CF.
 imports_max_CF <- 0.95
-Yearly_Results[, Total_QC_import_max_MWh := (Imports_HQ_MW) * imports_max_CF]
-Yearly_Results[, Total_NYISO_import_max_MWh := (Imports_NYISO_MW) * imports_max_CF]
-Yearly_Results[, Total_NBSO_import_max_MWh := (Imports_NBSO_MW) * imports_max_CF]
+Yearly_Results[, Total_QC_import_max_MWh := Imports_HQ_MW * imports_max_CF]
+Yearly_Results[, Total_NYISO_import_max_MWh := Imports_NYISO_MW * imports_max_CF]
+Yearly_Results[, Total_NBSO_import_max_MWh := Imports_NBSO_MW * imports_max_CF]
+
+# Convert maximum capacities from MWh to TWh
+Yearly_Results[, Total_QC_import_max_TWh := Total_QC_import_max_MWh / 1000]
+Yearly_Results[, Total_NYISO_import_max_TWh := Total_NYISO_import_max_MWh / 1000]
+Yearly_Results[, Total_NBSO_import_max_TWh := Total_NBSO_import_max_MWh / 1000]
+
+# Compute the extra capacity available for each source (in TWh)
+Yearly_Results[, extra_possible_QC := pmax(Total_QC_import_max_TWh - Total_QC_import_TWh, 0)]
+Yearly_Results[, extra_possible_NYISO := pmax(Total_NYISO_import_max_TWh - Import_NYISO_TWh, 0)]
+Yearly_Results[, extra_possible_NBSO := pmax(Total_NBSO_import_max_TWh - Import_NBSO_TWh, 0)]
+
+Yearly_Results$Import_diff <- Yearly_Results$Calibrated_Total_import_net_TWh - Yearly_Results$Total_import_net_TWh
+Yearly_Results[, c("Calibrated_QC_import_net_TWh", 
+                   "Calibrated_NYISO_import_net_TWh", 
+                   "Calibrated_NBSO_import_net_TWh") := {
+                     
+                     # Base import values (in TWh)
+                     base_QC    = Total_QC_import_TWh
+                     base_NYISO = Import_NYISO_TWh
+                     base_NBSO  = Import_NBSO_TWh
+                     
+                     # Maximum available capacities (in TWh)
+                     max_QC    = Total_QC_import_max_TWh
+                     max_NYISO = Total_NYISO_import_max_TWh
+                     max_NBSO  = Total_NBSO_import_max_TWh
+                     
+                     # Initial proportional allocation from Import_diff (in TWh)
+                     alloc_QC    = QC_import_share * Import_diff
+                     alloc_NYISO = NYISO_import_share * Import_diff
+                     alloc_NBSO  = NBSO_import_share * Import_diff
+                     
+                     # Cap each allocation so that base + extra does not exceed maximum capacity
+                     alloc_QC    = min(alloc_QC, max_QC - base_QC)
+                     alloc_NYISO = min(alloc_NYISO, max_NYISO - base_NYISO)
+                     alloc_NBSO  = min(alloc_NBSO, max_NBSO - base_NBSO)
+                     
+                     # Calculate the total allocated extra so far and remaining extra to allocate
+                     allocated = alloc_QC + alloc_NYISO + alloc_NBSO
+                     leftover = Import_diff - allocated
+                     tol = 1e-6
+                     
+                     # Redistribute any leftover extra among sources with remaining capacity.
+                     while(leftover > tol) {
+                       avail_QC    = max_QC - (base_QC + alloc_QC)
+                       avail_NYISO = max_NYISO - (base_NYISO + alloc_NYISO)
+                       avail_NBSO  = max_NBSO - (base_NBSO + alloc_NBSO)
+                       
+                       total_avail = max(avail_QC + avail_NYISO + avail_NBSO, tol)
+                       if(total_avail < tol) break  # No further capacity available
+                       
+                       # Determine additional shares based on available capacity
+                       share_QC    = avail_QC / total_avail
+                       share_NYISO = avail_NYISO / total_avail
+                       share_NBSO  = avail_NBSO / total_avail
+                       
+                       # Additional allocation for each source is the minimum of the share and the available capacity.
+                       add_QC    = min(leftover * share_QC, avail_QC)
+                       add_NYISO = min(leftover * share_NYISO, avail_NYISO)
+                       add_NBSO  = min(leftover * share_NBSO, avail_NBSO)
+                       
+                       add_total = add_QC + add_NYISO + add_NBSO
+                       if(add_total < tol) break  # Nothing further can be allocated
+                       
+                       # Update allocations with the additional amounts and reduce the leftover accordingly.
+                       alloc_QC    = alloc_QC + add_QC
+                       alloc_NYISO = alloc_NYISO + add_NYISO
+                       alloc_NBSO  = alloc_NBSO + add_NBSO
+                       leftover = leftover - add_total
+                     }
+                     
+                     # Final calibrated import for each source is the base plus its extra allocation.
+                     list(base_QC + alloc_QC, base_NYISO + alloc_NYISO, base_NBSO + alloc_NBSO)
+                   }, by = 1:nrow(Yearly_Results)]
 
 
 
-# Calculate mean, max, and min for Import.QC_hr_TWh by Year and Scenario
+# Calculate mean, max, and min for Calibrated_QC_import_net_TWh by Year and Scenario
 Yearly_imports <- Yearly_Results[, .(
-  Mean_imports_QC_MWh = mean(Import.QC_hr_TWh, na.rm = TRUE) * 1e6, #TWh to MWh
-  Max_imports_QC_MWh = max(Import.QC_hr_TWh, na.rm = TRUE) * 1e6,
-  Min_imports_QC_MWh = min(Import.QC_hr_TWh, na.rm = TRUE) * 1e6
+  Mean_imports_QC_MWh = mean(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6, #TWh to MWh
+  Max_imports_QC_MWh = max(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6,
+  Min_imports_QC_MWh = min(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6
 ), by = .(Year, Pathway)]
 
 # Evaluate how much of imports are from new transmission lines
@@ -209,102 +289,92 @@ npv_results <- rbind(npv_results_lower, npv_results_upper)
 # Save combined NPV results to a single CSV file
 write.csv(npv_results, file = file.path(output_path, "CAPEX_FOM_CAN_Hydro.csv"), row.names = FALSE)
 
+# -------------------------------
 # CH4 Emissions
+#Emissions using Delwiche et al, 
+# -------------------------------
+# 1. Setup and Data Preparation
+# -------------------------------
+# Define the emission factors (kg CH4-C per MWh imported) from Delwiche et al. (2022)
+min_emission_factor <- 0.16  # Lower bound
+max_emission_factor <- 1.22  # Upper bound
 
-#Emissions using Delwiche et al, Eastmain Dam
-#Delwiche, Eastmain 1 dam (768 MW installed capacity), Latitude: 51.5, Longitude: -74, unit Tg CH4 yr−1/ MW (Eastmain 1 capacity)
-# 
-# Define the parameters from the provided dam data
-surface_area_km2 <- 602.9
-mg_CH4_C_m2_d1 <- 9.43  # Methane emission rate in mg CH4-C per m² per day
-factor <- 12/16 # Convert CH4-C to CH4, 12 g of CH4-C = 16 g CH4
-mg_CH4_C_m2_d1 <- mg_CH4_C_m2_d1 * factor
+# Convert imported energy from MWh to TWh (1 TWh = 1e6 MWh) 
+Yearly_imports[, Generation_TWh_Mean := Mean_imports_QC_MWh / imports_max_CF]
+Yearly_imports[, Generation_TWh_Max  := Max_imports_QC_MWh / imports_max_CF]
+Yearly_imports[, Generation_TWh_Min  := Min_imports_QC_MWh / imports_max_CF]
 
-# Convert surface area from km² to m²
-surface_area_m2 <- surface_area_km2 * 1e6  # 1 km² = 1e6 m²
+# -------------------------------
+# 2. Calculate Annual CH4-C and CH4 Emissions
+# -------------------------------
+# Scale the emission factors by the imported generation (in TWh)
 
-# Calculate annual emissions per m²
-annual_emissions_per_m2 <- mg_CH4_C_m2_d1 * 365  # Convert daily rate to annual
+# Annual CH4-C emissions (in kg) for the lower and upper bounds:
+Yearly_imports[, Annual_CH4_C_emissions_kg_Lower := Generation_TWh_Min * min_emission_factor]
+Yearly_imports[, Annual_CH4_C_emissions_kg_Upper := Generation_TWh_Max * max_emission_factor]
 
-# Calculate total annual emissions for the reservoir
-total_annual_emissions_mg <- annual_emissions_per_m2 * surface_area_m2
+# Convert CH4-C to CH4 using the conversion factor (12 g CH4-C = 16 g CH4)
+conversion_factor <- 16 / 12
+Yearly_imports[, Annual_CH4_emissions_kg_Lower := Annual_CH4_C_emissions_kg_Lower * conversion_factor]
+Yearly_imports[, Annual_CH4_emissions_kg_Upper := Annual_CH4_C_emissions_kg_Upper * conversion_factor]
 
-# Convert from mg to kg for readability (1 kg = 1e6 mg)
-total_annual_emissions_kg <- total_annual_emissions_mg / 1e6
+# Convert emissions from kg to tonnes (1 tonne = 1000 kg)
+Yearly_imports[, Annual_CH4_emissions_tonnes_Lower := Annual_CH4_emissions_kg_Lower / 1000]
+Yearly_imports[, Annual_CH4_emissions_tonnes_Upper := Annual_CH4_emissions_kg_Upper / 1000]
 
-# Output the total annual emissions in kg
-total_annual_emissions_kg
-
-# Base methane emission rate for Eastmain 1 (mg CH4-C m-2 d-1)
-mg_CH4_C_m2_d1 <- 9.43
-
-# Apply a 36% variability based on the uncertainty range from the paper
-mg_CH4_C_m2_d1_lower <- mg_CH4_C_m2_d1 * (1 - 0.36)  # 36% lower
-mg_CH4_C_m2_d1_upper <- mg_CH4_C_m2_d1 * (1 + 0.36)  # 36% higher
-
-# Base dam capacity for estimation (Eastmain's capacity is 768 MW)
-base_dam_capacity_MW <- 768
-# Surface area to capacity ratio (Eastmain's surface area divided by its capacity)
-surface_area_km2_per_MW <- 602.9 / base_dam_capacity_MW
-
-# Calculate surface area for the dams based on the equivalent number of base dams
-Hydropower[, Surface_Area_km2 := Base_hydro_MW * surface_area_km2_per_MW]
-
-# Convert surface area from km² to m²
-Hydropower[, Surface_Area_m2 := Surface_Area_km2 * 1e6]
-
-# Calculate annual emissions per m² for lower and upper bounds
-annual_emissions_per_m2_lower <- mg_CH4_C_m2_d1_lower * 365  # Lower bound
-annual_emissions_per_m2_upper <- mg_CH4_C_m2_d1_upper * 365  # Upper bound
-
-# Calculate total annual emissions for the new dams for lower and upper bounds
-Hydropower[, Total_Annual_Emissions_mg_Lower := annual_emissions_per_m2_lower * Surface_Area_m2]
-Hydropower[, Total_Annual_Emissions_mg_Upper := annual_emissions_per_m2_upper * Surface_Area_m2]
-
-# Convert from mg to kg (1 kg = 1e6 mg)
-Hydropower[, Total_Annual_Emissions_kg_Lower := Total_Annual_Emissions_mg_Lower / 1e6]
-Hydropower[, Total_Annual_Emissions_kg_Upper := Total_Annual_Emissions_mg_Upper / 1e6]
-
-# Convert from kg to tonnes (1 tonne = 1000 kg)
-Hydropower[, Total_Annual_CH4_Emissions_tonnes_Lower := Total_Annual_Emissions_kg_Lower / 1000]
-Hydropower[, Total_Annual_CH4_Emissions_tonnes_Upper := Total_Annual_Emissions_kg_Upper / 1000]
-
-# Define the starting and ending costs for 2021 and 2050 - Source; Total Costs NY Paper
-# Extracting CPI values for specific years
+# -------------------------------
+# 3. Setup Cost Projections via CPI Adjustment
+# -------------------------------
+# Adjust CH4 cost values from 2019 to 2024 using CPI data.
 cpi_2019 <- filter(cpi_data, year(date) == 2019) %>% summarise(YearlyAvg = mean(value))
-# Calculating conversion rate
 conversion_rate_2019_24 <- cpi_2024$YearlyAvg / cpi_2019$YearlyAvg
 
-start_year <- 2021
-end_year <- 2050
-costs_2021 <- list(CH4 = 2732 * conversion_rate_2019_24) # 2019 values, we convert to 2024
+# Set the projection period to match Yearly_imports data (2025 to 2050)
+start_year <- 2025
+end_year   <- 2050
+
+# Define cost estimates for CH4 in 2021 and 2050 (adjusted to 2024 dollars)
+# (Note: If needed, these base years could be aligned with the projection period.)
+costs_2021 <- list(CH4 = 2732 * conversion_rate_2019_24)
 costs_2050 <- list(CH4 = 4684 * conversion_rate_2019_24)
 
-# Interpolate costs for each year
+# Create a cost projection table using an interpolation function
 GHG_Costs <- data.table(Year = start_year:end_year)
-GHG_Costs[, `:=`(
-  CH4_cost = interpolate_cost(Year, start_year, end_year, costs_2021$CH4, costs_2050$CH4)
-)]
+GHG_Costs[, CH4_cost := interpolate_cost(Year, start_year, end_year, costs_2021$CH4, costs_2050$CH4)]
 
-# Merge Costs with Emissions
-selected_cols_lower <- Hydropower[, .(Year, Total_Annual_CH4_Emissions_tonnes_Lower)]
-selected_cols_upper <- Hydropower[, .(Year, Total_Annual_CH4_Emissions_tonnes_Upper)]
+# -------------------------------
+# 4. Merge Emission Estimates with Cost Projections
+# -------------------------------
+# Select only the years available in Yearly_imports
+emissions <- Yearly_imports[Year %in% (start_year:end_year), 
+                            .(Year, Annual_CH4_emissions_tonnes_Lower, Annual_CH4_emissions_tonnes_Upper)]
 
-BFL_costs_pathway_B3_CH4_Lower <- selected_cols_lower[GHG_Costs, on = "Year"]
-BFL_costs_pathway_B3_CH4_Upper <- selected_cols_upper[GHG_Costs, on = "Year"]
+# Merge the emissions estimates with the cost projections
+BFL_costs_pathway_B3_CH4_Lower <- merge(emissions[, .(Year, Annual_CH4_emissions_tonnes_Lower)], 
+                                        GHG_Costs, 
+                                        by = "Year")
+BFL_costs_pathway_B3_CH4_Lower[, total_CH4_USD_Lower := CH4_cost * Annual_CH4_emissions_tonnes_Lower]
 
-BFL_costs_pathway_B3_CH4_Lower[, total_CH4_USD_Lower := CH4_cost * Total_Annual_CH4_Emissions_tonnes_Lower]
-BFL_costs_pathway_B3_CH4_Upper[, total_CH4_USD_Upper := CH4_cost * Total_Annual_CH4_Emissions_tonnes_Upper]
+BFL_costs_pathway_B3_CH4_Upper <- merge(emissions[, .(Year, Annual_CH4_emissions_tonnes_Upper)], 
+                                        GHG_Costs, 
+                                        by = "Year")
+BFL_costs_pathway_B3_CH4_Upper[, total_CH4_USD_Upper := CH4_cost * Annual_CH4_emissions_tonnes_Upper]
 
+# Remove any rows with missing values if present
 BFL_costs_pathway_B3_CH4_Lower <- na.omit(BFL_costs_pathway_B3_CH4_Lower)
 BFL_costs_pathway_B3_CH4_Upper <- na.omit(BFL_costs_pathway_B3_CH4_Upper)
 
-# Calculate NPV for CH4 costs with lower and upper emissions
+# -------------------------------
+# 5. Calculate Net Present Value (NPV) of CH4 Costs
+# -------------------------------
+# Use an existing function 'calculate_npv' that accepts the data table, discount rate, year column, and cost column name.
 CH4_npv_lower <- BFL_costs_pathway_B3_CH4_Lower[, .(NPV_CH4_Lower = calculate_npv(.SD, discount_rate, Year, "total_CH4_USD_Lower"))]
 CH4_npv_upper <- BFL_costs_pathway_B3_CH4_Upper[, .(NPV_CH4_Upper = calculate_npv(.SD, discount_rate, Year, "total_CH4_USD_Upper"))]
 
-# Combine NPV results
+# Combine the lower and upper NPV estimates into a single data table
 CH4_npv <- cbind(CH4_npv_lower, CH4_npv_upper)
 
-# Save combined NPV results to a single CSV file
+# -------------------------------
+# 6. Save the Results to CSV
+# -------------------------------
 write.csv(CH4_npv, file = file.path(output_path, "CH4_CAN_Hydro.csv"), row.names = FALSE)
