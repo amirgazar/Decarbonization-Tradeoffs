@@ -221,6 +221,8 @@ combined_npvs_hourly <- rbindlist(lapply(names(npv_results_hourly), function(nam
   data.table(Simulation = parts[1], Pathway = parts[2], NPV_newNG = npv_results_hourly[[name]])
 }), fill = TRUE)
 
+
+combined_npvs_hourly <- combined_npvs_hourly[!(combined_npvs_hourly$Pathway == "D" & combined_npvs_hourly$NPV_newNG == 0), ]
 combined_npvs_hourly <- combined_npvs_hourly %>%
   group_by(Pathway) %>%
   summarise(

@@ -35,11 +35,11 @@ for (col in import_columns) {
 decarbonization_pathways[, new_capacity := round(new_capacity_Imports_QC + new_capacity_Imports_NYISO + new_capacity_Imports_NBSO, 2)]
 decarbonization_pathways[, total_capacity := round(`Imports QC` + `Imports NYISO` + `Imports NBSO`, 2)]
 
-# Define CAPEX and FOM costs ranges
-CAPEX_cost_lower <- 2.96e6 # Lower range $/MW
-CAPEX_cost_upper <- 4.45e6 # Upper range $/MW
-FOM_cost_lower <- 2.96e3  # Lower range $/MW per year
-FOM_cost_upper <- 4.45e3   # Upper range $/MW per year
+# Define CAPEX and FOM costs ranges using New England Clean Energy Connect values
+CAPEX_cost_lower <- 0.7e6 # Lower range $/MW
+CAPEX_cost_upper <- 1e6 # Upper range $/MW
+FOM_cost_lower <- 700  # Lower range $/MW per year
+FOM_cost_upper <- 1e3   # Upper range $/MW per year
 
 # Calculate CAPEX and FOM for each year with lower costs
 decarbonization_pathways[, CAPEX_lower := new_capacity * CAPEX_cost_lower]

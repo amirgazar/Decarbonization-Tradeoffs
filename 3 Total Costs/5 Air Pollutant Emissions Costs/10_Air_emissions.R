@@ -603,19 +603,37 @@ County_Level_NPV <- Yearly_County_Level_Results[, .(
 fwrite(County_Level_NPV, file = file.path(output_path, "Air_Emissions_County_Level_New.csv"), row.names = FALSE)
 
 ## Total NPVs
-all_NPVs <- rbind(combined_npvs, combined_npvs_new)
-# remove zeros
-all_NPVs <- all_NPVs[NPV > 0,]
-summary_npvs <- all_NPVs[, .(
-  NPV = sum(NPV),
-  NPV_millions = sum(NPV_millions),
-  mortality = sum(mortality)
-), by = .(Simulation, Pathway)]
+# Assuming combined_npvs and combined_npvs_new are already data.tables
+# Remove zeros from both datasets
+combined_npvs_filtered <- combined_npvs[NPV > 0,]
+combined_npvs_new_filtered <- combined_npvs_new[NPV > 0,]
 
+# Calculate the mean for each pathway in combined_npvs (in billions $)
+mean_npvs_1 <- combined_npvs_filtered[, .(
+  NPV_mean_1 = mean(NPV, na.rm = TRUE),
+  NPV_sd_1 = sd(NPV, na.rm = TRUE),
+  mortality_mean_1 = mean(mortality, na.rm = TRUE),
+  mortality_sd_1 = sd(mortality, na.rm = TRUE)
+), by = Pathway]
 
-combined_npvs_all_summary_1 <- summary_npvs[NPV != 0, .(
-  mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
-  sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway)] 
+# Calculate the mean for each pathway in combined_npvs_new (in billions $)
+mean_npvs_2 <- combined_npvs_new_filtered[, .(
+  NPV_mean_2 = mean(NPV, na.rm = TRUE),
+  NPV_sd_2 = sd(NPV, na.rm = TRUE),
+  mortality_mean_2 = mean(mortality, na.rm = TRUE),
+  mortality_sd_2 = sd(mortality, na.rm = TRUE)
+), by = Pathway]
+
+# Combine the pathway means
+combined_pathway_means <- merge(mean_npvs_1, mean_npvs_2, by = "Pathway", all = TRUE)
+
+# Calculate the sum of the means for each pathway 
+summary_npvs <- combined_pathway_means[, .(
+  mean_NPV = sum(c(NPV_mean_1, NPV_mean_2), na.rm = TRUE),
+  sd_NPV = sum(c(NPV_sd_1, NPV_sd_2), na.rm = TRUE),
+  mean_mortality = sum(c(mortality_mean_1, mortality_mean_2), na.rm = TRUE),
+  sd_mortality = sum(c(mortality_sd_1, mortality_sd_2), na.rm = TRUE)
+), by = Pathway]
+
 
 fwrite(summary_npvs, file = file.path(output_path, "Air_Emissions_ALL.csv"), row.names = FALSE)
