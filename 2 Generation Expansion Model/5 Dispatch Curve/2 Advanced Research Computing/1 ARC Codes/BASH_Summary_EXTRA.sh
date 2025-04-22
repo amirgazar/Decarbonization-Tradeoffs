@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --account=epadecarb
-#SBATCH --partition=normal_q
+#SBATCH --partition=dev_q
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=50
 #SBATCH --cpus-per-task=1  # Reduce the number of cores to avoid OOM
