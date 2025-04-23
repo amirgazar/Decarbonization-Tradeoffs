@@ -461,8 +461,6 @@ combined_ranges <- combined_ranges %>%
   summarise(Cost_bUSD = sum(Cost_bUSD), .groups = 'drop')
 
 #--- Plotting ---
-# load combined ranged if needed
-combined_ranges <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/10 Total Costs Results Final/All_Costs_dr7.csv")
 # Calculate total costs (max, mean, min) across all categories for each scenario
 total_costs <- combined_ranges %>%
   group_by(Pathway, Statistic) %>%
