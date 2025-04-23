@@ -8,7 +8,7 @@ calculate_npv <- function(dt, rate, base_year) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.07
 base_year <- 2024
 
 # Load ATB Costs
@@ -46,35 +46,41 @@ Yearly_Facility_Level_Results[, Fuel_Category := fcase(
   default = "Other"
 )]
 
-# Summarize based on Fuel Type, sim, year and pathway
+# Summarize based on Fuel Type, year and pathway
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
-  Fossil_gen_TWh = sum(total_generation_GWh, na.rm = TRUE)/1e3,
-  total_CO2_tons = sum(total_CO2_tons, na.rm = TRUE),
-  total_NOx_lbs = sum(total_NOx_lbs, na.rm = TRUE),
-  total_SO2_lbs = sum(total_SO2_lbs, na.rm = TRUE)
+  Fossil_gen_MWh = sum(total_generation_GWh, na.rm = TRUE) * 1e3
 ), by = .(Year, Simulation, Pathway, Fuel_Category)]
+
+Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
+  Fossil_gen_MWh_mean = mean(Fossil_gen_MWh, na.rm = TRUE),
+  Fossil_gen_MWh_max = max(Fossil_gen_MWh, na.rm = TRUE),
+  Fossil_gen_MWh_min = min(Fossil_gen_MWh, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
 
 
 # Summarize Hourly results for New Gas generation
 Yearly_Results_summary <- Yearly_Results[, .(
-  Fossil_gen_TWh = sum(New_Fossil_Fuel_TWh, na.rm = TRUE),
-  total_CO2_tons = sum(CO2_tons, na.rm = TRUE),
-  total_NOx_lbs = sum(NOx_lbs, na.rm = TRUE),
-  total_SO2_lbs = sum(SO2_lbs, na.rm = TRUE),
+  Fossil_gen_MWh = sum(New_Fossil_Fuel_TWh, na.rm = TRUE) * 1e6,
   Fuel_Category = "Gas_CC"
 ), by = .(Year, Simulation, Pathway)]
+
+Yearly_Results_summary <- Yearly_Results_summary[, .(
+  Fossil_gen_MWh_mean = mean(Fossil_gen_MWh, na.rm = TRUE),
+  Fossil_gen_MWh_max = max(Fossil_gen_MWh, na.rm = TRUE),
+  Fossil_gen_MWh_min = min(Fossil_gen_MWh, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
 
 # Combine all data
 Yearly_Facility_Level_Results <- rbind(Yearly_Facility_Level_Results, Yearly_Results_summary)
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
-  Fossil_gen_TWh = sum(Fossil_gen_TWh, na.rm = TRUE),
-  total_CO2_tons = sum(total_CO2_tons, na.rm = TRUE),
-  total_NOx_lbs = sum(total_NOx_lbs, na.rm = TRUE),
-  total_SO2_lbs = sum(total_SO2_lbs, na.rm = TRUE)
-), by = .(Year, Simulation, Pathway, Fuel_Category)]
+  Fossil_gen_MWh_mean = sum(Fossil_gen_MWh_mean, na.rm = TRUE),
+  Fossil_gen_MWh_max = sum(Fossil_gen_MWh_max, na.rm = TRUE),
+  Fossil_gen_MWh_min = sum(Fossil_gen_MWh_min, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
+
   
 # Define a function to process fossil VOM
-process_fossil <- function(technology, techdetail, dataset, column_name, simulation, pathway) {
+process_fossil <- function(technology, techdetail, dataset, column_name, pathway) {
   # Define the variables for filtering
   technology_filter <- technology
   techdetail_filter <- techdetail
@@ -91,12 +97,11 @@ process_fossil <- function(technology, techdetail, dataset, column_name, simulat
       core_metric_variable >= core_metric_variable_filter
   ]
   
-  
   var_om_data <- tech_data[core_metric_parameter == "Variable O&M"]
 
-  filtered_dataset <- dataset[Simulation == simulation & Pathway == pathway]
+  filtered_dataset <- dataset[Pathway == pathway]
   var_om_data <- merge(var_om_data, filtered_dataset, by.x = "core_metric_variable", by.y = "Year")
-  var_om_data[, Var_OM := get(column_name) * value * 1e6] # MWh to TWh
+  var_om_data[, Var_OM := get(column_name) * value] # MWh 
   
   Var_om_npv <- numeric(length(ATB_scenarios))
   
@@ -110,27 +115,24 @@ process_fossil <- function(technology, techdetail, dataset, column_name, simulat
   list(Var_OM_NPV = Var_om_npv)
 }
 
-simulations <- unique(Yearly_Facility_Level_Results$Simulation)
 pathways <- unique(Yearly_Facility_Level_Results$Pathway)
 
 # Process each fossil fuel for each combination of simulation and Pathway
 fossil_fuels <- list(
-  list(tech = "Coal_FE", detail = "Coal-IGCC-90%-CCS", column_name = "Fossil_gen_TWh", fuel_type = "Coal"),
-  list(tech = "Biopower", detail = "Dedicated", column_name = "Fossil_gen_TWh", fuel_type = "Wood"),
-  list(tech = "NaturalGas_FE", detail = "NG 1-on-1 Combined Cycle (H-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Gas_CC"),
-  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Gas_CT"),
-  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_TWh", fuel_type = "Oil")
+  list(tech = "Coal_FE", detail = "Coal-IGCC-90%-CCS", column_name = "Fossil_gen_MWh_mean", fuel_type = "Coal"),
+  list(tech = "Biopower", detail = "Dedicated", column_name = "Fossil_gen_MWh_mean", fuel_type = "Wood"),
+  list(tech = "NaturalGas_FE", detail = "NG 1-on-1 Combined Cycle (H-Frame)", column_name = "Fossil_gen_MWh_mean", fuel_type = "Gas_CC"),
+  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_MWh_mean", fuel_type = "Gas_CT"),
+  list(tech = "NaturalGas_FE", detail = "NG Combustion Turbine (F-Frame)", column_name = "Fossil_gen_MWh_mean", fuel_type = "Oil")
 )
 
 npv_results_fossil <- list()
 
-for (sim in simulations) {
-  for (scen in pathways) {
-    for (fossil_info in fossil_fuels) {
-      fossil_data <- Yearly_Facility_Level_Results[Fuel_Category == fossil_info$fuel_type]
-      result <- process_fossil(fossil_info$tech, fossil_info$detail, fossil_data, fossil_info$column_name, sim, scen)
-      npv_results_fossil[[paste0(sim, "_", scen, "_", fossil_info$fuel_type, "_Var_OM_NPV")]] <- result$Var_OM_NPV
-    }
+for (scen in pathways) {
+  for (fossil_info in fossil_fuels) {
+    fossil_data <- Yearly_Facility_Level_Results[Fuel_Category == fossil_info$fuel_type]
+    result <- process_fossil(fossil_info$tech, fossil_info$detail, fossil_data, fossil_info$column_name, scen)
+    npv_results_fossil[[paste0(scen, "_", fossil_info$fuel_type, "_VOM_NPV")]] <- result$Var_OM_NPV
   }
 }
 
@@ -138,9 +140,9 @@ for (sim in simulations) {
 combined_npvs_fossil <- rbindlist(lapply(names(npv_results_fossil), function(name) {
   parts <- strsplit(name, "_")[[1]]
   # Ensure the technology name captures both parts if it contains 'Gas_CC' or 'Gas_CT'
-  technology <- ifelse(parts[3] == "Gas", paste(parts[3], parts[4], sep = "_"), parts[3])
-  atb_scenario <- ifelse(technology == "Gas_CC" | technology == "Gas_CT", parts[5], parts[4])
-  data.table(Simulation = parts[1], Pathway = parts[2], ATB_Scenario = ATB_scenarios, NPV = npv_results_fossil[[name]], Technology = technology)
+  technology <- ifelse(parts[2] == "Gas", paste(parts[2], parts[3], sep = "_"), parts[2])
+  atb_scenario <- ifelse(technology == "Gas_CC" | technology == "Gas_CT", parts[4], parts[3])
+  data.table(Pathway = parts[1], ATB_Scenario = ATB_scenarios, NPV = npv_results_fossil[[name]], Technology = technology)
 }), fill = TRUE)
 
 combined_npvs_fossil <- combined_npvs_fossil[NPV != 0,]

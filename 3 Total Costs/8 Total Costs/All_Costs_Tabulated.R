@@ -5,6 +5,9 @@ library(tidyr)
 library(ggplot2)
 library(viridis)
 library(scales)
+library(future)
+library(future.apply)
+
 
 # Typical Cost Items
 #CAPEX_FOM: Fossil, Non Fossil, Imports
@@ -16,11 +19,34 @@ library(scales)
 # Other Costs:
 #Beyond the fenceline costs Canadian Side costs; New Hydro CAPEX, FOM, CH4 Emissions
 
+# Run all files in the background and simulatniously assign discount rate
+# plan(multisession)
+# base_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/"
+# folders <- c("1 CAPEX, FOM and VOM Costs", "2 Fuel Costs", "3 Imports Costs", 
+#              "4 GHG Emissions Costs", "5 Air Pollutant Emissions Costs", "6 Unmet Demand Penalty Costs", 
+#              "7 Beyond the Fence Line Costs") 
+# 
+# files <- unlist(lapply(folders, function(subfolder) {
+#   list.files(
+#     path = file.path(base_path, subfolder),
+#     pattern = "\\.R$",
+#     full.names = TRUE,
+#     recursive = TRUE  # Remove or set to FALSE if you don't need to search subdirectories
+#   )
+# }))
+# 
+# futures <- lapply(files, function(file) future({discount_rate <- 0.07; source(file) }))
+# all_done <- all(sapply(futures, FUN = resolved))
+# if (all_done) {
+#   message("All files have been executed.")
+# } else {
+#   message("Some files are still running.")
+# }
+
 # Listing all files in the folder and subfolders
 #--- Stepwise
 file_paths <- list.files(path = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results", recursive = TRUE, full.names = TRUE)
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/10 Total Costs Results Final"
-  
   
 data_tables <- lapply(file_paths, function(file) {
   data <- fread(file)
@@ -92,12 +118,19 @@ total_CAPEX_FOM <- total_CAPEX_FOM %>%
 # Variable Costs
 # Fossil 
 total_VOM_Fossil <- VOM_Fossil %>%
-  group_by(Simulation, Pathway, ATB_Scenario) %>%
+  group_by(Pathway, ATB_Scenario) %>%
   summarise(VOM = sum(NPV), .groups = 'drop') %>%
   rename(Cost_Category = ATB_Scenario)
 total_VOM_Fossil <- total_VOM_Fossil %>%
   mutate(Technology = "Fossil Fuels")
-
+total_VOM_Fossil <- total_VOM_Fossil %>%
+  group_by(Pathway, Cost_Category, Technology) %>%
+  summarise(
+    VOM_max  = max(VOM),
+    VOM_mean = mean(VOM),
+    VOM_min  = min(VOM),
+    .groups  = 'drop'
+  )
 
 # Non Fossil
 total_VOM_Non_Fossil <- VOM_Non_Fossil %>%
@@ -110,13 +143,25 @@ total_VOM_Non_Fossil <- VOM_Non_Fossil %>%
     Technology == "Nuclear.gen" ~ "Nuclear",
     TRUE ~ Technology
   ))
+total_VOM_Non_Fossil <- total_VOM_Non_Fossil %>%
+  group_by(Pathway, Cost_Category, Technology) %>%
+  summarise(
+    VOM_max  = max(VOM),
+    VOM_mean = mean(VOM),
+    VOM_min  = min(VOM),
+    VOM_sd   = sd(VOM),
+    .groups  = 'drop'
+  )
 
 # Combine
 total_VOM <- bind_rows(total_VOM_Fossil, total_VOM_Non_Fossil)
 total_VOM <- total_VOM %>%
-  group_by(Simulation, Pathway, Cost_Category) %>%
+  group_by(Pathway, Cost_Category) %>%
   summarize(
-    VOM_bUSD = sum(VOM)/billion,
+    VOM_max_bUSD = sum(VOM_max)/billion,
+    VOM_mean_bUSD = sum(VOM_mean)/billion,
+    VOM_min_bUSD = sum(VOM_min)/billion,
+    VOM_sd_bUSD = sum(VOM_sd)/billion,
     .groups = 'drop'
   )
 
@@ -151,35 +196,59 @@ total_Imports <- total_Imports %>%
 # Fuel Costs
 # Fossil
 total_Fuel_Fossil <- Fuel_Fossil %>%
-  group_by(Simulation, Pathway, Technology) %>%
-  summarise(Fuel = sum(NPV), .groups = 'drop') 
+  group_by(Pathway, Technology) %>%
+  summarise(Fuel_mean = mean(NPV), 
+            Fuel_max = max(NPV), 
+            Fuel_min = min(NPV), 
+            .groups = 'drop') 
 
 total_Fuel_Fossil <- total_Fuel_Fossil %>%
-  group_by(Simulation, Pathway) %>%
+  group_by(Pathway) %>%
   summarize(
-    Fuel_bUSD = sum(Fuel)/billion,
+    Fuel_mean_bUSD = sum(Fuel_mean)/billion,
+    Fuel_max_bUSD = sum(Fuel_max)/billion,
+    Fuel_min_bUSD = sum(Fuel_min)/billion,
     .groups = 'drop'
   )
 
 # Non Fossil
 total_Fuel_Non_Fossil <- Fuel_Non_Fossil %>%
-  group_by(Simulation, Pathway, ATB_Scenario, Technology) %>%
-  summarise(Fuel = sum(NPV), .groups = 'drop') %>%
+  group_by(Pathway, ATB_Scenario, Technology) %>%
+  summarise(Fuel_mean = mean(NPV), 
+            Fuel_max = max(NPV), 
+            Fuel_min = min(NPV), 
+            .groups = 'drop') %>%
   rename(Cost_Scenario = ATB_Scenario)
 
 total_Fuel_Non_Fossil <- total_Fuel_Non_Fossil %>%
-  group_by(Simulation, Pathway, Cost_Scenario) %>%
+  group_by(Pathway, Cost_Scenario) %>%
   summarize(
-    Fuel_bUSD = sum(Fuel)/billion,
+    Fuel_mean_bUSD = sum(Fuel_mean)/billion,
+    Fuel_max_bUSD = sum(Fuel_max)/billion,
+    Fuel_min_bUSD = sum(Fuel_min)/billion,
     .groups = 'drop'
   )
 
 # GHG Emissions
-total_GHG_Emissions <- transform(GHG_Emissions, GHG_bUSD = NPV / billion)
+total_GHG_Emissions <- GHG_Emissions %>%
+  group_by(Pathway) %>%
+  summarize(
+    GHG_mean_bUSD = NPV_mean/billion,
+    GHG_max_bUSD = NPV_max/billion,
+    GHG_min_bUSD = NPV_min/billion,
+    .groups = 'drop'
+  )
+
 
 # Air Emissions
-#! CO yet to be calculated
-total_Air_Emissions <- transform(Air_Emissions_ALL, Air_emissions_bUSD = NPV / billion)
+total_Air_Emissions <- Air_Emissions_ALL %>%
+  group_by(Pathway) %>%
+  summarize(
+    Air_emissions_mean_bUSD = mean_NPV/billion,
+    Air_emissions_max_bUSD = max_NPV/billion,
+    Air_emissions_min_bUSD = min_NPV/billion,
+    .groups = 'drop'
+  )
 
 # Unmet Demand
 total_unmet_demand <- transform(Unmet_demand, Unmet_demand_bUSD = NPV / billion)
@@ -206,13 +275,27 @@ range_CAPEX_FOM <- total_CAPEX_FOM %>%
 range_VOM <- total_VOM %>%
   group_by(Pathway) %>%
   summarise(
-    VOM_max = max(VOM_bUSD),
-    VOM_mean = mean(VOM_bUSD),
-    VOM_min = min(VOM_bUSD)
+    max_val  = max(VOM_max_bUSD, na.rm = TRUE),
+    mean_val = mean(VOM_mean_bUSD, na.rm = TRUE),
+    min_val  = min(VOM_min_bUSD, na.rm = TRUE)
   ) %>%
-  gather(key = "Metric", value = "Cost_bUSD", VOM_max:VOM_min) %>%
-  separate(Metric, into = c("Cost_Type", "Statistic"), sep = "_") %>%
-  mutate(Category = "Variable O&M")
+  # Pivot the summary to long format with one row per statistic.
+  pivot_longer(
+    cols = c(max_val, mean_val, min_val),
+    names_to = "Statistic",
+    values_to = "Cost_bUSD"
+  ) %>%
+  # Adjust the Statistic names and add constant columns.
+  mutate(
+    Statistic = recode(Statistic, 
+                       max_val  = "max", 
+                       mean_val = "mean", 
+                       min_val  = "min"),
+    Cost_Type = "VOM",
+    Category  = "VOM"  # Change this label if needed.
+  ) %>%
+  select(Pathway, Cost_Type, Statistic, Cost_bUSD, Category)
+
 
 # Imports
 range_Imports <- total_Imports %>%
@@ -248,9 +331,9 @@ range_Imports <- range_Imports %>%
 range_Fuel_Non_Fossil <- total_Fuel_Non_Fossil %>%
   group_by(Pathway) %>%
   summarise(
-    Fuel_max = max(Fuel_bUSD),
-    Fuel_mean = mean(Fuel_bUSD),
-    Fuel_min = min(Fuel_bUSD)
+    Fuel_max = max(Fuel_max_bUSD),
+    Fuel_mean = mean(Fuel_mean_bUSD),
+    Fuel_min = min(Fuel_min_bUSD)
   ) %>%
   gather(key = "Metric", value = "Cost_bUSD", Fuel_max:Fuel_min) %>%
   separate(Metric, into = c("Cost_Type", "Statistic"), sep = "_") %>%
@@ -259,9 +342,9 @@ range_Fuel_Non_Fossil <- total_Fuel_Non_Fossil %>%
 range_Fuel_Fossil <- total_Fuel_Fossil %>%
   group_by(Pathway) %>%
   summarise(
-    Fuel_max = max(Fuel_bUSD),
-    Fuel_mean = mean(Fuel_bUSD),
-    Fuel_min = min(Fuel_bUSD)
+    Fuel_max = max(Fuel_max_bUSD),
+    Fuel_mean = mean(Fuel_mean_bUSD),
+    Fuel_min = min(Fuel_min_bUSD)
   ) %>%
   gather(key = "Metric", value = "Cost_bUSD", Fuel_max:Fuel_min) %>%
   separate(Metric, into = c("Cost_Type", "Statistic"), sep = "_") %>%
@@ -277,9 +360,9 @@ range_Fuel <- range_Fuel %>%
 range_GHG <- total_GHG_Emissions %>%
   group_by(Pathway) %>%
   summarise(
-    GHG_max = max(GHG_bUSD),
-    GHG_mean = mean(GHG_bUSD),
-    GHG_min = min(GHG_bUSD)
+    GHG_max = max(GHG_max_bUSD),
+    GHG_mean = mean(GHG_mean_bUSD),
+    GHG_min = min(GHG_min_bUSD)
   ) %>%
   gather(key = "Metric", value = "Cost_bUSD", GHG_max:GHG_min) %>%
   separate(Metric, into = c("Cost_Type", "Statistic"), sep = "_") %>%
@@ -289,9 +372,9 @@ range_GHG <- total_GHG_Emissions %>%
 range_Air <- total_Air_Emissions %>%
   group_by(Pathway) %>%
   summarise(
-    Air_max = max(Air_emissions_bUSD),
-    Air_mean = mean(Air_emissions_bUSD),
-    Air_min = min(Air_emissions_bUSD)
+    Air_max = max(Air_emissions_max_bUSD),
+    Air_mean = mean(Air_emissions_mean_bUSD),
+    Air_min = min(Air_emissions_min_bUSD)
   ) %>%
   gather(key = "Metric", value = "Cost_bUSD", Air_max:Air_min) %>%
   separate(Metric, into = c("Cost_Type", "Statistic"), sep = "_") %>%
@@ -377,6 +460,9 @@ combined_ranges <- combined_ranges %>%
   group_by(Pathway, Statistic, Cost_Type) %>%
   summarise(Cost_bUSD = sum(Cost_bUSD), .groups = 'drop')
 
+#--- Plotting ---
+# load combined ranged if needed
+combined_ranges <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/10 Total Costs Results Final/All_Costs_dr7.csv")
 # Calculate total costs (max, mean, min) across all categories for each scenario
 total_costs <- combined_ranges %>%
   group_by(Pathway, Statistic) %>%

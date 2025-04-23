@@ -16,16 +16,14 @@ for (file in csv_files) {
   
   # Calculate Renewable Penetration
   dt[, `:=`(
-    Renewable.Penetration = (Solar_MWh + Onshore_MWh + Offshore_MWh) / (Clean_MWh + 
-                                                                          Calibrated_Total_import_net_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh))]
-  
+    Renewable.Penetration = (Solar_MWh + Onshore_MWh + Offshore_MWh) / (Calibrated_Total_import_net_MWh + Old_Fossil_Fuels_adj_MWh + Clean_MWh + New_Fossil_Fuel_MWh))]
   
   # Summarize by year
   summary_dt <- dt[, .(
     RP_mean = mean(Renewable.Penetration, na.rm = TRUE),
     RP_max = max(Renewable.Penetration, na.rm = TRUE),
     RP_min = min(Renewable.Penetration, na.rm = TRUE),
-    Battery_Discharges_TWh = sum(Calibrated_Battery_discharge, na.rm = TRUE)/1e6,
+    Battery_Discharges_GWh = sum(Calibrated_Battery_discharge, na.rm = TRUE)/1e3,
     Shortages_TWh = sum(Calibrated_Shortage_MWh, na.rm = TRUE)/1e6,
     CO2_tons = sum(CO2_tons, na.rm = TRUE)
   ), by = c("Year", "Simulation", "Pathway")]

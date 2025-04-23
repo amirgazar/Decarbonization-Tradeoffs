@@ -9,7 +9,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.07
 base_year <- 2024
 
 # API KEY 63522eae4ec927d6f1d9d86bf7826cc8

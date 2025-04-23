@@ -11,7 +11,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.07
 base_year <- 2024
 new_england_states <- c("CT", "ME", "MA", "NH", "RI", "VT")
 
@@ -114,6 +114,12 @@ Facility_Level_Results <- Facility_Level_Results[, .(
 
 Facility_Level_Results$Year <- as.numeric(as.character(Facility_Level_Results$Year))
 
+Facility_Level_Results <- Facility_Level_Results[, .(
+  total_Fuel_costs_USD_mean = mean(total_Fuel_costs_USD, na.rm = TRUE),
+  total_Fuel_costs_USD_max = max(total_Fuel_costs_USD, na.rm = TRUE),
+  total_Fuel_costs_USD_min = min(total_Fuel_costs_USD, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
+
 # Add new natural gas costs
 Fossil_new_gen <- Yearly_Results[, .(Year, Simulation, Pathway, Fuel_Category = as.character("Gas_CC"), total_generation_GWh = New_Fossil_Fuel_TWh * 1e3)]
 ATB_2024[, Year := as.integer(as.character(Year))]
@@ -127,35 +133,42 @@ Fossil_new_gen <- Fossil_new_gen[, .(
   total_Fuel_used_MWh = sum(total_generation_GWh, na.rm = TRUE) * 1000
 ), by = .(Year, Simulation, Pathway, Fuel_Category)]
 
+
+Fossil_new_gen <- Fossil_new_gen[, .(
+  total_Fuel_costs_USD_mean = mean(total_Fuel_costs_USD, na.rm = TRUE),
+  total_Fuel_costs_USD_max = max(total_Fuel_costs_USD, na.rm = TRUE),
+  total_Fuel_costs_USD_min = min(total_Fuel_costs_USD, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
+
+
 # ALL costs merged
 Facility_Level_Results <- rbind(Facility_Level_Results, Fossil_new_gen)
 Facility_Level_Results <- Facility_Level_Results[, .(
-  total_Fuel_costs_USD = sum(total_Fuel_costs_USD, na.rm = TRUE),
-  total_Fuel_used_MWh = sum(total_Fuel_used_MWh, na.rm = TRUE)
-), by = .(Year, Simulation, Pathway, Fuel_Category)]
+  total_Fuel_costs_USD_mean = sum(total_Fuel_costs_USD_mean, na.rm = TRUE),
+  total_Fuel_costs_USD_max = sum(total_Fuel_costs_USD_max, na.rm = TRUE),
+  total_Fuel_costs_USD_min = sum(total_Fuel_costs_USD_min, na.rm = TRUE)
+), by = .(Year, Pathway, Fuel_Category)]
 
 
 #  process Fuel costs NPV
-simulations <- unique(Facility_Level_Results$Simulation)
 pathways <- unique(Facility_Level_Results$Pathway)
 fossil_fuels <- unique(Facility_Level_Results$Fuel_Category)
 npv_results_fossil <- list()
 
-for (sim in simulations) {
-  for (path in pathways) {
-    for (fossil_info in fossil_fuels) {
-        fossil_data <- Facility_Level_Results[Simulation == sim & Pathway == path & Fuel_Category == fossil_info]
-        result <- calculate_npv(fossil_data, discount_rate, base_year, "total_Fuel_costs_USD")
-        npv_results_fossil[[paste0(sim, "_", path, "_", fossil_info, "_fuel_NPV_")]] <- result
-    }
+for (path in pathways) {
+  for (fossil_info in fossil_fuels) {
+    fossil_data <- Facility_Level_Results[Pathway == path & Fuel_Category == fossil_info]
+    result <- calculate_npv(fossil_data, discount_rate, base_year, "total_Fuel_costs_USD_mean")
+    npv_results_fossil[[paste0(path, "_", fossil_info, "_fuel_NPV_")]] <- result
   }
 }
+
 
 # Combine NPV results into a single data.table
 combined_npvs_fuel <- rbindlist(lapply(names(npv_results_fossil), function(name) {
   parts <- strsplit(name, "_")[[1]]
   # Ensure the technology name captures both parts if it contains 'Gas_CC' or 'Gas_CT'
-  data.table(Simulation = parts[1], Pathway = parts[2], NPV = npv_results_fossil[[name]], Technology = parts[3])
+  data.table(Pathway = parts[1], NPV = npv_results_fossil[[name]], Technology = parts[2])
 }), fill = TRUE)
 
 combined_npvs_fuel <- combined_npvs_fuel[NPV != 0,]

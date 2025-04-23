@@ -7,6 +7,10 @@ library(dplyr)
 library(lubridate)
 
 
+discount_rate <- 0.07
+base_year <- 2024
+
+
 ### All emissions data is presented in units of metric tons of carbon dioxide equivalent using GWP's from IPCC's AR4
 # Load Results - Facility level gen (old facilities)
 #-- Stepwise
@@ -32,8 +36,6 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
-base_year <- 2024
 
 # API KEY 63522eae4ec927d6f1d9d86bf7826cc8
 fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
@@ -123,8 +125,17 @@ GHG_Fuels_NPC[is.na(N2O_CO2_ratio_non_biogenic), N2O_CO2_ratio_non_biogenic := m
 GHG_Fuels_NPC[, c("mean_CH4_CO2_ratio_non_biogenic", "mean_N2O_CO2_ratio_non_biogenic") := NULL]
 
 # Merge Facilities with yearly results
-selected_cols <- GHG_Fuels_NPC[, .(Facility_Unit.ID, Unit_Type, Fuel_Category, CH4_CO2_ratio_non_biogenic, N2O_CO2_ratio_non_biogenic)]
+selected_cols <- GHG_Fuels_NPC[, .(Facility_Unit.ID, Unit_Type, Fuel_Category, CH4_CO2_ratio_non_biogenic, N2O_CO2_ratio_non_biogenic, mean_CO2_tons_MW, mean_CO2_tons_MW_estimate)]
 Yearly_Facility_Level_Results <- selected_cols[Yearly_Facility_Level_Results, on = "Facility_Unit.ID"]
+
+# Calculate CO2 emissions
+Yearly_Facility_Level_Results$total_CO2_tons <- Yearly_Facility_Level_Results$total_generation_GWh * 1e3 * Yearly_Facility_Level_Results$mean_CO2_tons_MW
+Yearly_Facility_Level_Results$total_CO2_tons <- ifelse(
+  is.na(Yearly_Facility_Level_Results$total_CO2_tons),
+  Yearly_Facility_Level_Results$total_generation_GWh * 1e3 *
+    Yearly_Facility_Level_Results$mean_CO2_tons_MW_estimate,
+  Yearly_Facility_Level_Results$total_CO2_tons
+)
 
 # Calculate CH4 and N2O emissions
 Yearly_Facility_Level_Results[, total_CH4_tons_eq := CH4_CO2_ratio_non_biogenic * total_CO2_tons]
@@ -198,7 +209,6 @@ Yearly_Results_Summary <- Yearly_Results[, .(
 
 Yearly_Results_Summary <- merge(Yearly_Results_Summary, GHG_Costs, by = "Year", all.x = TRUE)
 Yearly_Results_Summary[, total_cost_CO2_eq := total_GHG_tons_CO2_eq * CO2_cost]
-
 
 # Set up correct loop inputs
 simulations_summary <- unique(as.character(Yearly_Results_Summary$Simulation))

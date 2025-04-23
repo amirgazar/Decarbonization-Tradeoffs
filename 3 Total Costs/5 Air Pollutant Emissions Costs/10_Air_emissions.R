@@ -13,7 +13,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.07
 base_year <- 2024
 
 lbs_tons_conversion<- 1 / 2204.62 # lbs to tons
@@ -276,8 +276,37 @@ Air_Pollutant_Fuels_NPC[is.na(PM_lbs_mmBTU), PM_lbs_mmBTU := mean_ratios_USA$mea
 Air_Pollutant_Fuels_NPC[, c("mean_PM_lbs_mmBTU") := NULL]
 
 # Merge Facilities with yearly results
-selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, PM_lbs_mmBTU)]
+selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, PM_lbs_mmBTU, mean_NOx_lbs_MW, 
+                                             mean_SO2_lbs_MW, mean_HI_mmBtu_per_MW = mean_Heat_Input_mmBtu/Estimated_NameplateCapacity_MW, mean_NOx_lbs_MW_estimate, 
+                                             mean_SO2_lbs_MW_estimate, mean_HI_mmBtu_per_MW_estimate = mean_HI_mmBtu_per_MW)]
 Facility_Level_Results <- selected_cols[Facility_Level_Results, on = "Facility_Unit.ID"]
+
+# Calculate NOx
+Facility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
+Facility_Level_Results$total_NOx_lbs <- ifelse(
+  is.na(Facility_Level_Results$total_NOx_lbs),
+  Facility_Level_Results$total_generation_GWh * 1e3 *
+    Facility_Level_Results$mean_NOx_lbs_MW_estimate,
+  Facility_Level_Results$total_NOx_lbs
+)
+
+# Calculate SO2
+Facility_Level_Results$total_SO2_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
+Facility_Level_Results$total_SO2_lbs <- ifelse(
+  is.na(Facility_Level_Results$total_SO2_lbs),
+  Facility_Level_Results$total_generation_GWh * 1e3 *
+    Facility_Level_Results$mean_SO2_lbs_MW_estimate,
+  Facility_Level_Results$total_SO2_lbs
+)
+
+# Calculate HI
+Facility_Level_Results$total_HI_mmBtu <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_HI_mmBtu_per_MW
+Facility_Level_Results$total_HI_mmBtu <- ifelse(
+  is.na(Facility_Level_Results$total_HI_mmBtu),
+  Facility_Level_Results$total_generation_GWh * 1e3 *
+    Facility_Level_Results$mean_HI_mmBtu_per_MW_estimate,
+  Facility_Level_Results$total_HI_mmBtu
+)
 
 # Calculate PM.total
 Facility_Level_Results[, PM.total_tons := total_HI_mmBtu * PM_lbs_mmBTU * lbs_tons_conversion]
@@ -611,17 +640,21 @@ combined_npvs_new_filtered <- combined_npvs_new[NPV > 0,]
 # Calculate the mean for each pathway in combined_npvs (in billions $)
 mean_npvs_1 <- combined_npvs_filtered[, .(
   NPV_mean_1 = mean(NPV, na.rm = TRUE),
-  NPV_sd_1 = sd(NPV, na.rm = TRUE),
+  NPV_max_1 = max(NPV, na.rm = TRUE),
+  NPV_min_1 = min(NPV, na.rm = TRUE),
   mortality_mean_1 = mean(mortality, na.rm = TRUE),
-  mortality_sd_1 = sd(mortality, na.rm = TRUE)
+  mortality_max_1 = max(mortality, na.rm = TRUE),
+  mortality_min_1 = min(mortality, na.rm = TRUE)
 ), by = Pathway]
 
 # Calculate the mean for each pathway in combined_npvs_new (in billions $)
 mean_npvs_2 <- combined_npvs_new_filtered[, .(
   NPV_mean_2 = mean(NPV, na.rm = TRUE),
-  NPV_sd_2 = sd(NPV, na.rm = TRUE),
+  NPV_max_2 = max(NPV, na.rm = TRUE),
+  NPV_min_2 = min(NPV, na.rm = TRUE),
   mortality_mean_2 = mean(mortality, na.rm = TRUE),
-  mortality_sd_2 = sd(mortality, na.rm = TRUE)
+  mortality_max_2 = max(mortality, na.rm = TRUE),
+  mortality_min_2 = min(mortality, na.rm = TRUE)
 ), by = Pathway]
 
 # Combine the pathway means
@@ -630,9 +663,11 @@ combined_pathway_means <- merge(mean_npvs_1, mean_npvs_2, by = "Pathway", all = 
 # Calculate the sum of the means for each pathway 
 summary_npvs <- combined_pathway_means[, .(
   mean_NPV = sum(c(NPV_mean_1, NPV_mean_2), na.rm = TRUE),
-  sd_NPV = sum(c(NPV_sd_1, NPV_sd_2), na.rm = TRUE),
+  max_NPV = sum(c(NPV_max_1, NPV_max_2), na.rm = TRUE),
+  min_NPV = sum(c(NPV_min_1, NPV_min_2), na.rm = TRUE),
   mean_mortality = sum(c(mortality_mean_1, mortality_mean_2), na.rm = TRUE),
-  sd_mortality = sum(c(mortality_sd_1, mortality_sd_2), na.rm = TRUE)
+  max_mortality = sum(c(mortality_max_1, mortality_max_2), na.rm = TRUE),
+  min_mortality = sum(c(mortality_min_1, mortality_min_2), na.rm = TRUE)
 ), by = Pathway]
 
 

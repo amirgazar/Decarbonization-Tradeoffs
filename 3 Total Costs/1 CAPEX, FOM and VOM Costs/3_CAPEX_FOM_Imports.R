@@ -8,7 +8,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.07
 base_year <- 2024
 
 # Load Capacity data
