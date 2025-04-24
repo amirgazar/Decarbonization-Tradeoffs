@@ -13,7 +13,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.03
 base_year <- 2024
 
 lbs_tons_conversion<- 1 / 2204.62 # lbs to tons
@@ -672,3 +672,44 @@ summary_npvs <- combined_pathway_means[, .(
 
 
 fwrite(summary_npvs, file = file.path(output_path, "Air_Emissions_ALL.csv"), row.names = FALSE)
+
+#---- Emissions per county per pathway
+# ------------------------------
+# Summarize Mean, Min, and Max Emissions (NPV) for Each County
+# for Existing and New Facilities, then save as CSV
+
+# Read in the previously saved county-level results for existing and new facilities
+existing_emissions <- fread(file.path(output_path, "Air_Emissions_County_Level_Existing.csv"))
+new_emissions      <- fread(file.path(output_path, "Air_Emissions_County_Level_New.csv"))
+
+# For each county, compute summary statistics using the NPV of total air emissions (USD)
+summary_existing <- existing_emissions[, .(
+  mean_emission = mean(npv_total_air_emission_USD, na.rm = TRUE),
+  min_emission  = min(npv_total_air_emission_USD, na.rm = TRUE),
+  max_emission  = max(npv_total_air_emission_USD, na.rm = TRUE)
+), by = .(County, State, Pathway)]
+summary_existing[, Facility_Type := "Existing"]
+
+summary_new <- new_emissions[, .(
+  mean_emission = mean(npv_total_air_emission_USD, na.rm = TRUE),
+  min_emission  = min(npv_total_air_emission_USD, na.rm = TRUE),
+  max_emission  = max(npv_total_air_emission_USD, na.rm = TRUE)
+), by = .(County, State, Pathway)]
+summary_new[, Facility_Type := "New"]
+
+# Combine the summaries for both facility types
+combined_summary <- rbind(summary_existing, summary_new)
+# Group by County, State, and Pathway and sum the emission columns across Facility_Type
+final_county_summary <- combined_summary[, .(
+  total_mean_emission = sum(mean_emission, na.rm = TRUE)/1e6,
+  total_min_emission = sum(min_emission, na.rm = TRUE)/1e6,
+  total_max_emission = sum(max_emission, na.rm = TRUE)/1e6
+), by = .(County, State, Pathway)]
+
+final_county_summary <- final_county_summary[
+  total_mean_emission != 0 & total_min_emission != 0 & total_max_emission != 0
+]
+# Save the aggregated summary to a CSV file
+fwrite(final_county_summary, file = file.path(output_path, "County_Level_Emissions_Summary_Total.csv"), row.names = FALSE)
+
+
