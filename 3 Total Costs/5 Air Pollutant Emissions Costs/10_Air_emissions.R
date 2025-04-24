@@ -276,10 +276,14 @@ Air_Pollutant_Fuels_NPC[is.na(PM_lbs_mmBTU), PM_lbs_mmBTU := mean_ratios_USA$mea
 Air_Pollutant_Fuels_NPC[, c("mean_PM_lbs_mmBTU") := NULL]
 
 # Merge Facilities with yearly results
-selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, PM_lbs_mmBTU, mean_NOx_lbs_MW, 
+selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, Facility_ID, Unit_ID.x, Primary_Fuel_Type, Facility_Name,PM_lbs_mmBTU, mean_NOx_lbs_MW, 
                                              mean_SO2_lbs_MW, mean_HI_mmBtu_per_MW = mean_Heat_Input_mmBtu/Estimated_NameplateCapacity_MW, mean_NOx_lbs_MW_estimate, 
                                              mean_SO2_lbs_MW_estimate, mean_HI_mmBtu_per_MW_estimate = mean_HI_mmBtu_per_MW)]
 Facility_Level_Results <- selected_cols[Facility_Level_Results, on = "Facility_Unit.ID"]
+
+Facility_Level_Results_unique <- unique(Facility_Level_Results, by = "Facility_Unit.ID")
+fwrite(Facility_Level_Results_unique, file = pasteoutput_path)
+fwrite(Facility_Level_Results_unique, file = file.path(output_path, "Facility_Level_airpollutant_costs.csv"), row.names = FALSE)
 
 # Calculate NOx
 Facility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
