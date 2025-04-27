@@ -7,7 +7,7 @@ library(dplyr)
 library(lubridate)
 
 
-discount_rate <- 0.07
+discount_rate <- 0.03
 base_year <- 2024
 
 

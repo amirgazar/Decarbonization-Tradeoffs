@@ -20,28 +20,28 @@ library(future.apply)
 #Beyond the fenceline costs Canadian Side costs; New Hydro CAPEX, FOM, CH4 Emissions
 
 # Run all files in the background and simulatniously assign discount rate
-# plan(multisession)
-# base_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/"
-# folders <- c("1 CAPEX, FOM and VOM Costs", "2 Fuel Costs", "3 Imports Costs", 
-#              "4 GHG Emissions Costs", "5 Air Pollutant Emissions Costs", "6 Unmet Demand Penalty Costs", 
-#              "7 Beyond the Fence Line Costs") 
-# 
-# files <- unlist(lapply(folders, function(subfolder) {
-#   list.files(
-#     path = file.path(base_path, subfolder),
-#     pattern = "\\.R$",
-#     full.names = TRUE,
-#     recursive = TRUE  # Remove or set to FALSE if you don't need to search subdirectories
-#   )
-# }))
-# 
-# futures <- lapply(files, function(file) future({discount_rate <- 0.07; source(file) }))
-# all_done <- all(sapply(futures, FUN = resolved))
-# if (all_done) {
-#   message("All files have been executed.")
-# } else {
-#   message("Some files are still running.")
-# }
+plan(multisession)
+base_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/"
+folders <- c("1 CAPEX, FOM and VOM Costs", "2 Fuel Costs", "3 Imports Costs",
+             "4 GHG Emissions Costs", "5 Air Pollutant Emissions Costs", "6 Unmet Demand Penalty Costs",
+             "7 Beyond the Fence Line Costs")
+
+files <- unlist(lapply(folders, function(subfolder) {
+  list.files(
+    path = file.path(base_path, subfolder),
+    pattern = "\\.R$",
+    full.names = TRUE,
+    recursive = TRUE  # Remove or set to FALSE if you don't need to search subdirectories
+  )
+}))
+
+futures <- lapply(files, function(file) future({discount_rate <- 0.03; source(file) }))
+all_done <- all(sapply(futures, FUN = resolved))
+if (all_done) {
+  message("All files have been executed.")
+} else {
+  message("Some files are still running.")
+}
 
 # Listing all files in the folder and subfolders
 #--- Stepwise

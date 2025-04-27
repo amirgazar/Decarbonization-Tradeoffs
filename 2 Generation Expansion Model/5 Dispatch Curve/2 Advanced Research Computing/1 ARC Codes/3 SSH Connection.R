@@ -26,9 +26,9 @@ commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" &&
 ssh::ssh_exec_wait(session, command = commands)
 
 
-#---- Batch processing
+#---- Batch processing - Simulations
 # Uploading Rcode
-Rcode_folder <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 RCodes to submit/1 Comp Days" # Path to local folder containing R files
+Rcode_folder <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 RCodes to submit/Ready to run" # Path to local folder containing R files
 remote_folder <- "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/1 Comp Days/" # Remote folder path
 r_files <- list.files(Rcode_folder, pattern = "\\.R$", full.names = TRUE)
 for (r_file in r_files) {
@@ -49,17 +49,32 @@ for (bash_file in bash_files) {
 }
 
 #----Summarization----
+#-- Hourly
 # Load bash script
-bash_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/BASH_Summary_EXTRA.sh"
+bash_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/BASH_Summary_Hourly.sh"
 # Upload the Bash script to the remote server
 ssh::scp_upload(session, bash_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes")
 
 # Load R script
-R_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/6_Summarization_Code_EXTRA.R"
+R_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/6_Summarization_Code_Hourly.R"
 ssh::scp_upload(session, R_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/")
 
 # Define the command to submit the SLURM job + Change directory
-commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" && sbatch -A epadecarb BASH_Summary_EXTRA.sh'
+commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" && sbatch -A epadecarb BASH_Summary_Hourly.sh'
+# Execute the command
+ssh::ssh_exec_wait(session, command = commands)
+
+#-- Facility
+bash_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/BASH_Summary_Facility.sh"
+# Upload the Bash script to the remote server
+ssh::scp_upload(session, bash_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes")
+
+# Load R script
+R_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/6_Summarization_Code_Facility.R"
+ssh::scp_upload(session, R_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/")
+
+# Define the command to submit the SLURM job + Change directory
+commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" && sbatch -A epadecarb BASH_Summary_Facility.sh'
 # Execute the command
 ssh::ssh_exec_wait(session, command = commands)
 

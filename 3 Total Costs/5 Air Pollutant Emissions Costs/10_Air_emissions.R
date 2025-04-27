@@ -282,11 +282,10 @@ selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, Facility_ID, Unit
 Facility_Level_Results <- selected_cols[Facility_Level_Results, on = "Facility_Unit.ID"]
 
 Facility_Level_Results_unique <- unique(Facility_Level_Results, by = "Facility_Unit.ID")
-fwrite(Facility_Level_Results_unique, file = pasteoutput_path)
 fwrite(Facility_Level_Results_unique, file = file.path(output_path, "Facility_Level_airpollutant_costs.csv"), row.names = FALSE)
 
 # Calculate NOx
-Facility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
+#acility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
 Facility_Level_Results$total_NOx_lbs <- ifelse(
   is.na(Facility_Level_Results$total_NOx_lbs),
   Facility_Level_Results$total_generation_GWh * 1e3 *
@@ -295,7 +294,7 @@ Facility_Level_Results$total_NOx_lbs <- ifelse(
 )
 
 # Calculate SO2
-Facility_Level_Results$total_SO2_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
+#Facility_Level_Results$total_SO2_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
 Facility_Level_Results$total_SO2_lbs <- ifelse(
   is.na(Facility_Level_Results$total_SO2_lbs),
   Facility_Level_Results$total_generation_GWh * 1e3 *
@@ -304,7 +303,7 @@ Facility_Level_Results$total_SO2_lbs <- ifelse(
 )
 
 # Calculate HI
-Facility_Level_Results$total_HI_mmBtu <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_HI_mmBtu_per_MW
+#Facility_Level_Results$total_HI_mmBtu <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_HI_mmBtu_per_MW
 Facility_Level_Results$total_HI_mmBtu <- ifelse(
   is.na(Facility_Level_Results$total_HI_mmBtu),
   Facility_Level_Results$total_generation_GWh * 1e3 *

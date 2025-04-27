@@ -545,34 +545,16 @@ dispatch_curve_adjustments <- function(results) {
   )]
   
   # Estimate emissions based on adjusted generation.
-  # Update CO2_tons only if its value is NA, infinite, or zero.
-  results_updated[
-    is.na(CO2_tons) | is.infinite(CO2_tons) | (CO2_tons == 0),
-    CO2_tons := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(CO2_ton_per_MWh, 0)
-  ]
-  
-  # Update NOx_lbs only if its value is NA, infinite, or zero.
-  results_updated[
-    is.na(NOx_lbs) | is.infinite(NOx_lbs) | (NOx_lbs == 0),
-    NOx_lbs := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(NOx_lb_per_MWh, 0)
-  ]
-  
-  # Update SO2_lbs only if its value is NA, infinite, or zero.
-  results_updated[
-    is.na(SO2_lbs) | is.infinite(SO2_lbs) | (SO2_lbs == 0),
-    SO2_lbs := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(SO2_lb_per_MWh, 0)
-  ]
-  
-  # Update HI_mmBtu only if its value is NA, infinite, or zero.
-  results_updated[
-    is.na(HI_mmBtu) | is.infinite(HI_mmBtu) | (HI_mmBtu == 0),
-    HI_mmBtu := fcoalesce(Gen_MWh_adj, 0) * fcoalesce(HI_mmBtu_per_MWh, 0)
-  ]
-  
+  results_updated[, CO2_tons := fcoalesce(CO2_ton_per_MWh, 0) * fcoalesce(Gen_MWh_adj, 0)]
+  results_updated[, NOx_lbs := fcoalesce(NOx_lb_per_MWh, 0) * fcoalesce(Gen_MWh_adj, 0)]
+  results_updated[, SO2_lbs := fcoalesce(SO2_lb_per_MWh, 0) * fcoalesce(Gen_MWh_adj, 0)]
+  results_updated[, HI_mmBtu := fcoalesce(HI_mmBtu_per_MWh, 0) * fcoalesce(Gen_MWh_adj, 0)]
   
   # Remove raw intensity columns, keeping only the mean values.
   results_updated[, c("CO2_intensity", "NOx_intensity", "SO2_intensity", "HI_intensity",
-                      "mean_HI_mmBtu_per_MWh", "mean_SO2_lb_per_MWh", "mean_NOx_lb_per_MWh", "mean_CO2_ton_per_MWh") := NULL]
+                      "mean_HI_mmBtu_per_MWh", "mean_SO2_lb_per_MWh", "mean_NOx_lb_per_MWh", "mean_CO2_ton_per_MWh",
+                      "mean_CO2_tons_MW_estimate", "mean_CO2_tons_MW", "mean_NOx_lbs_MW_estimate", "mean_NOx_lbs_MW",
+                      "mean_SO2_lbs_MW_estimate", "mean_SO2_lbs_MW", "mean_HI_mmBtu_per_MW_estimate") := NULL]
   
   return(results_updated)
 }
@@ -599,34 +581,37 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
   #  - dispatch_curve_results has columns: Clean_MWh, New_Fossil_Fuel_MWh, Total_import_MWh, 
   #    Storage_MW, and Demand.
   #  - Battery power limit is Storage_MW/8.
-  final_results[, battery_power_limit := Storage_MW / 8]
-  
+  storage_status_initial <- 0
   rt_eff <- 0.85
   eta <- sqrt(rt_eff)
   
   # Calculate calibrated net energy (without battery) by including fossil generation
   final_results[, net_energy_calibrated := (Clean_MWh + Old_Fossil_Fuels_adj_MWh + 
-                                              New_Fossil_Fuel_MWh + Total_import_MWh) - Demand]
+                                              New_Fossil_Fuel_MWh + Total_import_net_MWh) - Demand]
   # Limit the net energy to battery charging/discharging power limits:
   final_results[, net_energy_calibrated := pmin(pmax(net_energy_calibrated, -battery_power_limit), battery_power_limit)]
   
   # Ensure the data is ordered chronologically:
   setorder(final_results, Date, Hour)
-  storage_status_initial <- 0
   
-  # Simulate battery state hour-by-hour using a similar dynamic approach as in dispatch_curve.
-  storage_status_vec <- Reduce(function(prev, i) {
-    net <- final_results$net_energy_calibrated[i]
-    capacity <- final_results$Storage_MW[i]
-    new_storage <- if (net >= 0) prev + net * eta else prev + net / eta
-    min(max(new_storage, 0), capacity)
-  }, seq_len(nrow(final_results)), init = storage_status_initial, accumulate = TRUE)[-1]
+  # Compute storage state hour-by-hour.
+  storage_status_vec <- Reduce(
+    function(prev, i) {
+      net <- final_results$net_energy_calibrated[i]
+      capacity <- final_results$Storage_MW[i]
+      new_storage <- if (net >= 0) prev + net * eta else prev + net / eta
+      min(max(new_storage, 0), capacity)
+    },
+    seq_len(nrow(final_results)),
+    init = storage_status_initial,
+    accumulate = TRUE
+  )[-1]
   
   final_results[, Calibrated_Storage_status := storage_status_vec]
   final_results[, Calibrated_Battery_flow := c(0, diff(Calibrated_Storage_status))]
   final_results[, Calibrated_Battery_charge := ifelse(Calibrated_Battery_flow > 0, Calibrated_Battery_flow, 0)]
   final_results[, Calibrated_Battery_discharge := ifelse(Calibrated_Battery_flow < 0, -Calibrated_Battery_flow, 0)]
-  
+
   # --- Step 4: Adjust Imports Based on Calibrated Shortage ---
   # First, compute the preliminary shortage after battery adjustments:
   final_results[, Calibrated_Shortage_MWh := round(
@@ -640,15 +625,55 @@ dispatch_curve_calibrations <- function(dispatch_curve_results, fossil_fuels_hou
     Total_import_MWh
   )]
   
+  # === mid-step: allocate calibrated imports back to each jurisdiction ===
+  # 1) how much extra beyond your floor (Total_import_MWh)
+  final_results[, extra_needed := pmax(Calibrated_Total_import_net_MWh - Total_import_MWh, 0)]
+  
+  # 2) each source’s remaining headroom = cap×CF – its floor
+  imports_max_CF <- 0.95
+  final_results[, `:=`(
+    headroom_LT_HQ   = Long_Term_Imports_HQ_MW * abs(imports_max_CF - Import_HQ_CF),
+    headroom_Spot_HQ = Spot_Market_Imports_HQ_MW * abs(imports_max_CF - Import_HQ_CF),
+    headroom_NYISO   = Imports_NYISO_MW       * abs(imports_max_CF - Import_NYISO_CF),
+    headroom_NBSO    = Imports_NBSO_MW        * abs(imports_max_CF - Import_NBSO_CF)
+  )]
+  
+  # 3) one call to greedily peel off extra in order LT-HQ → Spot-HQ → NYISO → NBSO
+  final_results[, c("extra_LT_HQ","extra_Spot_HQ","extra_NYISO","extra_NBSO") := {
+    need <- extra_needed
+    a_lt <- pmin(need, headroom_LT_HQ);   need <- need - a_lt
+    a_sp <- pmin(need, headroom_Spot_HQ); need <- need - a_sp
+    a_ny <- pmin(need, headroom_NYISO);   need <- need - a_ny
+    a_nb <- pmin(need, headroom_NBSO)
+    list(a_lt, a_sp, a_ny, a_nb)
+  }]
+  
+  # 4) build your calibrated per-jurisdiction imports
+  final_results[, `:=`(
+    Calibrated_Long_Term_Imports_HQ_MWh   = Long_Term_Imports_HQ_MWh   + extra_LT_HQ,
+    Calibrated_Spot_Market_Imports_HQ_MWh = Spot_Market_Imports_HQ_MWh + extra_Spot_HQ,
+    Calibrated_Import_NYISO_MWh           = Import_NYISO_MWh           + extra_NYISO,
+    Calibrated_Import_NBSO_MWh            = Import_NBSO_MWh            + extra_NBSO
+  )]
+  
+  # 5) drop all the helper columns
+  final_results[, c("extra_needed",
+                    "headroom_LT_HQ","headroom_Spot_HQ","headroom_NYISO","headroom_NBSO",
+                    "extra_LT_HQ","extra_Spot_HQ","extra_NYISO","extra_NBSO") := NULL]
+  
+  # ===
   # Recalculate the final shortage with the adjusted imports:
   final_results[, Calibrated_Shortage_MWh := round(
     pmax(Demand - (Clean_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh +
                      Calibrated_Total_import_net_MWh + Calibrated_Battery_discharge), 0), 2)]
   
-  # --- (Optional) Step 5: Compute a Net Energy Balance ---
+  # --- Step 5: Compute a Net Energy Balance ---
   final_results[, Calibrated_net_energy := (Clean_MWh + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh +
                                               Calibrated_Total_import_net_MWh + Calibrated_Battery_discharge) - Demand]
-  
+  final_results[, Calibrated_Curtailments_MWh := round(
+    pmax(0, (Clean_MWh + Calibrated_Battery_discharge + Old_Fossil_Fuels_adj_MWh + New_Fossil_Fuel_MWh + Calibrated_Total_import_net_MWh) - Demand - Calibrated_Battery_charge), 
+    2
+  )]
   return(final_results)
 }
 
@@ -666,9 +691,10 @@ simulation_results <- lapply(1:n_simulations, function(sim) {
     # Execute the dispatch curve for the current simulation and pathway
     dispatch_curve_results <- dispatch_curve(sim, pathway)
     
-    dispatch_curve_results <- dispatch_curve_results[200000:201000, ] # Test the code
+    dispatch_curve_results <- dispatch_curve_results[1:200, ] # Test the code
     # Get fossil fuels hourly adjustments based on the dispatch results
     fossil_fuels_hourly_results <- dispatch_curve_adjustments(dispatch_curve_results)
+    
     
     # Calibrate the final hourly results using the dispatch results and the adjustments
     final_hourly_results <- dispatch_curve_calibrations(dispatch_curve_results, fossil_fuels_hourly_results)
