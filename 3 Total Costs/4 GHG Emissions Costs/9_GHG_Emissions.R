@@ -7,7 +7,7 @@ library(dplyr)
 library(lubridate)
 
 
-discount_rate <- 0.03
+discount_rate <- 0.025 # Must adjust the SCC of Carbon
 base_year <- 2024
 
 
@@ -19,6 +19,8 @@ file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Ge
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Facility_Level_Results <- as.data.table(fread(file_path_1))
+Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
+
 Yearly_Results <- as.data.table(fread(file_path_2))
 
 # Load facilities data
@@ -49,22 +51,30 @@ interpolate_cost <- function(year, start_year, end_year, start_cost, end_cost) {
 # Define the starting and ending costs for 2021 and 2050 - Source; Total Costs NY Paper
 # Extracting CPI values for specific years
 cpi_2024 <- filter(cpi_data, year(date) == 2024) %>% summarise(YearlyAvg = mean(value))
-cpi_2019 <- filter(cpi_data, year(date) == 2019) %>% summarise(YearlyAvg = mean(value))
+cpi_2020 <- filter(cpi_data, year(date) == 2020) %>% summarise(YearlyAvg = mean(value))
 
-# Calculating conversion rate
-conversion_rate_2019_24 <- cpi_2024$YearlyAvg / cpi_2019$YearlyAvg
-# 2019 -> 2024
-start_year <- 2021
+start_year <- 2025
 end_year <- 2050
-costs_2021 <- list(CO2 = 121 * conversion_rate_2019_24, CH4 = 2732 * conversion_rate_2019_24, N2O = 41956 * conversion_rate_2019_24)
-costs_2050 <- list(CO2 = 167 * conversion_rate_2019_24, CH4 = 4684 * conversion_rate_2019_24, N2O = 64399 * conversion_rate_2019_24)
+
+conversion_rate_2020_24 <- cpi_2024$YearlyAvg / cpi_2020$YearlyAvg
+# 2023 report 2%
+#costs_2025 <- list(CO2 = 212 * conversion_rate_2020_24, CH4 = 2025 * conversion_rate_2020_24, N2O = 60267 * conversion_rate_2020_24)
+#costs_2050 <- list(CO2 = 308 * conversion_rate_2020_24, CH4 = 4231 * conversion_rate_2020_24, N2O = 92996 * conversion_rate_2020_24)
+
+# 2023 report 2.5%
+costs_2025 <- list(CO2 = 130 * conversion_rate_2020_24, CH4 = 1590 * conversion_rate_2020_24, N2O = 39972 * conversion_rate_2020_24)
+costs_2050 <- list(CO2 = 205 * conversion_rate_2020_24, CH4 = 3547 * conversion_rate_2020_24, N2O = 65635 * conversion_rate_2020_24)
+
+# 2023 report 1.5%
+#costs_2025 <- list(CO2 = 360 * conversion_rate_2020_24, CH4 = 2737 * conversion_rate_2020_24, N2O = 95210 * conversion_rate_2020_24)
+#costs_2050 <- list(CO2 = 482 * conversion_rate_2020_24, CH4 = 5260 * conversion_rate_2020_24, N2O = 136799 * conversion_rate_2020_24)
 
 # Interpolate costs for each year
 GHG_Costs <- data.table(Year = start_year:end_year)
 GHG_Costs[, `:=`(
-  CO2_cost = interpolate_cost(Year, start_year, end_year, costs_2021$CO2, costs_2050$CO2),
-  CH4_cost = interpolate_cost(Year, start_year, end_year, costs_2021$CH4, costs_2050$CH4),
-  N2O_cost = interpolate_cost(Year, start_year, end_year, costs_2021$N2O, costs_2050$N2O)
+  CO2_cost = interpolate_cost(Year, start_year, end_year, costs_2025$CO2, costs_2050$CO2),
+  CH4_cost = interpolate_cost(Year, start_year, end_year, costs_2025$CH4, costs_2050$CH4),
+  N2O_cost = interpolate_cost(Year, start_year, end_year, costs_2025$N2O, costs_2050$N2O)
 )]
 
 # Other GHG emissions ratios from EPA Greenhouse Gas Reporting Program for 2011-2022
@@ -148,20 +158,17 @@ Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
   total_N2O_tons_eq = sum(total_N2O_tons_eq, na.rm = TRUE)
 ), by = .(Year, Simulation, Pathway)]
 
-# Total GHG CO2 equivalaent
-Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
-  total_GHG_CO2_eq = total_CO2_tons + total_CH4_tons_eq + total_N2O_tons_eq
-), by = .(Year, Simulation, Pathway)]
 
 # Calculate the total cost of CO2 equivalent
-#Yearly_Facility_Level_Results[, total_cost_CO2_eq := total_CO2_tons * CO2_cost + total_CH4_tons_eq * CH4_cost + total_N2O_tons_eq * N2O_cost]
 Yearly_Facility_Level_Results <- merge(Yearly_Facility_Level_Results, GHG_Costs, by = "Year", all.x = TRUE)
-Yearly_Facility_Level_Results[, total_cost_CO2_eq := total_GHG_CO2_eq * CO2_cost]
+Yearly_Facility_Level_Results[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_tons_eq * CH4_cost + total_N2O_tons_eq * N2O_cost]
+
+#Yearly_Facility_Level_Results[, total_cost_GHG := total_GHG_CO2_eq * CO2_cost]
 
 # Define a function to process GHG Costs
 process_GHG <- function(sim, scen, data) {
   filtered_data <- data[Simulation == sim & Pathway == scen]
-  npv <- calculate_npv(filtered_data, discount_rate, base_year, "total_cost_CO2_eq")
+  npv <- calculate_npv(filtered_data, discount_rate, base_year, "total_cost_GHG")
   return(npv)
 }
 
@@ -184,6 +191,7 @@ combined_npvs <- rbindlist(lapply(names(npv_results), function(name) {
 }), fill = TRUE)
 
 combined_npvs <- combined_npvs[NPV != 0,]
+combined_npvs_sim <- copy(combined_npvs)
 combined_npvs <- combined_npvs %>%
   group_by(Pathway) %>%
   summarise(
@@ -206,9 +214,8 @@ Yearly_Results_Summary <- Yearly_Results[, .(
   total_GHG_tons_CO2_eq = sum(Fossil_new.CO2_tons_eq, na.rm = TRUE)
 ), by = .(Year, Simulation, Pathway)]
 
-
 Yearly_Results_Summary <- merge(Yearly_Results_Summary, GHG_Costs, by = "Year", all.x = TRUE)
-Yearly_Results_Summary[, total_cost_CO2_eq := total_GHG_tons_CO2_eq * CO2_cost]
+Yearly_Results_Summary[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_tons_eq * CH4_cost + total_N2O_tons_eq * N2O_cost]
 
 # Set up correct loop inputs
 simulations_summary <- unique(as.character(Yearly_Results_Summary$Simulation))
@@ -224,7 +231,6 @@ for (sim in simulations_summary) {
   }
 }
 
-
 # Combine NPV results into a single data.table
 combined_npvs_hourly <- rbindlist(lapply(names(npv_results_hourly), function(name) {
   parts <- strsplit(name, "_")[[1]]
@@ -233,6 +239,7 @@ combined_npvs_hourly <- rbindlist(lapply(names(npv_results_hourly), function(nam
 
 
 combined_npvs_hourly <- combined_npvs_hourly[!(combined_npvs_hourly$Pathway == "D" & combined_npvs_hourly$NPV_newNG == 0), ]
+combined_npvs_hourly_sim <- copy(combined_npvs_hourly)
 combined_npvs_hourly <- combined_npvs_hourly %>%
   group_by(Pathway) %>%
   summarise(
@@ -240,7 +247,6 @@ combined_npvs_hourly <- combined_npvs_hourly %>%
     NPV_newNG_mean = mean(NPV_newNG),
     NPV_newNG_min = min(NPV_newNG)
   ) 
-
 
 combined_npvs <- merge(combined_npvs, combined_npvs_hourly, by = c("Pathway"))
 combined_npvs$NPV_mean <- combined_npvs$NPV_mean + combined_npvs$NPV_newNG_mean
@@ -253,3 +259,19 @@ combined_npvs[, NPV_newNG_min := NULL ]
 
 # Save combined NPV results to a single CSV file
 write.csv(combined_npvs, file = file.path(output_path, "GHG_Emissions.csv"), row.names = FALSE)
+
+# Save by simulation
+combined_npvs_sim <- merge(combined_npvs_sim, combined_npvs_hourly_sim, by = c("Pathway", "Simulation"))
+combined_npvs_sim$NPV <- combined_npvs_sim$NPV + combined_npvs_sim$NPV_newNG
+combined_npvs_sim[, NPV_newNG := NULL ]
+
+write.csv(combined_npvs_sim, file = file.path(output_path, "GHG_Emissions_per_simulation.csv"), row.names = FALSE)
+
+combined_npvs_sim_summary <- combined_npvs_sim %>%
+  group_by(Pathway) %>%
+  summarise(
+    NPV_max = max(NPV)/1e9,
+    NPV_mean = mean(NPV)/1e9,
+    NPV_min = min(NPV)/1e9
+  ) 
+

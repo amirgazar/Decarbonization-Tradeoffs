@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --account=epadecarb
-#SBATCH --partition=preemptable_q
+#SBATCH --partition=normal_q
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=80
 #SBATCH --cpus-per-task=1  # Reduce the number of cores to avoid OOM
-#SBATCH --time=24:00:00    # Set a more appropriate time limit
+#SBATCH --time=48:00:00    # Set a more appropriate time limit
 
 module load containers/singularity
 

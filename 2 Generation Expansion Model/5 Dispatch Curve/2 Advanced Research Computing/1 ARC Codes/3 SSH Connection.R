@@ -78,6 +78,22 @@ commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" &&
 # Execute the command
 ssh::ssh_exec_wait(session, command = commands)
 
+
+#-- tabulate
+bash_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/BASH_Summary_Final.sh"
+# Upload the Bash script to the remote server
+ssh::scp_upload(session, bash_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes")
+
+# Load R script
+R_file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/6_Summarization_Code_Final.R"
+ssh::scp_upload(session, R_file, to = "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/")
+
+# Define the command to submit the SLURM job + Change directory
+commands <- 'cd "/projects/epadecarb/2 Generation Expansion Model/2 R Codes/" && sbatch -A epadecarb BASH_Summary_Final.sh'
+# Execute the command
+ssh::ssh_exec_wait(session, command = commands)
+
+
 #------- 
 # CHECK JOB STATUS
 ssh::ssh_exec_wait(session, command = "seff 2559171")

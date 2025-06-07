@@ -8,7 +8,7 @@ calculate_npv <- function(dt, rate, base_year) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
@@ -22,6 +22,9 @@ file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Ge
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Facility_Level_Results <- as.data.table(fread(file_path_1))
+Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
+
+
 Yearly_Results <- as.data.table(fread(file_path_2))
 
 # Load facilities data
@@ -158,3 +161,90 @@ combined_npvs_summary_again_2 <- combined_npvs_summary_2[, .(
 
 # Save combined NPV results to a single CSV file
 fwrite(combined_npvs_fossil, file = file.path(output_path, "VOM_Fossil.csv"), row.names = FALSE)
+
+# --------------------------------------------------------------
+# 1) Build a per-simulation generation table
+# --------------------------------------------------------------
+# (re-read raw facility-level results)
+rawFLLR <- as.data.table(fread(file_path_1))
+rawFLLR <- selected_cols[rawFLLR, on = "Facility_Unit.ID"]
+rawFLLR[, Fuel_Category := fcase(
+  grepl("oil", Fuel_type_1, ignore.case = TRUE), "Oil",
+  grepl("coal", Fuel_type_1, ignore.case = TRUE), "Coal",
+  grepl("wood", Fuel_type_1, ignore.case = TRUE), "Wood",
+  grepl("gas", Fuel_type_1, ignore.case = TRUE) & grepl("Combustion Turbine", Unit_Type, ignore.case = TRUE), "Gas_CT",
+  grepl("gas", Fuel_type_1, ignore.case = TRUE), "Gas_CC",
+  default = "Other"
+)]
+# facility gen per simulation
+gen_old <- rawFLLR[, .(
+  Fossil_gen_MWh = sum(total_generation_GWh, na.rm = TRUE) * 1e3
+), by = .(Year, Simulation, Pathway, Fuel_Category)]
+
+# hourly‐based new gas gen per simulation
+gen_new <- Yearly_Results[, .(
+  Fossil_gen_MWh = sum(New_Fossil_Fuel_TWh, na.rm = TRUE) * 1e6
+), by = .(Year, Simulation, Pathway)]
+gen_new[, Fuel_Category := "Gas_CC"]
+
+# combine them
+gen_by_sim_all <- rbindlist(list(gen_old, gen_new), use.names = TRUE, fill = TRUE)
+
+# --------------------------------------------------------------
+# 2) Compute VOM‐NPV per Simulation & ATB scenario
+# --------------------------------------------------------------
+npv_results_by_sim <- list()
+
+for (scen in pathways) {
+  for (fossil_info in fossil_fuels) {
+    # filter generation for this pathway & fuel
+    fossil_data_sim <- gen_by_sim_all[
+      Pathway == scen & Fuel_Category == fossil_info$fuel_type
+    ]
+    if (nrow(fossil_data_sim)==0) next
+    
+    # pull VOM rates from ATBe
+    tech_data <- ATBe[
+      technology       == fossil_info$tech &
+        techdetail       == fossil_info$detail &
+        core_metric_case == "Market" &
+        crpyears         == 30 &
+        core_metric_variable >= base_year
+    ]
+    var_om_param <- tech_data[core_metric_parameter == "Variable O&M"]
+    
+    # merge on year
+    merged_sim <- merge(
+      var_om_param,
+      fossil_data_sim,
+      by.x = "core_metric_variable",
+      by.y = "Year",
+      allow.cartesian = TRUE
+    )
+    merged_sim[, Var_OM := Fossil_gen_MWh * value]  # $ cost = MWh × $/MWh
+    
+    # discounted sum per ATB scenario & Simulation
+    npv_sim <- merged_sim[
+      , .(NPV = sum(
+        Var_OM / (1 + discount_rate)^(core_metric_variable - base_year),
+        na.rm = TRUE
+      )
+      ), by = .(scenario, Simulation)
+    ]
+    npv_sim[, `:=`(
+      Pathway    = scen,
+      Technology = fossil_info$fuel_type
+    )]
+    
+    npv_results_by_sim[[paste0(scen, "_", fossil_info$fuel_type)]] <- npv_sim
+  }
+}
+
+# combine and save
+combined_npvs_by_sim <- rbindlist(npv_results_by_sim, use.names = TRUE, fill = TRUE)
+fwrite(
+  combined_npvs_by_sim,
+  file = file.path(output_path, "VOM_Fossil_by_Simulation.csv"),
+  row.names = FALSE
+)
+

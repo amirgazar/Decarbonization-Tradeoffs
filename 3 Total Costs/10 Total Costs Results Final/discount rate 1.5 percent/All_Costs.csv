@@ -1,0 +1,244 @@
+"Pathway","Cost_Type","Statistic","Cost_bUSD"
+"A","Air Emissions","max",1.44502995734727
+"A","Air Emissions","mean",1.44502995734727
+"A","Air Emissions","min",1.44502995734727
+"A","CAPEX","max",0
+"A","CAPEX","mean",0
+"A","CAPEX","min",0
+"A","Fixed O&M","max",51.4416764807069
+"A","Fixed O&M","mean",46.3754053723278
+"A","Fixed O&M","min",40.7614147311465
+"A","Fuel","max",53.7276227160021
+"A","Fuel","mean",53.7276227160021
+"A","Fuel","min",53.7276227160021
+"A","GHG Emissions","max",629.955530458983
+"A","GHG Emissions","mean",629.955530458983
+"A","GHG Emissions","min",629.955530458983
+"A","Imports","max",32.7993255431054
+"A","Imports","mean",21.8844395925531
+"A","Imports","min",10.9695536420007
+"A","Total_Costs","max",1266.33111060312
+"A","Total_Costs","mean",1249.95238477122
+"A","Total_Costs","min",1232.98057568253
+"A","Unmet Demand Penalty","max",488.850450379783
+"A","Unmet Demand Penalty","mean",488.850450379783
+"A","Unmet Demand Penalty","min",488.850450379783
+"A","Variable O&M","max",8.11147506719222
+"A","Variable O&M","mean",7.71390629422318
+"A","Variable O&M","min",7.27097379726731
+"B1","Air Emissions","max",0.676946442320838
+"B1","Air Emissions","mean",0.676946442320838
+"B1","Air Emissions","min",0.676946442320838
+"B1","CAPEX","max",248.408075292679
+"B1","CAPEX","mean",200.894754806921
+"B1","CAPEX","min",159.721953329328
+"B1","Fixed O&M","max",91.9740832751909
+"B1","Fixed O&M","mean",79.557983013137
+"B1","Fixed O&M","min",67.5611684489687
+"B1","Fuel","max",21.7919518398357
+"B1","Fuel","mean",21.7919518398357
+"B1","Fuel","min",21.7919518398357
+"B1","GHG Emissions","max",197.617803089842
+"B1","GHG Emissions","mean",197.617803089842
+"B1","GHG Emissions","min",197.617803089842
+"B1","Imports","max",111.586579496581
+"B1","Imports","mean",74.4920073514732
+"B1","Imports","min",37.3974352063654
+"B1","Total_Costs","max",681.368170046345
+"B1","Total_Costs","mean",584.010543491219
+"B1","Total_Costs","min",493.367300096525
+"B1","Unmet Demand Penalty","max",5.38698332841037
+"B1","Unmet Demand Penalty","mean",5.38698332841037
+"B1","Unmet Demand Penalty","min",5.38698332841037
+"B1","Variable O&M","max",3.92574728148518
+"B1","Variable O&M","mean",3.59211361927916
+"B1","Variable O&M","min",3.21305841145425
+"B2","Air Emissions","max",0.778029159379318
+"B2","Air Emissions","mean",0.778029159379318
+"B2","Air Emissions","min",0.778029159379318
+"B2","CAPEX","max",279.836370488295
+"B2","CAPEX","mean",225.981812974127
+"B2","CAPEX","min",179.334523160766
+"B2","Fixed O&M","max",98.3484520711323
+"B2","Fixed O&M","mean",85.2373345651517
+"B2","Fixed O&M","min",72.6621535340588
+"B2","Fuel","max",25.5605986850233
+"B2","Fuel","mean",25.5605986850233
+"B2","Fuel","min",25.5605986850233
+"B2","GHG Emissions","max",237.722111710953
+"B2","GHG Emissions","mean",237.722111710953
+"B2","GHG Emissions","min",237.722111710953
+"B2","Imports","max",42.3667583695718
+"B2","Imports","mean",28.2601768281102
+"B2","Imports","min",14.1535952866487
+"B2","Total_Costs","max",700.851340916015
+"B2","Total_Costs","mean",619.441847401342
+"B2","Total_Costs","min",545.730145914623
+"B2","Unmet Demand Penalty","max",11.9692498909669
+"B2","Unmet Demand Penalty","mean",11.9692498909669
+"B2","Unmet Demand Penalty","min",11.9692498909669
+"B2","Variable O&M","max",4.26977054069314
+"B2","Variable O&M","mean",3.9325335876303
+"B2","Variable O&M","min",3.54988448682636
+"B3(1)","Air Emissions","max",0.671945787849245
+"B3(1)","Air Emissions","mean",0.671945787849245
+"B3(1)","Air Emissions","min",0.671945787849245
+"B3(1)","CAPEX","max",233.778731837407
+"B3(1)","CAPEX","mean",189.209011920898
+"B3(1)","CAPEX","min",150.580921798066
+"B3(1)","Fixed O&M","max",89.0299385533607
+"B3(1)","Fixed O&M","mean",76.935318581175
+"B3(1)","Fixed O&M","min",65.206316065439
+"B3(1)","Fuel","max",21.7238678872535
+"B3(1)","Fuel","mean",21.7238678872535
+"B3(1)","Fuel","min",21.7238678872535
+"B3(1)","GHG Emissions","max",196.723240336725
+"B3(1)","GHG Emissions","mean",196.723240336725
+"B3(1)","GHG Emissions","min",196.723240336725
+"B3(1)","Imports","max",141.838807271519
+"B3(1)","Imports","mean",94.6974318191099
+"B3(1)","Imports","min",47.5560563667008
+"B3(1)","Total_Costs","max",692.249779313195
+"B3(1)","Total_Costs","mean",588.110739332362
+"B3(1)","Total_Costs","min",490.233530665774
+"B3(1)","Unmet Demand Penalty","max",4.5567260220235
+"B3(1)","Unmet Demand Penalty","mean",4.5567260220235
+"B3(1)","Unmet Demand Penalty","min",4.5567260220235
+"B3(1)","Variable O&M","max",3.92652161705692
+"B3(1)","Variable O&M","mean",3.59319697732831
+"B3(1)","Variable O&M","min",3.21445640171694
+"B3(2)","Air Emissions","max",0.671945787849245
+"B3(2)","Air Emissions","mean",0.671945787849245
+"B3(2)","Air Emissions","min",0.671945787849245
+"B3(2)","CAPEX","max",303.472510592054
+"B3(2)","CAPEX","mean",238.758741566764
+"B3(2)","CAPEX","min",179.986602335151
+"B3(2)","Fixed O&M","max",176.356586524831
+"B3(2)","Fixed O&M","mean",131.652281321369
+"B3(2)","Fixed O&M","min",87.3135935743572
+"B3(2)","Fuel","max",21.7238678872535
+"B3(2)","Fuel","mean",21.7238678872535
+"B3(2)","Fuel","min",21.7238678872535
+"B3(2)","GHG Emissions","max",209.761410057581
+"B3(2)","GHG Emissions","mean",204.066852997812
+"B3(2)","GHG Emissions","min",198.372295938043
+"B3(2)","Imports","max",26.7616749815524
+"B3(2)","Imports","mean",17.837561473845
+"B3(2)","Imports","min",8.91344796613764
+"B3(2)","Total_Costs","max",747.231243470202
+"B3(2)","Total_Costs","mean",622.861174034245
+"B3(2)","Total_Costs","min",504.752935912532
+"B3(2)","Unmet Demand Penalty","max",4.5567260220235
+"B3(2)","Unmet Demand Penalty","mean",4.5567260220235
+"B3(2)","Unmet Demand Penalty","min",4.5567260220235
+"B3(2)","Variable O&M","max",3.92652161705692
+"B3(2)","Variable O&M","mean",3.59319697732831
+"B3(2)","Variable O&M","min",3.21445640171694
+"C1","Air Emissions","max",0.616935868219608
+"C1","Air Emissions","mean",0.616935868219608
+"C1","Air Emissions","min",0.616935868219608
+"C1","CAPEX","max",342.25738928313
+"C1","CAPEX","mean",226.188170224467
+"C1","CAPEX","min",114.013313117907
+"C1","Fixed O&M","max",115.428814380707
+"C1","Fixed O&M","mean",90.8773787135745
+"C1","Fixed O&M","min",72.5946902936484
+"C1","Fuel","max",52.805264556756
+"C1","Fuel","mean",50.0176869162392
+"C1","Fuel","min",47.3097543511658
+"C1","GHG Emissions","max",192.350531344086
+"C1","GHG Emissions","mean",192.350531344086
+"C1","GHG Emissions","min",192.350531344086
+"C1","Imports","max",32.7993255431054
+"C1","Imports","mean",21.8844395925531
+"C1","Imports","min",10.9695536420007
+"C1","Total_Costs","max",753.029103691425
+"C1","Total_Costs","mean",597.681633948567
+"C1","Total_Costs","min",452.358052133559
+"C1","Unmet Demand Penalty","max",5.51961080347594
+"C1","Unmet Demand Penalty","mean",5.51961080347594
+"C1","Unmet Demand Penalty","min",5.51961080347594
+"C1","Variable O&M","max",11.251231911945
+"C1","Variable O&M","mean",10.2268804859521
+"C1","Variable O&M","min",8.9836627130556
+"C2","Air Emissions","max",0.725569567554471
+"C2","Air Emissions","mean",0.725569567554471
+"C2","Air Emissions","min",0.725569567554471
+"C2","CAPEX","max",283.010791986893
+"C2","CAPEX","mean",223.327411171546
+"C2","CAPEX","min",170.274975143437
+"C2","Fixed O&M","max",101.151250684946
+"C2","Fixed O&M","mean",86.2073174894615
+"C2","Fixed O&M","min",72.5660608948573
+"C2","Fuel","max",27.912768147641
+"C2","Fuel","mean",27.5515998634612
+"C2","Fuel","min",27.2007506731151
+"C2","GHG Emissions","max",218.747770151196
+"C2","GHG Emissions","mean",218.747770151196
+"C2","GHG Emissions","min",218.747770151196
+"C2","Imports","max",42.3667583695718
+"C2","Imports","mean",28.2601768281102
+"C2","Imports","min",14.1535952866487
+"C2","Total_Costs","max",685.799561659614
+"C2","Total_Costs","mean",596.2798180336
+"C2","Total_Costs","min",514.636124531121
+"C2","Unmet Demand Penalty","max",6.80693028971281
+"C2","Unmet Demand Penalty","mean",6.80693028971281
+"C2","Unmet Demand Penalty","min",6.80693028971281
+"C2","Variable O&M","max",5.07772246209925
+"C2","Variable O&M","mean",4.65304267255754
+"C2","Variable O&M","min",4.16047252460003
+"C3","Air Emissions","max",0.633383079652735
+"C3","Air Emissions","mean",0.633383079652735
+"C3","Air Emissions","min",0.633383079652735
+"C3","CAPEX","max",254.172319532073
+"C3","CAPEX","mean",202.961565892623
+"C3","CAPEX","min",157.738958945975
+"C3","Fixed O&M","max",94.9415965867787
+"C3","Fixed O&M","mean",81.2213299199639
+"C3","Fixed O&M","min",68.43365688975
+"C3","Fuel","max",22.8404433987905
+"C3","Fuel","mean",22.608638893816
+"C3","Fuel","min",22.3834573746979
+"C3","GHG Emissions","max",181.303629821678
+"C3","GHG Emissions","mean",181.303629821678
+"C3","GHG Emissions","min",181.303629821678
+"C3","Imports","max",111.586579496581
+"C3","Imports","mean",74.4920073514732
+"C3","Imports","min",37.3974352063654
+"C3","Total_Costs","max",673.107357545801
+"C3","Total_Costs","mean",570.460453890378
+"C3","Total_Costs","min",474.681072836865
+"C3","Unmet Demand Penalty","max",3.23041183583211
+"C3","Unmet Demand Penalty","mean",3.23041183583211
+"C3","Unmet Demand Penalty","min",3.23041183583211
+"C3","Variable O&M","max",4.39899379441503
+"C3","Variable O&M","mean",4.00948709533851
+"C3","Variable O&M","min",3.56013968291316
+"D","Air Emissions","max",1.35481180111778
+"D","Air Emissions","mean",1.35481180111778
+"D","Air Emissions","min",1.35481180111778
+"D","CAPEX","max",94.8295984641286
+"D","CAPEX","mean",79.9463594087755
+"D","CAPEX","min",67.2275923644033
+"D","Fixed O&M","max",72.7683359295336
+"D","Fixed O&M","mean",63.8356934032146
+"D","Fixed O&M","min",54.9046297038099
+"D","Fuel","max",74.5842994832238
+"D","Fuel","mean",74.5842994832238
+"D","Fuel","min",74.5842994832238
+"D","GHG Emissions","max",780.833679792614
+"D","GHG Emissions","mean",780.833679792614
+"D","GHG Emissions","min",780.833679792614
+"D","Imports","max",111.586579496581
+"D","Imports","mean",74.4920073514732
+"D","Imports","min",37.3974352063654
+"D","Total_Costs","max",1147.92730703447
+"D","Total_Costs","mean",1086.58851010112
+"D","Total_Costs","min",1027.37043934932
+"D","Unmet Demand Penalty","max",2.34251100612646
+"D","Unmet Demand Penalty","mean",2.34251100612646
+"D","Unmet Demand Penalty","min",2.34251100612646
+"D","Variable O&M","max",9.6274910611458
+"D","Variable O&M","mean",9.19914785456926
+"D","Variable O&M","min",8.72547999165724

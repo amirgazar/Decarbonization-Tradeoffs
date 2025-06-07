@@ -10,7 +10,7 @@ calculate_npv <- function(dt, rate, base_year) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
@@ -292,3 +292,96 @@ combined_npvs_summary <- combined_npvs_all[NPV != 0, .(
 
 # Save combined NPV results to a single CSV file
 write.csv(combined_npvs_all, file = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Fossil.csv", row.names = FALSE)
+
+
+# Tax revenue
+# Monte Carlo placement of new NGCC plants across New England counties
+# and calculation of annual property-tax revenue
+# =============== Monte Carlo tax revenue using CAPEX ===============
+
+# 1) Extract CAPEX $/kW by year from ATBe (average across scenarios)
+capex_dt <- ATBe[
+  technology          == "NaturalGas_FE" &
+    techdetail          == "NG 1-on-1 Combined Cycle (H-Frame)" &
+    core_metric_case    == "Market" &
+    crpyears            == 30 &
+    maturity            == "Y" &
+    core_metric_parameter == "CAPEX",
+  .(Year = core_metric_variable, capex_per_kW = value)
+]
+capex_dt <- capex_dt[, .(capex_per_kW = mean(capex_per_kW, na.rm = TRUE)), by = Year]
+
+# 2) Prepare plants table: add year, capacity_kW, and CAPEX per kW
+plants_dt <- fread(
+  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+) %>%
+  mutate(
+    Year    = year(as.Date(Commercial_Operation_Date)),
+    cap_kW  = Estimated_NameplateCapacity_MW * 1000
+  ) %>%
+  select(Facility_Unit.ID, Year, cap_kW) %>%
+  as.data.table()
+
+plants_dt <- merge(plants_dt, capex_dt, by = "Year", all.x = TRUE)
+
+# 3) Load & clean property‐tax rates for New England
+tax_raw <- fread(
+  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Tax Foundation/Property_taxes.csv",
+  header = TRUE
+)
+tax <- tax_raw %>%
+  rename(
+    state_full   = State,
+    county       = County,
+    eff_rate_str = `Effective Property Tax Rate (2023)`
+  ) %>%
+  mutate(
+    effective_rate = as.numeric(gsub("%", "", eff_rate_str)) / 100,
+    state_abbr     = state.abb[match(state_full, state.name)]
+  ) %>%
+  filter(state_abbr %in% c("ME","NH","VT","MA","RI","CT")) %>%
+  select(county, state_abbr, effective_rate)
+
+# 4) Monte Carlo setup
+set.seed(42)
+n_sim    <- 1000L
+n_plants <- nrow(plants_dt)
+
+sim_list <- vector("list", n_sim)
+for (i in seq_len(n_sim)) {
+  # assign each plant a random county
+  assigned_counties <- sample(tax$county, size = n_plants, replace = TRUE)
+  
+  sim_dt <- copy(plants_dt)[
+    , county := assigned_counties
+  ][
+    tax, on = .(county), nomatch = 0
+  ][
+    # compute total CAPEX per plant
+    , capex_total := cap_kW * capex_per_kW
+  ][
+    # tax revenue = tax rate * total CAPEX
+    , tax_rev := effective_rate * capex_total
+  ][
+    , sim := i
+  ]
+  
+  sim_list[[i]] <- sim_dt
+}
+
+# 5) Aggregate & save
+all_sims    <- rbindlist(sim_list)
+sim_summary <- all_sims[, .(total_tax_rev = sum(tax_rev, na.rm = TRUE)), by = sim]
+
+# 6) Compute overall summary statistics
+tax_stats <- sim_summary[, .(
+  mean_tax_rev = mean(total_tax_rev, na.rm = TRUE)/1e9,
+  min_tax_rev  = min(total_tax_rev, na.rm = TRUE)/1e9,
+  max_tax_rev  = max(total_tax_rev, na.rm = TRUE)/1e9
+)]
+
+# 7) Save only the summary statistics
+fwrite(
+  tax_stats,
+  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/NG_Tax_Revenue.csv"
+)

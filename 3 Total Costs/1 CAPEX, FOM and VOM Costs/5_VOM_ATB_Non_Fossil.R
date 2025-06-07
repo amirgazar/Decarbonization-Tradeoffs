@@ -8,7 +8,7 @@ calculate_npv <- function(dt, rate, base_year) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs (Note ATB 2023 used)
@@ -22,8 +22,6 @@ file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Gene
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- as.data.table(fread(file_path))
-Yearly_Results[, V1 := NULL]
-Yearly_Results[, V1 := NULL]
 
 # Define a function to process non-fossil VOM
 process_non_fossil <- function(technology, techdetail, dataset, column_name, simulation, pathway) {

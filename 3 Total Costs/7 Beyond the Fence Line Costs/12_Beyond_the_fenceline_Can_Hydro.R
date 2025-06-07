@@ -12,7 +12,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025 # Must adjust the SCC of Carbon
 base_year <- 2024
 n_hours_in_year <- 8760
 hydro_CF <- 65/100 # From Hydro quebec
@@ -52,6 +52,7 @@ for (sheet in sheet_names) {
 }
 decarbonization_pathways <- rbindlist(data_tables, fill = TRUE)
 setorder(decarbonization_pathways, Pathway, Year)
+
 # Calculate new capacity built each year
 import_columns <- c("Imports QC") # we are only interested in imports from Quebec 
 for (col in import_columns) {
@@ -92,7 +93,7 @@ for (i in 1:nrow(Imports_Capacity)) {
 }
 
 Imports_Capacity$QC_import_capacitydiff_MW <- Imports_Capacity$cumsum_diff
-Imports_Capacity <- Imports_Capacity[, .(Year, Pathway, QC_import_capacitydiff_MW)]
+Imports_Capacity <- Imports_Capacity[, .(Year, Pathway, QC_import_capacitydiff_MW, QC_import_cap_MW = total_capacity)]
 
 # Add Imports_Difference to hydropower
 Hydropower <- merge(Imports_Capacity, Hydropower, by = c("Pathway", "Year"), all.x = TRUE)
@@ -109,9 +110,8 @@ file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Gene
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- as.data.table(fread(file_path))
-Yearly_Results[, V1 := NULL]
-Yearly_Results[, V1 := NULL]
 Yearly_Results <- Yearly_Results[ Pathway == pathway_B3, ]
+
 # Compute base imports from each source (in TWh)
 Yearly_Results[, Total_QC_import_TWh := Spot_Market_Imports_HQ_TWh + Long_Term_Imports_HQ_TWh]
 Yearly_Results[, Total_base_import_TWh := Total_QC_import_TWh + Import_NYISO_TWh + Import_NBSO_TWh]
@@ -221,7 +221,21 @@ Hydropower <- Hydropower %>%
 
 setDT(Hydropower)
 Hydropower[, Increase_hydro_MW := pmax(0, c(0, diff(Base_hydro_MW)))]
+# total sum of all year-on-year hydro increases
+total_hydro_increase <- Hydropower[, sum(Increase_hydro_MW)]
+setkey(Hydropower, Pathway, Year)
+Hydropower[, Increase_hydro_MW := {
+  pool <- total_hydro_increase    # start with the full pool
+  draws <- numeric(.N)
+  for(i in seq_len(.N)) {
+    # draw no more than this year’s Base_MW, and no more than what's left
+    draws[i] <- min(Base_MW[i], pool)
+    pool <- pool - draws[i]
+  }
+  draws
+}, by=Pathway]
 
+#Hydropower[, Base_hydro_MW := cumsum(Increase_hydro_MW), by = Pathway]
 
 # CAPEX and FOM
 # CAPEX: The investment costs of large (>10 MWe) hydropower plants range from $1750/kWe to $6250/kWe and are very site-sensitive, with an average figure of about $4000/kWe (US$ 2008).
@@ -250,6 +264,8 @@ CAPEX_upper <- 19688294 # $/MW, obtained from 12_Other_S3_CAN_Hydro_CostAssumpti
 FOM_lower <- CAPEX_lower * 1.5 /100
 FOM_upper <- CAPEX_upper * 2.5 /100
 
+VOM_mean <- 0.58 # $/MWh ATB, its same for upper and lower
+
 direct_costs <- list(
  Hydropower_QC = list(Upfront = c(CAPEX_lower, CAPEX_upper), Fixed_OM = c(FOM_lower, FOM_upper), Variable_OM = 0, Capacity_Factor = 60.3)
   )
@@ -258,26 +274,30 @@ direct_costs <- list(
 BFL_costs_pathway_B3 <- data.table(Hydropower)
 BFL_costs_pathway_B3$CAPEX_lower <- Hydropower[, "Increase_hydro_MW"] * direct_costs$Hydropower$Upfront[1]
 BFL_costs_pathway_B3$CAPEX_upper <- Hydropower[, "Increase_hydro_MW"] * direct_costs$Hydropower$Upfront[2]
-BFL_costs_pathway_B3$FOM_lower <- Hydropower[, "Base_hydro_MW"] * direct_costs$Hydropower$Fixed_OM[1]
-BFL_costs_pathway_B3$FOM_upper <- Hydropower[, "Base_hydro_MW"] * direct_costs$Hydropower$Fixed_OM[2]
+BFL_costs_pathway_B3$FOM_lower <- Hydropower[, "QC_import_cap_MW"] * direct_costs$Hydropower$Fixed_OM[1]/hydro_CF
+BFL_costs_pathway_B3$FOM_upper <- Hydropower[, "QC_import_cap_MW"] * direct_costs$Hydropower$Fixed_OM[2]/hydro_CF
+BFL_costs_pathway_B3$VOM_lower <- Hydropower[, "Min_imports_QC_MWh"] * VOM_mean /hydro_CF
+BFL_costs_pathway_B3$VOM_upper <- Hydropower[, "Max_imports_QC_MWh"] * VOM_mean /hydro_CF
 
 # Calculate NPV for CAPEX and FOM with lower costs
-capex_npv_lower <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Lower = calculate_npv(.SD, discount_rate, Year, "CAPEX_lower"))]
-fom_npv_lower <- BFL_costs_pathway_B3[, .(NPV_FOM_Lower = calculate_npv(.SD, discount_rate, Year, "FOM_lower"))]
+capex_npv_lower <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Lower = calculate_npv(.SD, discount_rate, base_year, "CAPEX_lower"))]
+fom_npv_lower <- BFL_costs_pathway_B3[, .(NPV_FOM_Lower = calculate_npv(.SD, discount_rate, base_year, "FOM_lower"))]
+vom_npv_lower <- BFL_costs_pathway_B3[, .(NPV_VOM_Lower = calculate_npv(.SD, discount_rate, base_year, "VOM_lower"))]
 
 # Calculate NPV for CAPEX and FOM with upper costs
-capex_npv_upper <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Upper = calculate_npv(.SD, discount_rate, Year, "CAPEX_upper"))]
-fom_npv_upper <- BFL_costs_pathway_B3[, .(NPV_FOM_Upper = calculate_npv(.SD, discount_rate, Year, "FOM_upper"))]
+capex_npv_upper <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Upper = calculate_npv(.SD, discount_rate, base_year, "CAPEX_upper"))]
+fom_npv_upper <- BFL_costs_pathway_B3[, .(NPV_FOM_Upper = calculate_npv(.SD, discount_rate, base_year, "FOM_upper"))]
+vom_npv_upper <- BFL_costs_pathway_B3[, .(NPV_VOM_Upper = calculate_npv(.SD, discount_rate, base_year, "VOM_upper"))]
 
 # For the lower NPV results
-npv_results_lower <- cbind(capex_npv_lower, fom_npv_lower)
+npv_results_lower <- cbind(capex_npv_lower, fom_npv_lower, vom_npv_lower)
 
 # For the upper NPV results
-npv_results_upper <- cbind(capex_npv_upper, fom_npv_upper)
+npv_results_upper <- cbind(capex_npv_upper, fom_npv_upper, vom_npv_upper)
 
 # Rename columns for clarity
-setnames(npv_results_lower, c("NPV_CAPEX_Lower", "NPV_FOM_Lower"), c("NPV_CAPEX", "NPV_FOM"))
-setnames(npv_results_upper, c("NPV_CAPEX_Upper", "NPV_FOM_Upper"), c("NPV_CAPEX", "NPV_FOM"))
+setnames(npv_results_lower, c("NPV_CAPEX_Lower", "NPV_FOM_Lower", "NPV_VOM_Lower"), c("NPV_CAPEX", "NPV_FOM", "NPV_VOM"))
+setnames(npv_results_upper, c("NPV_CAPEX_Upper", "NPV_FOM_Upper", "NPV_VOM_Upper"), c("NPV_CAPEX", "NPV_FOM", "NPV_VOM"))
 
 # Add cost type information
 npv_results_lower[, Cost_Type := "Lower"]
@@ -288,6 +308,7 @@ npv_results <- rbind(npv_results_lower, npv_results_upper)
 
 # Save combined NPV results to a single CSV file
 write.csv(npv_results, file = file.path(output_path, "CAPEX_FOM_CAN_Hydro.csv"), row.names = FALSE)
+npv_results_CAPEX_FOM <- npv_results
 
 # -------------------------------
 # CH4 Emissions
@@ -325,22 +346,38 @@ Yearly_imports[, Annual_CH4_emissions_tonnes_Upper := Annual_CH4_emissions_kg_Up
 # -------------------------------
 # 3. Setup Cost Projections via CPI Adjustment
 # -------------------------------
-# Adjust CH4 cost values from 2019 to 2024 using CPI data.
-cpi_2019 <- filter(cpi_data, year(date) == 2019) %>% summarise(YearlyAvg = mean(value))
-conversion_rate_2019_24 <- cpi_2024$YearlyAvg / cpi_2019$YearlyAvg
-
 # Set the projection period to match Yearly_imports data (2025 to 2050)
 start_year <- 2025
 end_year   <- 2050
 
-# Define cost estimates for CH4 in 2021 and 2050 (adjusted to 2024 dollars)
+# Define cost estimates for CH4 in 2024 and 2050 (adjusted to 2024 dollars)
 # (Note: If needed, these base years could be aligned with the projection period.)
-costs_2021 <- list(CH4 = 2732 * conversion_rate_2019_24)
-costs_2050 <- list(CH4 = 4684 * conversion_rate_2019_24)
+
+# API KEY 63522eae4ec927d6f1d9d86bf7826cc8
+fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
+cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
+
+# Extracting CPI values for specific years
+cpi_2024 <- filter(cpi_data, year(date) == 2024) %>% summarise(YearlyAvg = mean(value))
+cpi_2020 <- filter(cpi_data, year(date) == 2020) %>% summarise(YearlyAvg = mean(value))
+
+conversion_rate_2020_24 <- cpi_2024$YearlyAvg / cpi_2020$YearlyAvg
+# 2023 report 2%
+#costs_2025 <- list(CO2 = 212 * conversion_rate_2020_24, CH4 = 2025 * conversion_rate_2020_24, N2O = 60267 * conversion_rate_2020_24)
+#costs_2050 <- list(CO2 = 308 * conversion_rate_2020_24, CH4 = 4231 * conversion_rate_2020_24, N2O = 92996 * conversion_rate_2020_24)
+
+# 2023 report 2.5%
+costs_2025 <- list(CO2 = 130 * conversion_rate_2020_24, CH4 = 1590 * conversion_rate_2020_24, N2O = 39972 * conversion_rate_2020_24)
+costs_2050 <- list(CO2 = 205 * conversion_rate_2020_24, CH4 = 3547 * conversion_rate_2020_24, N2O = 65635 * conversion_rate_2020_24)
+
+# 2023 report 1.5%
+#costs_2025 <- list(CO2 = 360 * conversion_rate_2020_24, CH4 = 2737 * conversion_rate_2020_24, N2O = 95210 * conversion_rate_2020_24)
+#costs_2050 <- list(CO2 = 482 * conversion_rate_2020_24, CH4 = 5260 * conversion_rate_2020_24, N2O = 136799 * conversion_rate_2020_24)
+
 
 # Create a cost projection table using an interpolation function
 GHG_Costs <- data.table(Year = start_year:end_year)
-GHG_Costs[, CH4_cost := interpolate_cost(Year, start_year, end_year, costs_2021$CH4, costs_2050$CH4)]
+GHG_Costs[, CH4_cost := interpolate_cost(Year, start_year, end_year, costs_2025$CH4, costs_2050$CH4)]
 
 # -------------------------------
 # 4. Merge Emission Estimates with Cost Projections
@@ -368,8 +405,8 @@ BFL_costs_pathway_B3_CH4_Upper <- na.omit(BFL_costs_pathway_B3_CH4_Upper)
 # 5. Calculate Net Present Value (NPV) of CH4 Costs
 # -------------------------------
 # Use an existing function 'calculate_npv' that accepts the data table, discount rate, year column, and cost column name.
-CH4_npv_lower <- BFL_costs_pathway_B3_CH4_Lower[, .(NPV_CH4_Lower = calculate_npv(.SD, discount_rate, Year, "total_CH4_USD_Lower"))]
-CH4_npv_upper <- BFL_costs_pathway_B3_CH4_Upper[, .(NPV_CH4_Upper = calculate_npv(.SD, discount_rate, Year, "total_CH4_USD_Upper"))]
+CH4_npv_lower <- BFL_costs_pathway_B3_CH4_Lower[, .(NPV_CH4_Lower = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Lower"))]
+CH4_npv_upper <- BFL_costs_pathway_B3_CH4_Upper[, .(NPV_CH4_Upper = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Upper"))]
 
 # Combine the lower and upper NPV estimates into a single data table
 CH4_npv <- cbind(CH4_npv_lower, CH4_npv_upper)
@@ -378,3 +415,4 @@ CH4_npv <- cbind(CH4_npv_lower, CH4_npv_upper)
 # 6. Save the Results to CSV
 # -------------------------------
 write.csv(CH4_npv, file = file.path(output_path, "CH4_CAN_Hydro.csv"), row.names = FALSE)
+

@@ -1,0 +1,385 @@
+"Pathway","Cost_Type","Technology","ATB_Scenario","NPV"
+"A","CAPEX","Solar","Advanced",0
+"A","CAPEX","Solar","Moderate",0
+"A","CAPEX","Solar","Conservative",0
+"A","FOM","Solar","Advanced",2609964926.54789
+"A","FOM","Solar","Moderate",2894311091.12436
+"A","FOM","Solar","Conservative",3284823215.64096
+"A","CAPEX","Onshore Wind","Advanced",0
+"A","CAPEX","Onshore Wind","Moderate",0
+"A","CAPEX","Onshore Wind","Conservative",0
+"A","FOM","Onshore Wind","Advanced",1518084122.46578
+"A","FOM","Onshore Wind","Moderate",1829405877.49365
+"A","FOM","Onshore Wind","Conservative",1962368040.56402
+"A","CAPEX","Offshore Wind","Advanced",0
+"A","CAPEX","Offshore Wind","Moderate",0
+"A","CAPEX","Offshore Wind","Conservative",0
+"A","FOM","Offshore Wind","Advanced",1353368391.2302
+"A","FOM","Offshore Wind","Moderate",1468003452.86006
+"A","FOM","Offshore Wind","Conservative",1655796895.80346
+"A","CAPEX","Storage","Advanced",0
+"A","CAPEX","Storage","Moderate",0
+"A","CAPEX","Storage","Conservative",0
+"A","FOM","Storage","Advanced",3454251777.47016
+"A","FOM","Storage","Moderate",4458616283.50434
+"A","FOM","Storage","Conservative",6171801798.27252
+"A","CAPEX","Nuclear","Advanced",0
+"A","CAPEX","Nuclear","Moderate",0
+"A","CAPEX","Nuclear","Conservative",0
+"A","FOM","Nuclear","Advanced",6503537935.08848
+"A","FOM","Nuclear","Moderate",9032691576.51178
+"A","FOM","Nuclear","Conservative",10529537609.1909
+"A","CAPEX","SMR","Advanced",0
+"A","CAPEX","SMR","Moderate",0
+"A","CAPEX","SMR","Conservative",0
+"A","FOM","SMR","Advanced",0
+"A","FOM","SMR","Moderate",0
+"A","FOM","SMR","Conservative",0
+"A","CAPEX","Hydropower","Advanced",0
+"A","CAPEX","Hydropower","Moderate",0
+"A","CAPEX","Hydropower","Conservative",0
+"A","FOM","Hydropower","Advanced",1573026717.34992
+"A","FOM","Hydropower","Moderate",2806884488.29927
+"A","FOM","Hydropower","Conservative",2806884488.29927
+"A","CAPEX","Biomass","Advanced",0
+"A","CAPEX","Biomass","Moderate",0
+"A","CAPEX","Biomass","Conservative",0
+"A","FOM","Biomass","Advanced",1317251936.34316
+"A","FOM","Biomass","Moderate",1317251936.34316
+"A","FOM","Biomass","Conservative",1317251936.34316
+"B1","CAPEX","Solar","Advanced",39182864348.0342
+"B1","CAPEX","Solar","Moderate",46695934437.2685
+"B1","CAPEX","Solar","Conservative",57708284888.6285
+"B1","FOM","Solar","Advanced",9911104609.73579
+"B1","FOM","Solar","Moderate",11204046326.1341
+"B1","FOM","Solar","Conservative",13033490474.9358
+"B1","CAPEX","Onshore Wind","Advanced",11143650945.2815
+"B1","CAPEX","Onshore Wind","Moderate",11848905245.4193
+"B1","CAPEX","Onshore Wind","Conservative",13553645962.6917
+"B1","FOM","Onshore Wind","Advanced",3655544978.38793
+"B1","FOM","Onshore Wind","Moderate",4619023962.61038
+"B1","FOM","Onshore Wind","Conservative",5010885168.66052
+"B1","CAPEX","Offshore Wind","Advanced",75018055916.0913
+"B1","CAPEX","Offshore Wind","Moderate",92598505227.9805
+"B1","CAPEX","Offshore Wind","Conservative",119169662294.734
+"B1","FOM","Offshore Wind","Advanced",17430431371.4519
+"B1","FOM","Offshore Wind","Moderate",19020006714.8261
+"B1","FOM","Offshore Wind","Conservative",21786238599.8635
+"B1","CAPEX","Storage","Advanced",21162369749.1275
+"B1","CAPEX","Storage","Moderate",27322517390.069
+"B1","CAPEX","Storage","Conservative",37882957172.047
+"B1","FOM","Storage","Advanced",9008954355.11149
+"B1","FOM","Storage","Moderate",11901672560.6574
+"B1","FOM","Storage","Conservative",17014724069.6142
+"B1","CAPEX","Nuclear","Advanced",0
+"B1","CAPEX","Nuclear","Moderate",0
+"B1","CAPEX","Nuclear","Conservative",0
+"B1","FOM","Nuclear","Advanced",6503537935.08848
+"B1","FOM","Nuclear","Moderate",9032691576.51178
+"B1","FOM","Nuclear","Conservative",10529537609.1909
+"B1","CAPEX","SMR","Advanced",0
+"B1","CAPEX","SMR","Moderate",0
+"B1","CAPEX","SMR","Conservative",0
+"B1","FOM","SMR","Advanced",0
+"B1","FOM","SMR","Moderate",0
+"B1","FOM","SMR","Conservative",0
+"B1","CAPEX","Hydropower","Advanced",0
+"B1","CAPEX","Hydropower","Moderate",0
+"B1","CAPEX","Hydropower","Conservative",0
+"B1","FOM","Hydropower","Advanced",1573026717.34992
+"B1","FOM","Hydropower","Moderate",2806884488.29927
+"B1","FOM","Hydropower","Conservative",2806884488.29927
+"B1","CAPEX","Biomass","Advanced",0
+"B1","CAPEX","Biomass","Moderate",0
+"B1","CAPEX","Biomass","Conservative",0
+"B1","FOM","Biomass","Advanced",1317251936.34316
+"B1","FOM","Biomass","Moderate",1317251936.34316
+"B1","FOM","Biomass","Conservative",1317251936.34316
+"B2","CAPEX","Solar","Advanced",39182864348.0342
+"B2","CAPEX","Solar","Moderate",46695934437.2685
+"B2","CAPEX","Solar","Conservative",57708284888.6285
+"B2","FOM","Solar","Advanced",9911104609.73579
+"B2","FOM","Solar","Moderate",11204046326.1341
+"B2","FOM","Solar","Conservative",13033490474.9358
+"B2","CAPEX","Onshore Wind","Advanced",11143650945.2815
+"B2","CAPEX","Onshore Wind","Moderate",11848905245.4193
+"B2","CAPEX","Onshore Wind","Conservative",13553645962.6917
+"B2","FOM","Onshore Wind","Advanced",3655544978.38793
+"B2","FOM","Onshore Wind","Moderate",4619023962.61038
+"B2","FOM","Onshore Wind","Conservative",5010885168.66052
+"B2","CAPEX","Offshore Wind","Advanced",95608357941.1176
+"B2","CAPEX","Offshore Wind","Moderate",118019973706.907
+"B2","CAPEX","Offshore Wind","Conservative",151895587055.79
+"B2","FOM","Offshore Wind","Advanced",22143625493.4735
+"B2","FOM","Offshore Wind","Moderate",24163480186.9539
+"B2","FOM","Offshore Wind","Conservative",27679091255.562
+"B2","CAPEX","Storage","Advanced",21162369749.1275
+"B2","CAPEX","Storage","Moderate",27322517390.069
+"B2","CAPEX","Storage","Conservative",37882957172.047
+"B2","FOM","Storage","Advanced",9008954355.11149
+"B2","FOM","Storage","Moderate",11901672560.6574
+"B2","FOM","Storage","Conservative",17014724069.6142
+"B2","CAPEX","Nuclear","Advanced",0
+"B2","CAPEX","Nuclear","Moderate",0
+"B2","CAPEX","Nuclear","Conservative",0
+"B2","FOM","Nuclear","Advanced",6503537935.08848
+"B2","FOM","Nuclear","Moderate",9032691576.51178
+"B2","FOM","Nuclear","Conservative",10529537609.1909
+"B2","CAPEX","SMR","Advanced",0
+"B2","CAPEX","SMR","Moderate",0
+"B2","CAPEX","SMR","Conservative",0
+"B2","FOM","SMR","Advanced",0
+"B2","FOM","SMR","Moderate",0
+"B2","FOM","SMR","Conservative",0
+"B2","CAPEX","Hydropower","Advanced",0
+"B2","CAPEX","Hydropower","Moderate",0
+"B2","CAPEX","Hydropower","Conservative",0
+"B2","FOM","Hydropower","Advanced",1573026717.34992
+"B2","FOM","Hydropower","Moderate",2806884488.29927
+"B2","FOM","Hydropower","Conservative",2806884488.29927
+"B2","CAPEX","Biomass","Advanced",0
+"B2","CAPEX","Biomass","Moderate",0
+"B2","CAPEX","Biomass","Conservative",0
+"B2","FOM","Biomass","Advanced",1317251936.34316
+"B2","FOM","Biomass","Moderate",1317251936.34316
+"B2","FOM","Biomass","Conservative",1317251936.34316
+"B3","CAPEX","Solar","Advanced",39182864348.0342
+"B3","CAPEX","Solar","Moderate",46695934437.2685
+"B3","CAPEX","Solar","Conservative",57708284888.6285
+"B3","FOM","Solar","Advanced",9911104609.73579
+"B3","FOM","Solar","Moderate",11204046326.1341
+"B3","FOM","Solar","Conservative",13033490474.9358
+"B3","CAPEX","Onshore Wind","Advanced",11143650945.2815
+"B3","CAPEX","Onshore Wind","Moderate",11848905245.4193
+"B3","CAPEX","Onshore Wind","Conservative",13553645962.6917
+"B3","FOM","Onshore Wind","Advanced",3655544978.38793
+"B3","FOM","Onshore Wind","Moderate",4619023962.61038
+"B3","FOM","Onshore Wind","Conservative",5010885168.66052
+"B3","CAPEX","Offshore Wind","Advanced",65539477305.931
+"B3","CAPEX","Offshore Wind","Moderate",80895370002.4786
+"B3","CAPEX","Offshore Wind","Conservative",104103740664.771
+"B3","FOM","Offshore Wind","Advanced",15262016432.7623
+"B3","FOM","Offshore Wind","Moderate",16653630690.8055
+"B3","FOM","Offshore Wind","Conservative",19075091092.3336
+"B3","CAPEX","Storage","Advanced",21162369749.1275
+"B3","CAPEX","Storage","Moderate",27322517390.069
+"B3","CAPEX","Storage","Conservative",37882957172.047
+"B3","FOM","Storage","Advanced",9008954355.11149
+"B3","FOM","Storage","Moderate",11901672560.6574
+"B3","FOM","Storage","Conservative",17014724069.6142
+"B3","CAPEX","Nuclear","Advanced",0
+"B3","CAPEX","Nuclear","Moderate",0
+"B3","CAPEX","Nuclear","Conservative",0
+"B3","FOM","Nuclear","Advanced",6503537935.08848
+"B3","FOM","Nuclear","Moderate",9032691576.51178
+"B3","FOM","Nuclear","Conservative",10529537609.1909
+"B3","CAPEX","SMR","Advanced",0
+"B3","CAPEX","SMR","Moderate",0
+"B3","CAPEX","SMR","Conservative",0
+"B3","FOM","SMR","Advanced",0
+"B3","FOM","SMR","Moderate",0
+"B3","FOM","SMR","Conservative",0
+"B3","CAPEX","Hydropower","Advanced",0
+"B3","CAPEX","Hydropower","Moderate",0
+"B3","CAPEX","Hydropower","Conservative",0
+"B3","FOM","Hydropower","Advanced",1573026717.34992
+"B3","FOM","Hydropower","Moderate",2806884488.29927
+"B3","FOM","Hydropower","Conservative",2806884488.29927
+"B3","CAPEX","Biomass","Advanced",0
+"B3","CAPEX","Biomass","Moderate",0
+"B3","CAPEX","Biomass","Conservative",0
+"B3","FOM","Biomass","Advanced",1317251936.34316
+"B3","FOM","Biomass","Moderate",1317251936.34316
+"B3","FOM","Biomass","Conservative",1317251936.34316
+"C1","CAPEX","Solar","Advanced",0
+"C1","CAPEX","Solar","Moderate",0
+"C1","CAPEX","Solar","Conservative",0
+"C1","FOM","Solar","Advanced",2609964926.54789
+"C1","FOM","Solar","Moderate",2894311091.12436
+"C1","FOM","Solar","Conservative",3284823215.64096
+"C1","CAPEX","Onshore Wind","Advanced",0
+"C1","CAPEX","Onshore Wind","Moderate",0
+"C1","CAPEX","Onshore Wind","Conservative",0
+"C1","FOM","Onshore Wind","Advanced",1518084122.46578
+"C1","FOM","Onshore Wind","Moderate",1829405877.49365
+"C1","FOM","Onshore Wind","Conservative",1962368040.56402
+"C1","CAPEX","Offshore Wind","Advanced",0
+"C1","CAPEX","Offshore Wind","Moderate",0
+"C1","CAPEX","Offshore Wind","Conservative",0
+"C1","FOM","Offshore Wind","Advanced",1353368391.2302
+"C1","FOM","Offshore Wind","Moderate",1468003452.86006
+"C1","FOM","Offshore Wind","Conservative",1655796895.80346
+"C1","CAPEX","Storage","Advanced",0
+"C1","CAPEX","Storage","Moderate",0
+"C1","CAPEX","Storage","Conservative",0
+"C1","FOM","Storage","Advanced",3454251777.47016
+"C1","FOM","Storage","Moderate",4458616283.50434
+"C1","FOM","Storage","Conservative",6171801798.27252
+"C1","CAPEX","Nuclear","Advanced",0
+"C1","CAPEX","Nuclear","Moderate",0
+"C1","CAPEX","Nuclear","Conservative",0
+"C1","FOM","Nuclear","Advanced",6503537935.08848
+"C1","FOM","Nuclear","Moderate",9032691576.51178
+"C1","FOM","Nuclear","Conservative",10529537609.1909
+"C1","CAPEX","SMR","Advanced",106225767812.337
+"C1","CAPEX","SMR","Moderate",206722787326.268
+"C1","CAPEX","SMR","Conservative",317814829635.587
+"C1","FOM","SMR","Advanced",35415715616.082
+"C1","FOM","SMR","Moderate",40818112913.4504
+"C1","FOM","SMR","Conservative",64828767568.4213
+"C1","CAPEX","Hydropower","Advanced",0
+"C1","CAPEX","Hydropower","Moderate",0
+"C1","CAPEX","Hydropower","Conservative",0
+"C1","FOM","Hydropower","Advanced",1573026717.34992
+"C1","FOM","Hydropower","Moderate",2806884488.29927
+"C1","FOM","Hydropower","Conservative",2806884488.29927
+"C1","CAPEX","Biomass","Advanced",0
+"C1","CAPEX","Biomass","Moderate",0
+"C1","CAPEX","Biomass","Conservative",0
+"C1","FOM","Biomass","Advanced",1317251936.34316
+"C1","FOM","Biomass","Moderate",1317251936.34316
+"C1","FOM","Biomass","Conservative",1317251936.34316
+"C2","CAPEX","Solar","Advanced",39182864348.0342
+"C2","CAPEX","Solar","Moderate",46695934437.2685
+"C2","CAPEX","Solar","Conservative",57708284888.6285
+"C2","FOM","Solar","Advanced",9911104609.73579
+"C2","FOM","Solar","Moderate",11204046326.1341
+"C2","FOM","Solar","Conservative",13033490474.9358
+"C2","CAPEX","Onshore Wind","Advanced",11143650945.2815
+"C2","CAPEX","Onshore Wind","Moderate",11848905245.4193
+"C2","CAPEX","Onshore Wind","Conservative",13553645962.6917
+"C2","FOM","Onshore Wind","Advanced",3655544978.38793
+"C2","FOM","Onshore Wind","Moderate",4619023962.61038
+"C2","FOM","Onshore Wind","Conservative",5010885168.66052
+"C2","CAPEX","Offshore Wind","Advanced",75018055916.0913
+"C2","CAPEX","Offshore Wind","Moderate",92598505227.9805
+"C2","CAPEX","Offshore Wind","Conservative",119169662294.734
+"C2","FOM","Offshore Wind","Advanced",17430431371.4519
+"C2","FOM","Offshore Wind","Moderate",19020006714.8261
+"C2","FOM","Offshore Wind","Conservative",21786238599.8635
+"C2","CAPEX","Storage","Advanced",21162369749.1275
+"C2","CAPEX","Storage","Moderate",27322517390.069
+"C2","CAPEX","Storage","Conservative",37882957172.047
+"C2","FOM","Storage","Advanced",9008954355.11149
+"C2","FOM","Storage","Moderate",11901672560.6574
+"C2","FOM","Storage","Conservative",17014724069.6142
+"C2","CAPEX","Nuclear","Advanced",0
+"C2","CAPEX","Nuclear","Moderate",0
+"C2","CAPEX","Nuclear","Conservative",0
+"C2","FOM","Nuclear","Advanced",6503537935.08848
+"C2","FOM","Nuclear","Moderate",9032691576.51178
+"C2","FOM","Nuclear","Conservative",10529537609.1909
+"C2","CAPEX","SMR","Advanced",12288178510.1406
+"C2","CAPEX","SMR","Moderate",23663361992.0858
+"C2","CAPEX","SMR","Conservative",35841091206.7554
+"C2","FOM","SMR","Advanced",4600039752.15499
+"C2","FOM","SMR","Moderate",5301740731.29728
+"C2","FOM","SMR","Conservative",8420411749.70745
+"C2","CAPEX","Hydropower","Advanced",0
+"C2","CAPEX","Hydropower","Moderate",0
+"C2","CAPEX","Hydropower","Conservative",0
+"C2","FOM","Hydropower","Advanced",1573026717.34992
+"C2","FOM","Hydropower","Moderate",2806884488.29927
+"C2","FOM","Hydropower","Conservative",2806884488.29927
+"C2","CAPEX","Biomass","Advanced",0
+"C2","CAPEX","Biomass","Moderate",0
+"C2","CAPEX","Biomass","Conservative",0
+"C2","FOM","Biomass","Advanced",1317251936.34316
+"C2","FOM","Biomass","Moderate",1317251936.34316
+"C2","FOM","Biomass","Conservative",1317251936.34316
+"C3","CAPEX","Solar","Advanced",39182864348.0342
+"C3","CAPEX","Solar","Moderate",46695934437.2685
+"C3","CAPEX","Solar","Conservative",57708284888.6285
+"C3","FOM","Solar","Advanced",9911104609.73579
+"C3","FOM","Solar","Moderate",11204046326.1341
+"C3","FOM","Solar","Conservative",13033490474.9358
+"C3","CAPEX","Onshore Wind","Advanced",11143650945.2815
+"C3","CAPEX","Onshore Wind","Moderate",11848905245.4193
+"C3","CAPEX","Onshore Wind","Conservative",13553645962.6917
+"C3","FOM","Onshore Wind","Advanced",3655544978.38793
+"C3","FOM","Onshore Wind","Moderate",4619023962.61038
+"C3","FOM","Onshore Wind","Conservative",5010885168.66052
+"C3","CAPEX","Offshore Wind","Advanced",65539477305.931
+"C3","CAPEX","Offshore Wind","Moderate",80895370002.4786
+"C3","CAPEX","Offshore Wind","Conservative",104103740664.771
+"C3","FOM","Offshore Wind","Advanced",15262016432.7623
+"C3","FOM","Offshore Wind","Moderate",16653630690.8055
+"C3","FOM","Offshore Wind","Conservative",19075091092.3336
+"C3","CAPEX","Storage","Advanced",21162369749.1275
+"C3","CAPEX","Storage","Moderate",27322517390.069
+"C3","CAPEX","Storage","Conservative",37882957172.047
+"C3","FOM","Storage","Advanced",9008954355.11149
+"C3","FOM","Storage","Moderate",11901672560.6574
+"C3","FOM","Storage","Conservative",17014724069.6142
+"C3","CAPEX","Nuclear","Advanced",0
+"C3","CAPEX","Nuclear","Moderate",0
+"C3","CAPEX","Nuclear","Conservative",0
+"C3","FOM","Nuclear","Advanced",6503537935.08848
+"C3","FOM","Nuclear","Moderate",9032691576.51178
+"C3","FOM","Nuclear","Conservative",10529537609.1909
+"C3","CAPEX","SMR","Advanced",7818178674.87674
+"C3","CAPEX","SMR","Moderate",14263113622.9704
+"C3","CAPEX","SMR","Conservative",20838710307.2039
+"C3","FOM","SMR","Advanced",2971523291.90687
+"C3","FOM","SMR","Moderate",3424806505.92656
+"C3","FOM","SMR","Conservative",5439398568.23631
+"C3","CAPEX","Hydropower","Advanced",0
+"C3","CAPEX","Hydropower","Moderate",0
+"C3","CAPEX","Hydropower","Conservative",0
+"C3","FOM","Hydropower","Advanced",1573026717.34992
+"C3","FOM","Hydropower","Moderate",2806884488.29927
+"C3","FOM","Hydropower","Conservative",2806884488.29927
+"C3","CAPEX","Biomass","Advanced",0
+"C3","CAPEX","Biomass","Moderate",0
+"C3","CAPEX","Biomass","Conservative",0
+"C3","FOM","Biomass","Advanced",1317251936.34316
+"C3","FOM","Biomass","Moderate",1317251936.34316
+"C3","FOM","Biomass","Conservative",1317251936.34316
+"D","CAPEX","Solar","Advanced",8223188635.39652
+"D","CAPEX","Solar","Moderate",9789924594.51273
+"D","CAPEX","Solar","Conservative",12126426801.3401
+"D","FOM","Solar","Advanced",4043086383.25842
+"D","FOM","Solar","Moderate",4523083799.93681
+"D","FOM","Solar","Conservative",5193653401.49578
+"D","CAPEX","Onshore Wind","Advanced",4583966310.60794
+"D","CAPEX","Onshore Wind","Moderate",4884121529.59796
+"D","CAPEX","Onshore Wind","Conservative",5607355757.15112
+"D","FOM","Onshore Wind","Advanced",2357157324.53275
+"D","FOM","Onshore Wind","Moderate",2929379938.74617
+"D","FOM","Onshore Wind","Conservative",3165508425.2472
+"D","CAPEX","Offshore Wind","Advanced",3637668908.99092
+"D","CAPEX","Offshore Wind","Moderate",4527254101.53539
+"D","CAPEX","Offshore Wind","Conservative",5872974201.23574
+"D","FOM","Offshore Wind","Advanced",2166326015.87916
+"D","FOM","Offshore Wind","Moderate",2355178745.54479
+"D","FOM","Offshore Wind","Conservative",2672146393.71399
+"D","CAPEX","Storage","Advanced",21162369749.1275
+"D","CAPEX","Storage","Moderate",27322517390.069
+"D","CAPEX","Storage","Conservative",37882957172.047
+"D","FOM","Storage","Advanced",9008954355.11149
+"D","FOM","Storage","Moderate",11901672560.6574
+"D","FOM","Storage","Conservative",17014724069.6142
+"D","CAPEX","Nuclear","Advanced",0
+"D","CAPEX","Nuclear","Moderate",0
+"D","CAPEX","Nuclear","Conservative",0
+"D","FOM","Nuclear","Advanced",6503537935.08848
+"D","FOM","Nuclear","Moderate",9032691576.51178
+"D","FOM","Nuclear","Conservative",10529537609.1909
+"D","CAPEX","SMR","Advanced",0
+"D","CAPEX","SMR","Moderate",0
+"D","CAPEX","SMR","Conservative",0
+"D","FOM","SMR","Advanced",0
+"D","FOM","SMR","Moderate",0
+"D","FOM","SMR","Conservative",0
+"D","CAPEX","Hydropower","Advanced",0
+"D","CAPEX","Hydropower","Moderate",0
+"D","CAPEX","Hydropower","Conservative",0
+"D","FOM","Hydropower","Advanced",1573026717.34992
+"D","FOM","Hydropower","Moderate",2806884488.29927
+"D","FOM","Hydropower","Conservative",2806884488.29927
+"D","CAPEX","Biomass","Advanced",0
+"D","CAPEX","Biomass","Moderate",0
+"D","CAPEX","Biomass","Conservative",0
+"D","FOM","Biomass","Advanced",1317251936.34316
+"D","FOM","Biomass","Moderate",1317251936.34316
+"D","FOM","Biomass","Conservative",1317251936.34316

@@ -2,6 +2,7 @@
 library(data.table)
 library(readxl)
 library(tidyr)
+library(dplyr)
 
 # NPV Calculator
 calculate_npv <- function(dt, rate, base_year) {
@@ -9,7 +10,7 @@ calculate_npv <- function(dt, rate, base_year) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
@@ -128,3 +129,136 @@ combined_npvs_summary_more <- combined_npvs_summary[, .(
 
 # Save combined NPV results to a single CSV file
 write.csv(combined_npvs, file = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Non_Fossil.csv", row.names = FALSE)
+
+
+# Tax revenue estimates
+# ========== Monte Carlo tax revenue for non-fossil CAPEX (Solar, Onshore Wind, Storage, SMR) ==========
+
+# 1) Extract CAPEX per kW for each non-fossil technology
+non_fossil_techs <- list(
+  Solar   = list(technology="UtilityPV",               techdetail="Class5"),
+  Onshore = list(technology="LandbasedWind",           techdetail="Class4"),
+  SMR     = list(technology="Nuclear",                 techdetail="Nuclear - Small")
+)
+
+
+capex_list <- lapply(names(non_fossil_techs), function(tech) {
+  f <- non_fossil_techs[[tech]]
+  dt <- ATBe[
+    technology    == f$technology &
+      techdetail    == f$techdetail &
+      core_metric_case    == "Market" &
+      scenario == "Moderate" &
+      crpyears      == 30 &
+      core_metric_parameter == "CAPEX" &
+      core_metric_variable == 2030,
+    .(Year = core_metric_variable, capex_per_kW = mean(value, na.rm=TRUE))
+  ]
+  dt[, Technology := tech]
+  dt
+})
+capex_non_fossil_dt <- rbindlist(capex_list)
+capex_non_fossil_dt[, Year := NULL]
+
+# 2) Compute incremental capacity by pathway-year-tech
+incap_dt <- decarbonization_pathways[
+  , .(Pathway, Year,
+      Solar,
+      Onshore = `Onshore Wind`,
+      SMR)
+][order(Pathway, Year)]
+incap_dt <- incap_dt[
+  , `:=`(
+    new_Solar   = Solar  - shift(Solar,  type="lag", fill=0),
+    new_Onshore = Onshore - shift(Onshore, type="lag", fill=0),
+    new_SMR     = SMR     - shift(SMR,     type="lag", fill=0)
+  ),
+  by = Pathway
+]
+
+# 3) Melt to event-level rows
+events <- melt(
+  incap_dt,
+  id.vars     = c("Pathway","Year"),
+  measure.vars= patterns("^new_"),
+  value.name  = "new_capacity_MW"
+)
+events[, Technology := fifelse(variable=="new_Solar",   "Solar",
+                               fifelse(variable=="new_Onshore", "Onshore",
+                                               fifelse(variable=="new_SMR",     "SMR", NA_character_))) ]
+events[, variable := NULL]
+events <- events[new_capacity_MW > 0]
+events <- events[Year != 2024]
+
+# 4) Join CAPEX rates and compute total CAPEX per event
+events <- merge(
+  events, capex_non_fossil_dt,
+  by = c("Technology"), all.x = TRUE
+)
+events[, capex_total := new_capacity_MW * 1000 * capex_per_kW]
+
+# 5) Load & clean county tax rates for New England
+tax_raw <- fread(
+  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Tax Foundation/Property_taxes.csv",
+  header = TRUE
+)
+tax <- tax_raw %>%
+  rename(
+    state_full   = State,
+    county       = County,
+    eff_rate_str = `Effective Property Tax Rate (2023)`
+  ) %>%
+  mutate(
+    effective_rate = as.numeric(gsub("%","", eff_rate_str)) / 100,
+    state_abbr     = state.abb[match(state_full, state.name)]
+  ) %>%
+  filter(state_abbr %in% c("ME","NH","VT","MA","RI","CT")) %>%
+  select(county, effective_rate)
+
+# 6) Monte Carlo: assign each event to a random county and sum tax revenue by pathway
+# 6) Monte Carlo: sample tax rows by index, attach rates directly, and summarize
+set.seed(42)
+n_sim    <- 1000L
+n_events <- nrow(events)
+sim_list <- vector("list", n_sim)
+
+for (i in seq_len(n_sim)) {
+  # draw row-indices from tax (one row per NE county)
+  idx       <- sample(nrow(tax), size = n_events, replace = TRUE)
+  assigned  <- tax[idx]          # data.table of length n_events
+  
+  # copy events and tack on the sampled tax info
+  sim_dt <- copy(events)[
+    , `:=`(
+      county         = assigned$county,
+      state_abbr     = assigned$state_abbr,
+      effective_rate = assigned$effective_rate
+    )
+  ]
+  
+  # compute tax revenue = CAPEX_total * rate
+  sim_dt[, tax_rev := capex_total * effective_rate]
+  
+  # sum up by pathway
+  summary_dt <- sim_dt[, .(tax_rev = sum(tax_rev, na.rm = TRUE)), by = Pathway]
+  summary_dt[, sim := i]
+  
+  sim_list[[i]] <- summary_dt
+}
+
+sim_dt      <- rbindlist(sim_list)
+nonfossil_stats <- sim_dt[
+  , .(
+    mean_tax_rev = mean(tax_rev)/1e9,
+    min_tax_rev  = min(tax_rev)/1e9,
+    max_tax_rev  = max(tax_rev)/1e9
+  ),
+  by = Pathway
+]
+
+# 7) Save only the summary statistics
+fwrite(
+  nonfossil_stats,
+  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/Non_Fossil_Tax_Revenue.csv"
+)
+

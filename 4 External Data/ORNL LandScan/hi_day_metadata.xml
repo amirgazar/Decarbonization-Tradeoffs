@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MD_Metadata xmlns="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd https://www.isotc211.org/2005/gmd/metadataEntity.xsd">
+	<language>
+		<LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+	</language>
+	<hierarchyLevel>
+		<MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</MD_ScopeCode>
+	</hierarchyLevel>
+	<contact>
+		<CI_ResponsibleParty>
+			<organisationName>
+				<gco:CharacterString>Human Geography Group, Geospatial Science and Human Security Division, Oak Ridge National Laboratory</gco:CharacterString>
+			</organisationName>
+			<contactInfo>
+				<CI_Contact>
+					<address>
+						<CI_Address>
+							<electronicMailAddress>
+								<gco:CharacterString>landscan@ornl.gov</gco:CharacterString>
+							</electronicMailAddress>
+						</CI_Address>
+					</address>
+					<onlineResource>
+						<CI_OnlineResource>
+							<linkage>
+								<URL>https://landscan.ornl.gov</URL>
+							</linkage>
+						</CI_OnlineResource>
+					</onlineResource>
+				</CI_Contact>
+			</contactInfo>
+			<role>
+				<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="ISOTC211/19115">pointOfContact</CI_RoleCode>
+			</role>
+		</CI_ResponsibleParty>
+	</contact>
+	<dateStamp>
+		<gco:Date>2022-07-09</gco:Date>
+	</dateStamp>
+	<metadataStandardName>
+		<gco:CharacterString>ISO 19139 Geographic Information - Metadata - Implementation Specification</gco:CharacterString>
+	</metadataStandardName>
+	<metadataStandardVersion>
+		<gco:CharacterString>2007</gco:CharacterString>
+	</metadataStandardVersion>
+	<identificationInfo>
+		<MD_DataIdentification>
+			<citation>
+				<CI_Citation>
+					<title>
+						<gco:CharacterString>LandScan USA 2021</gco:CharacterString>
+					</title>
+					<date>
+						<CI_Date>
+							<date>
+								<gco:Date>2022-07-09</gco:Date>
+							</date>
+							<dateType>
+								<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+							</dateType>
+						</CI_Date>
+					</date>
+					<citedResponsibleParty>
+						<CI_ResponsibleParty>
+							<organisationName>
+								<gco:CharacterString>Human Geography Group, Geospatial Science and Human Security Division, Oak Ridge National Laboratory</gco:CharacterString>
+							</organisationName>
+							<role>
+								<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+							</role>
+						</CI_ResponsibleParty>
+					</citedResponsibleParty>
+					<presentationForm>
+						<CI_PresentationFormCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_PresentationFormCode" codeListValue="mapDigital" codeSpace="ISOTC211/19115">mapDigital</CI_PresentationFormCode>
+					</presentationForm>
+					<otherCitationDetails>
+						<gco:CharacterString>https://doi.org/10.48690/1527701</gco:CharacterString>
+					</otherCitationDetails>
+					<collectiveTitle>
+						<gco:CharacterString>HIFLD Open Data</gco:CharacterString>
+					</collectiveTitle>
+				</CI_Citation>
+			</citation>
+			<abstract>
+				<gco:CharacterString>LandScan USA Population Database 2021 provides estimated population counts at 3 arc-second resolution for Nighttime and Daytime, for the contiguous United States, Hawaii, Alaska, American Samoa, Guam, Northern Mariana Islands, Puerto Rico, and the U.S. Virgin Islands. Residents, Prisoners, Workers, Students, and Shoppers are modeled. These are baseline population estimates, which do not include transitory populations such as business travelers and tourists.</gco:CharacterString>
+			</abstract>
+			<purpose>
+				<gco:CharacterString>This raster dataset provides population estimates for the Homeland Infrastructure Foundation-Level Data (HIFLD) database (https://gii.dhs.gov/HIFLD).</gco:CharacterString>
+			</purpose>
+			<credit>
+				<gco:CharacterString>Human Geography Group, Geospatial Science and Human Security Division, Oak Ridge National Laboratory; US DOD</gco:CharacterString>
+			</credit>
+			<pointOfContact>
+				<CI_ResponsibleParty>
+					<organisationName>
+						<gco:CharacterString>Human Geography Group, Geospatial Science and Human Security Division, Oak Ridge National Laboratory</gco:CharacterString>
+					</organisationName>
+					<contactInfo>
+						<CI_Contact>
+							<address>
+								<CI_Address>
+									<electronicMailAddress>
+										<gco:CharacterString>landscan@ornl.gov</gco:CharacterString>
+									</electronicMailAddress>
+								</CI_Address>
+							</address>
+						</CI_Contact>
+					</contactInfo>
+					<role>
+						<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" codeSpace="ISOTC211/19115">pointOfContact</CI_RoleCode>
+					</role>
+				</CI_ResponsibleParty>
+			</pointOfContact>
+			<resourceMaintenance>
+				<MD_MaintenanceInformation>
+					<maintenanceAndUpdateFrequency>
+						<MD_MaintenanceFrequencyCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_MaintenanceFrequencyCode" codeListValue="annually" codeSpace="ISOTC211/19115">annually</MD_MaintenanceFrequencyCode>
+					</maintenanceAndUpdateFrequency>
+				</MD_MaintenanceInformation>
+			</resourceMaintenance>
+			<descriptiveKeywords>
+				<MD_Keywords>
+					<keyword>
+						<gco:CharacterString>population</gco:CharacterString>
+					</keyword>
+					<keyword>
+						<gco:CharacterString>homeland defense</gco:CharacterString>
+					</keyword>
+					<keyword>
+						<gco:CharacterString>emergency response</gco:CharacterString>
+					</keyword>
+					<keyword>
+						<gco:CharacterString>homeland security</gco:CharacterString>
+					</keyword>
+					<keyword>
+						<gco:CharacterString>population count</gco:CharacterString>
+					</keyword>
+					<type>
+						<MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme" codeSpace="ISOTC211/19115">theme</MD_KeywordTypeCode>
+					</type>
+				</MD_Keywords>
+			</descriptiveKeywords>
+			<descriptiveKeywords>
+				<MD_Keywords>
+					<keyword>
+						<gco:CharacterString>USA</gco:CharacterString>
+					</keyword>
+					<type>
+						<MD_KeywordTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="place" codeSpace="ISOTC211/19115">place</MD_KeywordTypeCode>
+					</type>
+				</MD_Keywords>
+			</descriptiveKeywords>
+			<language>
+				<LanguageCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>
+			</language>
+			<extent>
+				<EX_Extent>
+					<geographicElement>
+						<EX_GeographicBoundingBox>
+							<westBoundLongitude>
+								<gco:Decimal>-178.45</gco:Decimal>
+							</westBoundLongitude>
+							<eastBoundLongitude>
+								<gco:Decimal>-154.75</gco:Decimal>
+							</eastBoundLongitude>
+							<southBoundLatitude>
+								<gco:Decimal>18.85</gco:Decimal>
+							</southBoundLatitude>
+							<northBoundLatitude>
+								<gco:Decimal>28.525</gco:Decimal>
+							</northBoundLatitude>
+						</EX_GeographicBoundingBox>
+					</geographicElement>
+				</EX_Extent>
+			</extent>
+			<extent>
+				<EX_Extent>
+					<description>
+						<gco:CharacterString>ground condition</gco:CharacterString>
+					</description>
+					<temporalElement>
+						<EX_TemporalExtent>
+							<extent>
+								<gml:TimeInstant gml:id="_fa09e219e6ff48be483c3beac6976eb2">
+									<gml:timePosition>2021-07-01</gml:timePosition>
+								</gml:TimeInstant>
+							</extent>
+						</EX_TemporalExtent>
+					</temporalElement>
+				</EX_Extent>
+			</extent>
+		</MD_DataIdentification>
+	</identificationInfo>
+	<dataQualityInfo>
+		<DQ_DataQuality>
+			<scope>
+				<DQ_Scope>
+					<level>
+						<MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset" codeSpace="ISOTC211/19115">dataset</MD_ScopeCode>
+					</level>
+				</DQ_Scope>
+			</scope>
+			<lineage>
+				<LI_Lineage>
+					<processStep>
+						<LI_ProcessStep>
+							<description>
+								<gco:CharacterString>LandScan USA employs sub-models for different population components (residents, workers, prisoners, students). Each sub-model begins with observed or estimated population counts for a defined area. The populations are redistributed to raster cells according to the relationship between spatial ancillary layers and population density. Source populations and their geographic boundaries for residents and workers come from the U.S. Census data sources cited herein. Source populations and geographic boundaries for students and prisoners come from the HIFLD data sources cited herein. Ancillary data used for redistribution are parcel data, land cover data, and building footprint data extracted from high-resolution imagery, as cited herein.</gco:CharacterString>
+							</description>
+						</LI_ProcessStep>
+					</processStep>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Brelsford, C., Moehl, J., Weber, E., Sparks, K., Tuccillo, J. V., &amp; Rose, A. (2022). Spatial and Temporal Characterization of Activity in Public Space, 2019–2020. Nature Scientific Data. https://doi.org/10.1038/s41597-022-01480-6</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2022-07-05</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Oak Ridge National Laboratory (ORNL)</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Nature Scientific Data</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" codeSpace="ISOTC211/19115">distributor</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>USA Structures</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-12-29</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Oak Ridge National Laboratory (ORNL)</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Federal Emergency Management Agency (FEMA)</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" codeSpace="ISOTC211/19115">distributor</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>2019 Demographics Profile of the Military Community</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2020-01-01</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Department of Defense</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>SmartParcels</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-07-01</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>DMP/Lightbox</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>HIFLD Secure Data</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" codeSpace="ISOTC211/19115">distributor</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Local Area Unemployment Statistics</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2022-04-15</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Bureau of Labor Statistics, United States Department of Labor</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Quarterly Census of Employment and Wages</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2022-02-24</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>Bureau of Labor Statistics, United States Department of Labor</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>TIGER/Line Shapefiles</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-02-21</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Census Bureau, United States Department of Commerce</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Decinnial Census 2020</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-09-16</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Census Bureau, United States Department of Commerce</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>NLCD 2019 Land Cover</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-06-04</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Geological Survey</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>NLCD 2016 Land Cover</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2019-01-01</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Geological Survey</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Integrated Postsecondary Education Data</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2020-03-20</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>National Center for Education Statistics, United States Department of Education</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Homeland Infrastructure Foundation-Level Data (HIFLD) Open Data</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2020-08-24</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Department of Homeland Security</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" codeSpace="ISOTC211/19115">distributor</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Longitudinal Employer-Household Dynamics (LEHD) Origin-Destination Employment Statistics (LODES)</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-10-24</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Census Bureau, United States Department of Commerce</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+					<source>
+						<LI_Source>
+							<sourceCitation>
+								<CI_Citation>
+									<title>
+										<gco:CharacterString>Annual Estimates of the Resident Population for Counties</gco:CharacterString>
+									</title>
+									<date>
+										<CI_Date>
+											<date>
+												<gco:Date>2021-12-01</gco:Date>
+											</date>
+											<dateType>
+												<CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+											</dateType>
+										</CI_Date>
+									</date>
+									<citedResponsibleParty>
+										<CI_ResponsibleParty>
+											<organisationName>
+												<gco:CharacterString>U.S. Census Bureau, United States Department of Commerce</gco:CharacterString>
+											</organisationName>
+											<role>
+												<CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator" codeSpace="ISOTC211/19115">originator</CI_RoleCode>
+											</role>
+										</CI_ResponsibleParty>
+									</citedResponsibleParty>
+								</CI_Citation>
+							</sourceCitation>
+						</LI_Source>
+					</source>
+				</LI_Lineage>
+			</lineage>
+		</DQ_DataQuality>
+	</dataQualityInfo>
+</MD_Metadata>

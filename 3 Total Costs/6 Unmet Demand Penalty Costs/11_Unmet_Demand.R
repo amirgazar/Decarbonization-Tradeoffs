@@ -11,13 +11,13 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.07
+discount_rate <- 0.025
 base_year <- 2024
 
 
 # 2025 EVOLL Cost ISO NE : https://www.iso-ne.com/static-assets/documents/100012/iso-ne-2023-emm-report-final.pdf
-#EVOLL_2025 <- 9337 # $/MWh 
-#EVOLL_2025 <- EVOLL_2025 * 1e6 # $/TWh
+EVOLL_2025 <- 9337 # $/MWh 2024 USD effective in 2025
+EVOLL_2025 <- 3500 # $/MWh 2024 USD current
 
 # Load Results
 #-- Stepwise
@@ -25,6 +25,8 @@ file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Gene
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- fread(file_path)
+
+Yearly_Results$Unmet_Demand_USD_total <- Yearly_Results$Unmet_Demand_total_MWh * EVOLL_2025
 
 # Define a function to process Costs
 process_unmet_demand <- function(sim, path, data, col) {

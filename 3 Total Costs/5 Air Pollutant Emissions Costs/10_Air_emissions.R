@@ -5,6 +5,7 @@ library(tidyverse)
 library(fredr)
 library(sf)
 library(ggplot2)
+library(lubridate)
 
 # FUNCTIONS
 # NPV Calculator
@@ -13,7 +14,7 @@ calculate_npv <- function(dt, rate, base_year, col) {
   return(npv)
 }
 
-discount_rate <- 0.03
+discount_rate <- 0.025
 base_year <- 2024
 
 lbs_tons_conversion<- 1 / 2204.62 # lbs to tons
@@ -26,6 +27,8 @@ file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Ge
 output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
 
 Facility_Level_Results <- fread(file_path_1)
+Facility_Level_Results <- Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
+
 
 Yearly_Results <- as.data.table(fread(file_path_2))
 Yearly_Results <- Yearly_Results[, .(Simulation, Year, Pathway, New_Fossil_Fuel_TWh)]
@@ -285,31 +288,24 @@ Facility_Level_Results_unique <- unique(Facility_Level_Results, by = "Facility_U
 fwrite(Facility_Level_Results_unique, file = file.path(output_path, "Facility_Level_airpollutant_costs.csv"), row.names = FALSE)
 
 # Calculate NOx
-#acility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
-Facility_Level_Results$total_NOx_lbs <- ifelse(
-  is.na(Facility_Level_Results$total_NOx_lbs),
-  Facility_Level_Results$total_generation_GWh * 1e3 *
-    Facility_Level_Results$mean_NOx_lbs_MW_estimate,
-  Facility_Level_Results$total_NOx_lbs
-)
+#Facility_Level_Results$total_NOx_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
+Facility_Level_Results[
+  is.na(total_NOx_lbs),
+  total_NOx_lbs := total_generation_GWh * 1e3 * mean_NOx_lbs_MW_estimate
+]
 
-# Calculate SO2
-#Facility_Level_Results$total_SO2_lbs <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_SO2_lbs_MW
-Facility_Level_Results$total_SO2_lbs <- ifelse(
-  is.na(Facility_Level_Results$total_SO2_lbs),
-  Facility_Level_Results$total_generation_GWh * 1e3 *
-    Facility_Level_Results$mean_SO2_lbs_MW_estimate,
-  Facility_Level_Results$total_SO2_lbs
-)
+# SO₂
+Facility_Level_Results[
+  is.na(total_SO2_lbs),
+  total_SO2_lbs := total_generation_GWh * 1e3 * mean_SO2_lbs_MW_estimate
+]
 
-# Calculate HI
-#Facility_Level_Results$total_HI_mmBtu <- Facility_Level_Results$total_generation_GWh * 1e3 * Facility_Level_Results$mean_HI_mmBtu_per_MW
-Facility_Level_Results$total_HI_mmBtu <- ifelse(
-  is.na(Facility_Level_Results$total_HI_mmBtu),
-  Facility_Level_Results$total_generation_GWh * 1e3 *
-    Facility_Level_Results$mean_HI_mmBtu_per_MW_estimate,
-  Facility_Level_Results$total_HI_mmBtu
-)
+# HI
+Facility_Level_Results[
+  is.na(total_HI_mmBtu),
+  total_HI_mmBtu := total_generation_GWh * 1e3 * mean_HI_mmBtu_per_MW_estimate
+]
+
 
 # Calculate PM.total
 Facility_Level_Results[, PM.total_tons := total_HI_mmBtu * PM_lbs_mmBTU * lbs_tons_conversion]
@@ -486,15 +482,56 @@ Fossil_Fuels_NPC_new <- Fossil_Fuels_NPC_new[!duplicated(Facility_ID)]
 columns_to_multiply <- c("Estimated_NameplateCapacity_MW", "mean_Heat_Input_mmBtu")  
 Fossil_Fuels_NPC_new[, (columns_to_multiply) := lapply(.SD, function(x) x * 2), .SDcols = columns_to_multiply]
 
-# Facility details (randomly assigned location)
-Facilities_Data_filtered <- Air_Pollutant_Fuels_NPC[Primary_Fuel_Type == "Pipeline Natural Gas" & Unit_Type == "Combined cycle",]
-set.seed(1) # For reproducibility
-random_selection <- Facilities_Data_filtered[sample(1:nrow(Facilities_Data_filtered), 
-                                                    min(18, nrow(Facilities_Data_filtered))), ]
+# Facility details (randomly assigned to these locations  By contrast, Rockingham and Strafford Counties in New Hampshire 
+#Fairfield, Hartford, Middlesex, New Haven, New London, and Windham (CT) and Newport, Providence, and Washington (RI) counties
+# Define the target counties by state
+nh_counties <- c("Rockingham County", "Strafford County")
+ct_counties <- c("Fairfield County", "Hartford County", "Middlesex County", "New Haven County", "New London County", "Windham County")
+ri_counties <- c("Newport County", "Providence County", "Washington County")
+
+# Filter for pipeline-gas combined-cycle units in the specified counties
+Facilities_Data_filtered <- Air_Pollutant_Fuels_NPC[
+  Primary_Fuel_Type == "Pipeline Natural Gas" &
+    Unit_Type == "Combined cycle" &
+    (
+      (State == "NH" & County %in% nh_counties) |
+        (State == "CT" & County %in% ct_counties) |
+        (State == "RI" & County %in% ri_counties)
+    ),
+]
+
+set.seed(1)  # For reproducibility
+
+# Sample up to 18 rows (or fewer if there aren’t 18)
+random_selection <- Facilities_Data_filtered[
+  sample(.N, min(18, .N))
+]
+
+# Keep only the desired columns
 random_selection <- random_selection[, .(Facility_Unit.ID, Latitude, Longitude, State, County)]
+
+# Add an index column to each table before merging
 Fossil_Fuels_NPC_new[, index := .I]
 random_selection[, index := .I]
-Fossil_Fuels_NPC_new <- merge(Fossil_Fuels_NPC_new, random_selection, by = "index", all.x = TRUE)
+
+# Merge back—this will attach latitude/longitude, etc., only for the sampled rows
+Fossil_Fuels_NPC_new <- merge(
+  Fossil_Fuels_NPC_new,
+  random_selection,
+  by = "index",
+  all.x = TRUE
+)
+
+# 
+# 
+# Facilities_Data_filtered <- Air_Pollutant_Fuels_NPC[Primary_Fuel_Type == "Pipeline Natural Gas" & Unit_Type == "Combined cycle",]
+# set.seed(1) # For reproducibility
+# random_selection <- Facilities_Data_filtered[sample(1:nrow(Facilities_Data_filtered), 
+#                                                     min(18, nrow(Facilities_Data_filtered))), ]
+# random_selection <- random_selection[, .(Facility_Unit.ID, Latitude, Longitude, State, County)]
+# Fossil_Fuels_NPC_new[, index := .I]
+# random_selection[, index := .I]
+# Fossil_Fuels_NPC_new <- merge(Fossil_Fuels_NPC_new, random_selection, by = "index", all.x = TRUE)
 
 selected_cols <- Facility_Level_Results[, .(Facility_Unit.ID, PM_lbs_mmBTU, CO, NH3, PM2.5, NOx, SO2, VOC, PM10)]
 selected_cols <- unique(selected_cols, by = "Facility_Unit.ID")
@@ -715,4 +752,25 @@ final_county_summary <- final_county_summary[
 # Save the aggregated summary to a CSV file
 fwrite(final_county_summary, file = file.path(output_path, "County_Level_Emissions_Summary_Total.csv"), row.names = FALSE)
 
+#-----
+## Cacluation of hospital vist reductions
+# Attribution factors
+# ISO-NE Economic Report 2020, Fewer hospital visits per fewer mortality per year
+high_hospital_per_mortality <- 6.6/26.1
+low_hospital_per_mortality <- 6.6/59.1
+mean_hospital_per_mortality <- (low_hospital_per_mortality + high_hospital_per_mortality)/2
 
+summary_hospital <- summary_npvs[, .(
+  mean_hospital = mean_mortality * mean_hospital_per_mortality,
+  max_hospital = max_mortality * high_hospital_per_mortality,
+  min_hospital = min_mortality * low_hospital_per_mortality
+), by = Pathway]
+
+a_vals <- summary_hospital[Pathway=="A", .(mean_hospital, max_hospital, min_hospital)]
+
+# 2. subtract and assign three new columns
+summary_hospital[, `:=`(
+  mean_diff = mean_hospital - a_vals$mean_hospital,
+  max_diff  = max_hospital  - a_vals$max_hospital,
+  min_diff  = min_hospital  - a_vals$min_hospital
+)]

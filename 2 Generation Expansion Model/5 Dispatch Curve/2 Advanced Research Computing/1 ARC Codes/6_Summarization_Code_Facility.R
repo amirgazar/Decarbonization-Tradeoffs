@@ -117,7 +117,7 @@ process_chunk <- function(files, chunk_idx) {
   )
   
   yearly_list  <- vector("list", length(files))
-  monthly_list <- vector("list", length(files))
+  #monthly_list <- vector("list", length(files))
   
   for (i in seq_along(files)) {
     f <- files[i]
@@ -135,10 +135,13 @@ process_chunk <- function(files, chunk_idx) {
     )
     
     # extract year/month
-    dt[, `:=`(
-      Year  = year(Date),
-      Month = month(Date)
-    )]
+    # dt[, `:=`(
+    #   Year  = year(Date),
+    #   Month = month(Date)
+    # )]
+     dt[, `:=`(
+       Year  = year(Date)
+     )]
     
     # cap HI at the facility max
     dt <- merge(
@@ -159,19 +162,19 @@ process_chunk <- function(files, chunk_idx) {
     ), by=.(Year, Pathway, Simulation, Facility_Unit.ID)]
     
     # MONTHLY summary (need Fuel_type_1 for ENERGY_SOURCE)
-    dt <- merge(
-      dt,
-      Fossil_Fuels_NPC[, .(Facility_Unit.ID, Fuel_type_1)],
-      by = "Facility_Unit.ID",
-      all.x = TRUE
-    )
-    monthly_list[[i]] <- dt[, .(
-      total_generation_GWh = sum(Gen_MWh_adj, na.rm=TRUE)/1e3,
-      total_CO2_tons       = sum(CO2_tons,   na.rm=TRUE),
-      total_NOx_lbs        = sum(NOx_lbs,    na.rm=TRUE),
-      total_SO2_lbs        = sum(SO2_lbs,    na.rm=TRUE),
-      total_HI_mmBtu       = sum(HI_mmBtu,   na.rm=TRUE)
-    ), by=.(Year, Month, Pathway, Simulation, Facility_Unit.ID, Fuel_type_1)]
+    # dt <- merge(
+    #   dt,
+    #   Fossil_Fuels_NPC[, .(Facility_Unit.ID, Fuel_type_1)],
+    #   by = "Facility_Unit.ID",
+    #   all.x = TRUE
+    # )
+    # monthly_list[[i]] <- dt[, .(
+    #   total_generation_GWh = sum(Gen_MWh_adj, na.rm=TRUE)/1e3,
+    #   total_CO2_tons       = sum(CO2_tons,   na.rm=TRUE),
+    #   total_NOx_lbs        = sum(NOx_lbs,    na.rm=TRUE),
+    #   total_SO2_lbs        = sum(SO2_lbs,    na.rm=TRUE),
+    #   total_HI_mmBtu       = sum(HI_mmBtu,   na.rm=TRUE)
+    # ), by=.(Year, Month, Pathway, Simulation, Facility_Unit.ID, Fuel_type_1)]
     
     rm(dt)
     gc()
@@ -179,7 +182,7 @@ process_chunk <- function(files, chunk_idx) {
   
   # bind chunk
   yearly_chunk  <- rbindlist(yearly_list)
-  monthly_chunk <- rbindlist(monthly_list)
+  #monthly_chunk <- rbindlist(monthly_list)
   
   # merge static facility info into YEARLY
   static_info <- unique(Fossil_Fuels_NPC[, .(
@@ -192,7 +195,7 @@ process_chunk <- function(files, chunk_idx) {
   )
   
   # map ENERGY_SOURCE on MONTHLY
-  monthly_chunk[, ENERGY_SOURCE := fuel_map[Fuel_type_1]]
+  #monthly_chunk[, ENERGY_SOURCE := fuel_map[Fuel_type_1]]
   
   # write chunk files
   write.csv(
@@ -203,16 +206,16 @@ process_chunk <- function(files, chunk_idx) {
     ),
     row.names = FALSE
   )
-  write.csv(
-    monthly_chunk,
-    file.path(
-      summary_results_path,
-      sprintf("Monthly_Facility_Level_Results_Chunk_%02d.csv", chunk_idx)
-    ),
-    row.names = FALSE
-  )
+  # write.csv(
+  #   monthly_chunk,
+  #   file.path(
+  #     summary_results_path,
+  #     sprintf("Monthly_Facility_Level_Results_Chunk_%02d.csv", chunk_idx)
+  #   ),
+  #   row.names = FALSE
+  # )
   
-  rm(yearly_list, monthly_list, yearly_chunk, monthly_chunk, static_info)
+  rm(yearly_list, yearly_chunk, static_info)
   gc()
 }
 
@@ -242,17 +245,17 @@ fwrite(
   file.path(final_results_path, "Yearly_Facility_Level_Results.csv")
 )
 
-# Monthly
-monthly_files <- list.files(
-  summary_results_path,
-  pattern = "Monthly_Facility_Level_Results_Chunk_.*\\.csv$",
-  full.names = TRUE
-)
-Monthly_Facility_Level_Results <- rbindlist(lapply(monthly_files, fread))
-fwrite(
-  Monthly_Facility_Level_Results,
-  file.path(final_results_path, "Monthly_Facility_Level_Results.csv")
-)
+# # Monthly
+# monthly_files <- list.files(
+#   summary_results_path,
+#   pattern = "Monthly_Facility_Level_Results_Chunk_.*\\.csv$",
+#   full.names = TRUE
+# )
+# Monthly_Facility_Level_Results <- rbindlist(lapply(monthly_files, fread))
+# fwrite(
+#   Monthly_Facility_Level_Results,
+#   file.path(final_results_path, "Monthly_Facility_Level_Results.csv")
+# )
 
 # ───────────────────────────────────────────────────────────────────────────────
 # 9) Notify via Pushover --------------------------------------------------------
