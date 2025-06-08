@@ -53,18 +53,25 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 View the full PDF here:  
 https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf :contentReference[oaicite:0]{index=0}
 
-## Data Browser
+## Fossil‐Fuel Power Plants Data Portal
 
-Explore an interactive portal for probabilistic hourly generation and emissions data for New England fossil-fuel power plants (as of March 20, 2025). The portal offers:
+An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants (as of March 20, 2025). It provides:
 
-- **Power Plant Report & Data Download**  
+- **Plant‐level Report & Data Download**  
+  Pre‐generated PDFs and CSVs for each facility’s hourly outputs and emissions.  
 - **Bulk Data Download**  
-- **Templates for Future/New Power Plants**  
+  A single archive containing the full probabilistic simulation across all plants.  
+- **Templates for Future/New Plants**  
+  Excel/CSV templates so you can plug in your own plant specs and run them through the same models.  
 - **User Guide**  
+  Step‐by‐step instructions on navigating the portal, understanding the outputs, and troubleshooting.  
 - **Citation Information**  
-- **Contact Us**  
+  Recommended reference format for academic or policy work.  
+- **Contact**  
+  Support details for questions or feedback.
 
-🔗 Check it out here: https://amirgazar.github.io/powerplants/
+🔗 **Launch the portal:** https://amirgazar.github.io/powerplants/
+
 
 
 <h1 tabindex="-1" id="Copyrights" dir="auto">Copyrights<svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></h1>
