@@ -61,5 +61,5 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 <h1 id="license" tabindex="-1">License</h1>
 <p>
   © 2025 Amir M. Gazar et al. All rights reserved.  
-  Licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+  This work is licensed under a Creative Commons Attribution 4.0 International License</a>. </br>[<img alt="Static Badge" src="https://img.shields.io/badge/license-CC--BY--4.0-tst">](https://creativecommons.org/licenses/by/4.0/) 
 </p>
