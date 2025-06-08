@@ -14,20 +14,17 @@
   </figure>
 </div>
 
-# Cost uncertainties and ecological impacts drive tradeoffs  
-# between electrical system decarbonization pathways in New England, U.S.A.
+# Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
 
 <p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,6,7,*</sup>
+  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
 <p>
   <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>3</sup>School for the Environment, University of Massachusetts Boston, Boston, MA, 02125, USA<br/>
   <sup>4</sup>Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br/>
-  <sup>5</sup>Dept. of Civil & Environmental Engineering, Duke University, Durham, NC, 27708, USA<br/>
-  <sup>6</sup>Faculty of Health Sciences, Virginia Tech, Roanoke, VA, 24016, USA<br/>
-  <sup>7</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <sup>5</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <strong>* Contact:</strong> rsdc@vt.edu
 </p>
 
@@ -37,84 +34,45 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 
 <p><strong>Keywords:</strong> Decarbonization · Stochastic modeling · Ecological impact · Uncertainty quantification · Energy policy</p>
 
-<h1 id="contents" tabindex="-1">Contents</h1>
-<ul>
-  <li><a href="#abstract">Abstract</a></li>
-  <li><a href="#introduction">Introduction</a></li>
-  <li><a href="#repository-structure">Repository Structure</a></li>
-  <li><a href="#installation">Installation</a></li>
-  <li><a href="#usage">Usage</a></li>
-  <li><a href="#results">Results</a></li>
-  <li><a href="#reproduction-information-document">Reproduction Information Document</a></li>
-  <li><a href="#authors">Authors</a></li>
-  <li><a href="#citation">Citation</a></li>
-  <li><a href="#license">License</a></li>
-</ul>
 
-<h1 id="introduction" tabindex="-1">Introduction</h1>
-<p>
-  *Add a few sentences about the background, motivation and objectives of this study.*
-</p>
+## Reproduction Information Document
+A comprehensive step-by-step guide to reproduce every analysis in this repository:
 
-<h1 id="repository-structure" tabindex="-1">Repository Structure</h1>
-<pre><code>
-.ipynb_checkpoints/
-0 Stochastic Power Plant Model/
-1 Decarbonization Pathways/
-2 Generation Expansion Model/
-3 Total Costs/
-4 External Data/
-5 Ecological impacts/
-6 Figures/
-7 Reproduction Information Document/
-README.md
-</code></pre>
+- **Section 1:** Configuration & setup, hardware (macOS 14.5 Sonoma, ARC cluster), R 4.4.2 & RStudio 2024.09.1, package versions, install & run times.  
+- **Section 2:** Conceptual overview of the modeling framework and code availability.  
+- **Section 3:** Decarbonization pathways data processing (Excel → R, metadata tagging, year‐range extraction).  
+- **Section 4:** Generation expansion model scripts, hourly wind/solar CFs, SMR specs, fossil facility & emissions processing, new fossil additions, imports, demand processing, randomization, dispatch‐curve generation.  
+- **Section 5:** Dispatch‐curve results processing.  
+- **Section 6:** Total cost modules; CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
+- **Section 7:** Ecological impact metrics; land use, water withdrawals, avian mortality, viewshed.  
+- **Section 8:** Figures & diagrams illustrating workflows.
 
-<h1 id="installation" tabindex="-1">Installation</h1>
-<ol>
-  <li>Clone the repository.<br/>
-      <code>git clone https://github.com/amirgazar/Decarbonization-Pathways.git</code>
-  </li>
-  <li>Create & activate environment:<br/>
-      <code>conda env create -f environment.yml</code><br/>
-      <code>conda activate decarb-env</code>
-  </li>
-  <li>Install Python deps:<br/>
-      <code>pip install -r requirements.txt</code>
-  </li>
-</ol>
+View the full PDF here:  
+https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf :contentReference[oaicite:0]{index=0}
 
-<h1 id="usage" tabindex="-1">Usage</h1>
-<p>
-  *Run individual notebooks or scripts:*<br/>
-  <code>jupyter notebook "1 Decarbonization Pathways/analysis.ipynb"</code>
-</p>
+## Fossil‐Fuel Power Plants Data Portal
 
-<h1 id="results" tabindex="-1">Results</h1>
-<p>
-  *Key outputs—cost distributions, ecological‐impact maps, sensitivity analyses—are in <code>6 Figures/</code>.*
-</p>
+An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants (as of March 20, 2025). It provides:
 
-<h1 id="reproduction-information-document" tabindex="-1">Reproduction Information Document</h1>
-<p>
-  Detailed reproduction steps, data sources, and parameter settings are in<br/>
-  <code>7 Reproduction Information Document/</code>
-</p>
+- **Plant‐level Report & Data Download**  
+  Pre‐generated PDFs and CSVs for each facility’s hourly outputs and emissions.  
+- **Bulk Data Download**  
+  A single archive containing the full probabilistic simulation across all plants.  
+- **Templates for Future/New Plants**  
+  Excel/CSV templates so you can plug in your own plant specs and run them through the same models.  
+- **User Guide**  
+  Step‐by‐step instructions on navigating the portal, understanding the outputs, and troubleshooting.  
+- **Citation Information**  
+  Recommended reference format for academic or policy work.  
+- **Contact**  
+  Support details for questions or feedback.
 
-<h1 id="authors" tabindex="-1">Authors</h1>
-<p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,6,7,*</sup>
-</p>
+🔗 **Launch the portal:** https://amirgazar.github.io/powerplants/
 
-<h1 id="citation" tabindex="-1">Citation</h1>
-<p>
-  If you use or build on this work, please cite:<br/>
-  Gazar, A. M., Jackson, C., Mavrommati, G., Howarth, R. B., & Calder, R. S. D. (2025).<br/>
-  <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.</em> [Journal/Preprint].  
-</p>
+<h1 tabindex="-1" id="Copyrights" dir="auto">Copyrights<svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></h1>
 
-<h1 id="license" tabindex="-1">License</h1>
-<p>
-  © 2025 Amir M. Gazar et al. All rights reserved.  
-  Licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
-</p>
+</article>
+          </div>
+
+© 2025 Amir M. Gazar et al. All rights reserved.  
+This work is licensed under a Creative Commons Attribution 4.0 International License</a>. </br>[<img alt="Static Badge" src="https://img.shields.io/badge/license-CC--BY--4.0-tst">](https://creativecommons.org/licenses/by/4.0/) 
