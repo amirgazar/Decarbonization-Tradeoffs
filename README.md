@@ -53,7 +53,7 @@ https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproductio
 
 ## Fossil‐Fuel Power Plants Data Portal
 
-An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants (as of March 20, 2025). It provides:
+An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants. It provides:
 
 - **Plant‐level Report & Data Download**  
   Pre‐generated PDFs and CSVs for each facility’s hourly outputs and emissions.  
