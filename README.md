@@ -36,20 +36,6 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 
 <p><strong>Keywords:</strong> Decarbonization · Stochastic modeling · Ecological impact · Uncertainty quantification · Energy policy</p>
 
-<h1 id="contents" tabindex="-1">Contents</h1>
-<ul>
-  <li><a href="#abstract">Abstract</a></li>
-  <li><a href="#introduction">Introduction</a></li>
-  <li><a href="#repository-structure">Repository Structure</a></li>
-  <li><a href="#installation">Installation</a></li>
-  <li><a href="#usage">Usage</a></li>
-  <li><a href="#results">Results</a></li>
-  <li><a href="#reproduction-information-document">Reproduction Information Document</a></li>
-  <li><a href="#authors">Authors</a></li>
-  <li><a href="#citation">Citation</a></li>
-  <li><a href="#license">License</a></li>
-</ul>
-
 
 ## Reproduction Information Document
 A comprehensive step-by-step guide to reproduce every analysis in this repository (26 pp.):
