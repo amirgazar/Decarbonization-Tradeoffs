@@ -14,8 +14,7 @@
   </figure>
 </div>
 
-# Cost uncertainties and ecological impacts drive tradeoffs  
-# between electrical system decarbonization pathways in New England, U.S.A.
+# Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
 
 <p>
   Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,6,7,*</sup>
