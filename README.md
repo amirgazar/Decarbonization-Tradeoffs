@@ -17,16 +17,14 @@
 # Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
 
 <p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,6,7,*</sup>
+  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
 <p>
   <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>3</sup>School for the Environment, University of Massachusetts Boston, Boston, MA, 02125, USA<br/>
   <sup>4</sup>Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br/>
-  <sup>5</sup>Dept. of Civil & Environmental Engineering, Duke University, Durham, NC, 27708, USA<br/>
-  <sup>6</sup>Faculty of Health Sciences, Virginia Tech, Roanoke, VA, 24016, USA<br/>
-  <sup>7</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <sup>5</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <strong>* Contact:</strong> rsdc@vt.edu
 </p>
 
