@@ -36,17 +36,16 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 
 
 ## Reproduction Information Document
-A comprehensive step-by-step guide to reproduce every analysis in this repository (26 pp.):
+A comprehensive step-by-step guide to reproduce every analysis in this repository:
 
-- **Section 1 (p 3):** Configuration & setup—hardware (macOS 14.5 Sonoma, ARC cluster), R 4.4.2 & RStudio 2024.09.1, package versions, install & run times.  
-- **Section 2 (p 4):** Conceptual overview of the modeling framework and code availability.  
-- **Section 3 (pp 4–5):** Decarbonization pathways data processing (Excel → R, metadata tagging, year‐range extraction).  
-- **Section 4 (pp 5–11):** Generation expansion model scripts—hourly wind/solar CFs, SMR specs, fossil facility & emissions processing, new fossil additions, imports, demand processing, randomization, dispatch‐curve generation.  
-- **Section 5 (p 12):** Dispatch‐curve results processing.  
-- **Section 6 (pp 12–23):** Total cost modules—CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
-- **Section 6.9 (pp 23–24):** CPI retrieval (BLS API) and supplemental cost calculations (GDP, population).  
-- **Section 7 (pp 25–26):** Ecological impact metrics—land use, water withdrawals, avian mortality, viewshed.  
-- **Section 8 (p 26):** Figures & diagrams illustrating workflows.
+- **Section 1:** Configuration & setup, hardware (macOS 14.5 Sonoma, ARC cluster), R 4.4.2 & RStudio 2024.09.1, package versions, install & run times.  
+- **Section 2:** Conceptual overview of the modeling framework and code availability.  
+- **Section 3:** Decarbonization pathways data processing (Excel → R, metadata tagging, year‐range extraction).  
+- **Section 4:** Generation expansion model scripts, hourly wind/solar CFs, SMR specs, fossil facility & emissions processing, new fossil additions, imports, demand processing, randomization, dispatch‐curve generation.  
+- **Section 5:** Dispatch‐curve results processing.  
+- **Section 6:** Total cost modules—CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
+- **Section 7:** Ecological impact metrics; land use, water withdrawals, avian mortality, viewshed.  
+- **Section 8:** Figures & diagrams illustrating workflows.
 
 View the full PDF here:  
 https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf :contentReference[oaicite:0]{index=0}
