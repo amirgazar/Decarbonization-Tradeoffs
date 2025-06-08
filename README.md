@@ -1,22 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-  </head>
-  <body>
-    <h1>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.</h1>
-    <p>
-      Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
-    </p>
-    <p>
-      <sup>1</sup> Department of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br>
-      <sup>2</sup> Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br>
-      <sup>3</sup> School for the Environment, University of Massachusetts Boston, Boston, MA 02125, USA<br>
-      <sup>4</sup> Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br>
-      <sup>5</sup> Department of Civil and Environmental Engineering, Duke University, Durham, NC, 27708, USA<br>
-    </p>
-    <p>
-      <strong>* Contact:</strong> rsdc@vt.edu
-    </p>
-  </body>
-</html>
+# Cost uncertainties and ecological impacts drive tradeoffs  
+# between electrical system decarbonization pathways in New England, U.S.A.
+
+## Abstract
+This repository contains all code, data and figures to reproduce the analysis of cost uncertainties and ecological impacts in electrical‐system decarbonization pathways for New England. We develop:
+- a stochastic power‐plant model  
+- decarbonization pathway scenarios  
+- a generation expansion model  
+- total cost and ecological‐impact assessments under uncertainty  
+
+## Table of Contents
+- [Abstract](#abstract): High‐level overview of the study.  
+- [Introduction](#introduction): Background, objectives and scope.  
+- [Repository Structure](#repository-structure): Directory layout and contents.  
+- [Installation](#installation): Environment and dependency setup.  
+- [Usage](#usage): How to run the notebooks and scripts.  
+- [Results](#results): Description of outputs and figures.  
+- [Reproduction Information Document](#reproduction-information-document): Step‐by‐step reproduction guide.  
+- [Authors](#authors): Contributor list and affiliations.  
+- [Citation](#citation): How to cite this work.  
+- [License](#license): Ownership and rights information.
+
+## Introduction
+*Add a few sentences here about the motivation and goals of the project.*
+
+## Repository Structure
+```text
+.ipynb_checkpoints/
+0 Stochastic Power Plant Model/
+1 Decarbonization Pathways/
+2 Generation Expansion Model/
+3 Total Costs/
+4 External Data/
+5 Ecological impacts/
+6 Figures/
+7 Reproduction Information Document/
+README.md
