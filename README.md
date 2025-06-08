@@ -43,7 +43,7 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 - **Section 3:** Decarbonization pathways data processing (Excel → R, metadata tagging, year‐range extraction).  
 - **Section 4:** Generation expansion model scripts, hourly wind/solar CFs, SMR specs, fossil facility & emissions processing, new fossil additions, imports, demand processing, randomization, dispatch‐curve generation.  
 - **Section 5:** Dispatch‐curve results processing.  
-- **Section 6:** Total cost modules—CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
+- **Section 6:** Total cost modules; CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
 - **Section 7:** Ecological impact metrics; land use, water withdrawals, avian mortality, viewshed.  
 - **Section 8:** Figures & diagrams illustrating workflows.
 
