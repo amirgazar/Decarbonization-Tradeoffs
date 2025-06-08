@@ -50,49 +50,6 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
   <li><a href="#license">License</a></li>
 </ul>
 
-<h1 id="introduction" tabindex="-1">Introduction</h1>
-<p>
-  *Add a few sentences about the background, motivation and objectives of this study.*
-</p>
-
-<h1 id="repository-structure" tabindex="-1">Repository Structure</h1>
-<pre><code>
-.ipynb_checkpoints/
-0 Stochastic Power Plant Model/
-1 Decarbonization Pathways/
-2 Generation Expansion Model/
-3 Total Costs/
-4 External Data/
-5 Ecological impacts/
-6 Figures/
-7 Reproduction Information Document/
-README.md
-</code></pre>
-
-<h1 id="installation" tabindex="-1">Installation</h1>
-<ol>
-  <li>Clone the repository.<br/>
-      <code>git clone https://github.com/amirgazar/Decarbonization-Pathways.git</code>
-  </li>
-  <li>Create & activate environment:<br/>
-      <code>conda env create -f environment.yml</code><br/>
-      <code>conda activate decarb-env</code>
-  </li>
-  <li>Install Python deps:<br/>
-      <code>pip install -r requirements.txt</code>
-  </li>
-</ol>
-
-<h1 id="usage" tabindex="-1">Usage</h1>
-<p>
-  *Run individual notebooks or scripts:*<br/>
-  <code>jupyter notebook "1 Decarbonization Pathways/analysis.ipynb"</code>
-</p>
-
-<h1 id="results" tabindex="-1">Results</h1>
-<p>
-  *Key outputs—cost distributions, ecological‐impact maps, sensitivity analyses—are in <code>6 Figures/</code>.*
-</p>
 
 <h1 id="reproduction-information-document" tabindex="-1">Reproduction Information Document</h1>
 <p>
@@ -100,17 +57,6 @@ README.md
   <code>7 Reproduction Information Document/</code>
 </p>
 
-<h1 id="authors" tabindex="-1">Authors</h1>
-<p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,6,7,*</sup>
-</p>
-
-<h1 id="citation" tabindex="-1">Citation</h1>
-<p>
-  If you use or build on this work, please cite:<br/>
-  Gazar, A. M., Jackson, C., Mavrommati, G., Howarth, R. B., & Calder, R. S. D. (2025).<br/>
-  <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.</em> [Journal/Preprint].  
-</p>
 
 <h1 id="license" tabindex="-1">License</h1>
 <p>
