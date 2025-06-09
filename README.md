@@ -21,6 +21,11 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 
 <p><strong>Keywords:</strong> integrated assessment model; discount rate; capacity expansion model; decarbonization; renewable energy; energy policy; cost-benefit analysis</p>
 
+## Computer Code and Data Download
+<a href="YOUR_LINK_HERE" target="_blank" rel="noopener noreferrer">
+  Download the computer code and all required data
+</a>
+<p>Note: 30 GB of space is required.</p>
 
 ## Reproduction Information Document
 A comprehensive step-by-step guide to reproduce every analysis in this repository:
@@ -34,8 +39,9 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 - **Section 7:** Ecological impact metrics; land use, water withdrawals, avian mortality, viewshed.  
 - **Section 8:** Figures & diagrams illustrating workflows.
 
-View the full PDF here:  
-https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf :contentReference[oaicite:0]{index=0}
+<a href="https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf" target="_blank" rel="noopener noreferrer">
+  View the full PDF here
+</a>
 
 ## Fossil‐Fuel Power Plants Data Portal
 
