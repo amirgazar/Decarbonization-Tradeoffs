@@ -67,8 +67,8 @@ An interactive web portal offering probabilistic hourly generation and emissions
 <div class="citation">
   <p>
     <strong>Gazar, A. M.</strong>, Jackson, C., Mavrommati, G., Howarth, R. B., &amp; Calder, R. (2025). 
-    <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.</em> 
-    <a href="https://doi.org/10.31224/4684" target="_blank" rel="noopener">Engineering Archive. https://doi.org/10.31224/4684</a>
+    <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A., Engineering Archive. </em> 
+    <a href="https://doi.org/10.31224/4684" target="_blank" rel="noopener">https://doi.org/10.31224/4684</a>
   </p>
 
   <p>
