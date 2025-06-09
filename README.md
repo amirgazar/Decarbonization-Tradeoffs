@@ -22,8 +22,10 @@ Advocates, researchers and policymakers seek characterizations of tradeoffs from
 <p><strong>Keywords:</strong> integrated assessment model; discount rate; capacity expansion model; decarbonization; renewable energy; energy policy; cost-benefit analysis</p>
 
 ## Computer Code and Data Download
-Download the computer code and all required data using this link: 
-
+<a href="YOUR_LINK_HERE" target="_blank" rel="noopener noreferrer">
+  Download the computer code and all required data
+</a>
+<p>Note: 30 GB of space is required.</p>
 
 ## Reproduction Information Document
 A comprehensive step-by-step guide to reproduce every analysis in this repository:
