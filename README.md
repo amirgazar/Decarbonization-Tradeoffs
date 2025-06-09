@@ -53,10 +53,6 @@ An interactive web portal offering probabilistic hourly generation and emissions
   A single archive containing the full probabilistic simulation across all plants.  
 - **Templates for Future/New Plants**  
   Excel/CSV templates so you can plug in your own plant specs and run them through the same models.  
-- **User Guide**  
-  Step‐by‐step instructions on navigating the portal, understanding the outputs, and troubleshooting.  
-- **Citation Information**  
-  Recommended reference format for academic or policy work.  
 - **Contact**  
   Support details for questions or feedback.
 
