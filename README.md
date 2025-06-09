@@ -60,8 +60,28 @@ An interactive web portal offering probabilistic hourly generation and emissions
 
 <h1 tabindex="-1" id="Copyrights" dir="auto">Copyrights<svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></h1>
 
-</article>
-          </div>
 
-© 2025 Amir M. Gazar et al. All rights reserved.  
-This work is licensed under a Creative Commons Attribution 4.0 International License</a>. </br>[<img alt="Static Badge" src="https://img.shields.io/badge/license-CC--BY--4.0-tst">](https://creativecommons.org/licenses/by/4.0/) 
+</article>
+</div>
+
+<div class="citation">
+  <p>
+    <strong>Gazar, A. M.</strong>, Jackson, C., Mavrommati, G., Howarth, R. B., &amp; Calder, R. (2025). 
+    <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.</em> 
+    <a href="https://doi.org/10.31224/4684" target="_blank" rel="noopener">Engineering Archive. https://doi.org/10.31224/4684</a>
+  </p>
+
+  <p>
+    © 2025 Amir M. Gazar et al. All rights reserved.  
+    This work is licensed under a 
+    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener">
+      Creative Commons Attribution 4.0 International License
+    </a>.
+  </p>
+
+  <p>
+    <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener">
+      <img alt="CC BY 4.0 License" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">
+    </a>
+  </p>
+</div>
