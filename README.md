@@ -30,9 +30,10 @@
 
 <h1 id="abstract" tabindex="-1">Abstract</h1>
 
-Advocates, researchers and policymakers seek characterizations of tradeoffs from diverse decarbonization pathways beyond outputs of optimization models, and robust quantification of uncertainties. We develop and apply to New England, U.S.A. an hourly-scale probabilistic model accepting portfolio decisions and demand as inputs and simulating costs and impacts through 2050. In New England, new natural gas minimizes direct monetary costs, but monetized impacts vastly outweigh these savings compared to decarbonized pathways. Monetized mean expected costs are similar across diverse pathways ($331 billion to $350 billion at 2 % discount rate) but have very different uncertainties (e.g. 90 % CI ≈ 23 % of mean costs for new natural gas vs. 69 % for small modular nuclear). Likewise, land use varies from negligible to 9 890 km². Tracking uncertainties correlated across pathways improves decision support (e.g. > 90 % confidence that constraining transmission with Canada increases costs by ≥ $1.9 billion despite overlapping 90 % CIs for absolute costs).
+Advocates, researchers and policymakers seek characterizations of tradeoffs from diverse decarbonization pathways beyond outputs of optimization models, and robust quantification of uncertainties. We develop and apply to New England, U.S.A. an hourly-scale probabilistic model accepting portfolio decisions and demand as inputs and simulating costs and impacts through 2050. In New England pathway incorporating small modular reactors lowers total social costs but increases cost uncertainties compared to the target “all options” pathway currently guiding policymakers ($470 ± 97 billion vs. $477 ± 87.5 billion by 2050). New natural gas minimizes direct monetary costs, but monetized impacts vastly outweigh these savings compared to decarbonized pathways (e.g., $262 billion above “all options”). Likewise, land use varies from negligible to 9,890 km<sup>2</sup> across pathways. Tracking uncertainties correlated across pathways improves decision support (e.g., >90% confidence that constraining transmission with Canada increases costs by ≥ $19.4 billion despite overlapping 90% CIs for absolute costs).
 
-<p><strong>Keywords:</strong> Decarbonization · Stochastic modeling · Ecological impact · Uncertainty quantification · Energy policy</p>
+
+<p><strong>Keywords:</strong> integrated assessment model; discount rate; capacity expansion model; decarbonization; renewable energy; energy policy; cost-benefit analysis</p>
 
 
 ## Reproduction Information Document
@@ -52,7 +53,7 @@ https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproductio
 
 ## Fossil‐Fuel Power Plants Data Portal
 
-An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants (as of March 20, 2025). It provides:
+An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants. It provides:
 
 - **Plant‐level Report & Data Download**  
   Pre‐generated PDFs and CSVs for each facility’s hourly outputs and emissions.  
