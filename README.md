@@ -1,17 +1,7 @@
-<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Pathways?color=black"> 
-<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Pathways?color=gold"> 
-<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Pathways?color=cyan"> 
+<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> 
+<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> 
+<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> 
 <img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">(https://creativecommons.org/licenses/by/4.0/) 
-
-<div class="topper-featured-image__inner">
-  <figure class="topper-featured-image__figure">
-    <!-- Replace with your own featured image -->
-    <img src="misc/featured_decarb.jpg" alt="Decarbonization Pathways Overview">
-    <figcaption class="topper-featured-image__caption">
-      Visualization of stochastic decarbonization scenarios in New England
-    </figcaption>
-  </figure>
-</div>
 
 # Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
 
