@@ -58,7 +58,7 @@ An interactive web portal offering probabilistic hourly generation and emissions
 - **Contact Us**  
   Support contact details for questions, feedback, or technical issues.
 
-[![Click Here](https://img.shields.io/badge/Launch%20Portal-Portal-blue?style=for-the-badge)](https://amirgazar.github.io/powerplants/)
+[![Click Here](https://img.shields.io/badge/Click%20here-Power%20Platns%20Portal-blue?style=for-the-badge)](https://amirgazar.github.io/powerplants/)
 
 🔗 **Link:** https://amirgazar.github.io/powerplants/  
 
