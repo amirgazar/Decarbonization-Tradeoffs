@@ -1,5 +1,4 @@
-<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> [<img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">](https://creativecommons.org/licenses/by/4.0/) [![preprint-doi](https://img.shields.io/badge/preprint_doi-10.31224/4684--4505/ad8fce-blue)](https://doi.org/10.31224/4684)[![Launch the Portal](https://img.shields.io/badge/Launch%20Portal-Visit-blue?style=for-the-badge)](https://amirgazar.github.io/powerplants/)
-
+<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> [<img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">](https://creativecommons.org/licenses/by/4.0/) [![preprint-doi](https://img.shields.io/badge/preprint_doi-10.31224/4684--4505/ad8fce-blue)](https://doi.org/10.31224/4684)
 
 # Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
 
@@ -60,6 +59,7 @@ An interactive web portal offering probabilistic hourly generation and emissions
   Support contact details for questions, feedback, or technical issues.
 
 🔗 **Launch the portal:** https://amirgazar.github.io/powerplants/  
+[![Launch the Portal](https://img.shields.io/badge/Launch%20Portal-Visit-blue?style=for-the-badge)](https://amirgazar.github.io/powerplants/)
 
 <h1 tabindex="-1" id="Copyrights and Citation" dir="auto">Copyrights and Citation<svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path></svg></a></h1>
 
