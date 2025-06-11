@@ -44,7 +44,7 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 </a>
 
 ## Fossil‐Fuel Power Plants Data Portal
-An interactive web portal offering probabilistic hourly generation and emissions data for all New England fossil‐fuel power plants. It provides:
+An interactive web portal offering probabilistic hourly generation and emissions data (incl. historical hourly data for the past 20 years) for all of United States fossil‐fuel power plants. Including:
 - **State Power Plants Data Download**  
   Download probabilistic hourly generation and emissions data for all fossil‐fuel plants in a selected state.
 - **Individual Power Plant Report and Data Download**  
