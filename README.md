@@ -48,7 +48,7 @@ An interactive web portal offering probabilistic hourly generation and emissions
   Download probabilistic hourly generation and emissions data for all fossil‐fuel plants in a selected state.
 - **Individual Power Plant Report and Data Download**  
   Access pre-generated PDF reports and CSV files showing hourly outputs and emissions for a single facility.
-- **Templates for Future/New Power Plants**  
+- **Templates for New Power Plants**  
   Get probablistic templates (from similar facilities) to plug in new plant specifications and run them through the probabilistic models.
 - **Historical Generation and Emissions (U.S. EPA CAMPD)**  
   Retrieve historical U.S. EPA CAMPD data stored in a Harvard dataverse.
