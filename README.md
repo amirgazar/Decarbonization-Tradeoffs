@@ -37,7 +37,6 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 - **Section 5:** Dispatch‐curve results processing.  
 - **Section 6:** Total cost modules; CAPEX, FOM, VOM for fossil, non-fossil & imports; fuel & import cost adjustments; GHG & air pollutant emissions cost interpolation & NPV; unmet demand penalties; hydropower cost assumptions & capacity modeling; consolidation of all costs.  
 - **Section 7:** Ecological impact metrics; land use, water withdrawals, avian mortality, viewshed.  
-- **Section 8:** Figures & diagrams illustrating workflows.
 
 <a href="https://github.com/amirgazar/Decarbonization-Tradeoffs/blob/main/7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf" target="_blank" rel="noopener noreferrer">
   View the full PDF here
