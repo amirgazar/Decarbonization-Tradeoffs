@@ -44,9 +44,9 @@ A comprehensive step-by-step guide to reproduce every analysis in this repositor
 
 ## Fossil‐Fuel Power Plants Data Portal
 An interactive web portal offering probabilistic hourly generation and emissions data (incl. historical hourly data for the past 20 years) for all of United States fossil‐fuel power plants. Including:
-- **State Power Plants Data Download**  
+- **State Power Plants Data**  
   Download probabilistic hourly generation and emissions data for all fossil‐fuel plants in a selected state.
-- **Individual Power Plant Report and Data Download**  
+- **Individual Power Plant Report and Data**  
   Access pre-generated PDF reports and CSV files showing hourly outputs and emissions for a single facility.
 - **Templates for New Power Plants**  
   Get probablistic templates (from similar facilities) to plug in new plant specifications and run them through the probabilistic models.
