@@ -53,7 +53,7 @@ An interactive web portal offering probabilistic hourly generation and emissions
   Get probablistic templates (from similar facilities) to plug in new plant specifications and run them through the probabilistic models.
 - **Historical Generation and Emissions (U.S. EPA CAMPD)**  
   Retrieve historical U.S. EPA CAMPD data stored in a Harvard dataverse.
-  - **API Bulk Download**  
+- **API Bulk Download**  
   Retrieve all data available in this portal using Harvard Dataverse API. 
 - **Citation**  
   Instructions on how to cite this portal and its underlying datasets in your publications.
