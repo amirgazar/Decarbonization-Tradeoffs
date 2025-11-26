@@ -1,0 +1,149 @@
+{
+  "identity": {
+    "run_id": "20251123_193722",
+    "scenario_names": "B1",
+    "simulation_count": 1
+  },
+  "timestamps": {
+    "started_at": "2025-11-23 19:37:22.310929",
+    "finished_at": "2025-11-23 19:39:46.124559",
+    "timezone": "America/New_York"
+  },
+  "environment": {
+    "R": "R version 4.5.1 (2025-06-13)",
+    "packages": {
+      "data.table": "1.17.0",
+      "lubridate": "1.9.4",
+      "zoo": "1.8.14",
+      "jsonlite": "2.0.0",
+      "httr": "1.4.7",
+      "digest": "0.6.37"
+    }
+  },
+  "inputs": [
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/1 Decarbonization Pathways/Hourly_Installed_Capacity.csv",
+      "exists": true,
+      "size_bytes": 166883371,
+      "sha256": "a66bc98fcbc8c2e9a21e12a7c24ec84dd730a5f92de3586b8fce928bdde5ac0a"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/2 SMR/1 SMR Facility Data/SMR_Facility_Data.csv",
+      "exists": true,
+      "size_bytes": 217,
+      "sha256": "fc18f934c623f3cb49d1e9d42c74e6d370531b1f84d16c1bda53e77810eca73f"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/3 Large nuclear hydro and bio/1 Clean Baseload Facility Data/CleanBaseload_Facility_Data.csv",
+      "exists": true,
+      "size_bytes": 769,
+      "sha256": "0a8e8a3886f8c7abcb6d4401cfeb00bf678beb7f121b37c7f0e68e60af7f23ab"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv",
+      "exists": true,
+      "size_bytes": 94937,
+      "sha256": "1e64114f7d12f5145137c5ba55fb5754ce39be432f29c78d3f07f93a0871e612"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv",
+      "exists": true,
+      "size_bytes": 5002,
+      "sha256": "7debfb141ef01ac82282ac698adaeb721d3dfc56964be6fa24d723d8a11ee5b8"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/1 Wind and Solar/1 Wind and Solar CF/offwind_CF.csv",
+      "exists": true,
+      "size_bytes": 16244177,
+      "sha256": "101ffa18d2eb5de5d328a1d99100d1061475ebcc64425f7b11d0f837f31adc43"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/1 Wind and Solar/1 Wind and Solar CF/onwind_CF.csv",
+      "exists": true,
+      "size_bytes": 16233771,
+      "sha256": "fe6556e12d961bab02a0bc5f6f21043f325e9d9f0301f43764572199118ddde6"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/1 Clean Generation/1 Wind and Solar/1 Wind and Solar CF/solar_CF.csv",
+      "exists": true,
+      "size_bytes": 13085456,
+      "sha256": "977de6e197cd5d43a6a48a56e4f1422241a6f5b21ea8e6e192c441d0895b2c89"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_Generation_Emissions.csv",
+      "exists": true,
+      "size_bytes": 3927511027,
+      "sha256": "0957e4e49f8be8f0e62c3690a82f514aaccee1e624143d660c3cc5d76d3ba1ad"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/3 Imports/1 Imports CF/Imports_CF.csv",
+      "exists": true,
+      "size_bytes": 1946612,
+      "sha256": "2266b79e8a6eb50e651fe8c6e7f44fc4c0641163e48c1e51ce0362ffd7b970ed"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/1 Demand/1 Hourly Demand/demand_data.csv",
+      "exists": true,
+      "size_bytes": 6311322,
+      "sha256": "ad66ba5d9ff2afcc876ffcbd0158b9edb9c3811fcc739f23166b5ae74c8d3930"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/4 Randomization/1 Randomized Data/Random_Sequence.csv",
+      "exists": true,
+      "size_bytes": 737165333,
+      "sha256": "53a2a0e2e238356ba120dd3064d625cb220641670c81a9d71bbf4a06b12bc375"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_hr_maxmin.csv",
+      "exists": false,
+      "size_bytes": null,
+      "sha256": null
+    }
+  ],
+  "outputs": [
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/1 Test Results/Hourly_Results_NE.csv",
+      "exists": true,
+      "size_bytes": 122791,
+      "sha256": "d9d355bb155a6768b5be26696259dc939bc0c1f8167ba81dd7f79b2e921178cd"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/1 Test Results/Facility_Level_Results.csv",
+      "exists": true,
+      "size_bytes": 2950204,
+      "sha256": "3c53f90d300ea67f16aff83d32d2cd8c8d5f57e913946e6573d050bca5833fe8"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/1 Test Results/emissions_and_soc.png",
+      "exists": true,
+      "size_bytes": 129939,
+      "sha256": "14fab490e2e894fd6b6db562995a641a36980c61842522b69ddfa0583bd588dd"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/1 Test Results/correlations_hourly.csv",
+      "exists": true,
+      "size_bytes": 333,
+      "sha256": "2b25d0ecc8d616442d38ce879c68745d5149af9987caa2ce687f1d0577b9c194"
+    },
+    {
+      "path": "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/1 Test Results/zones_list.csv",
+      "exists": false,
+      "size_bytes": null,
+      "sha256": null
+    }
+  ],
+  "model_notes": {
+    "objective": "Serve hourly demand with physical constraints; record Shortage_MWh explicitly. No economic objective.",
+    "storage_equations": "SOC_t = min(max(SOC_{t-1}*rho + eta*c_t - d_t/eta, 0), Emax); 0<=c_t,d_t<=Pmax; d_t>0 only if Clean+Imports<Demand.",
+    "availability_factors": "Solar_AF/Onshore_AF/Offshore_AF denote availability factors (weather-driven), not ex-post capacity factors."
+  },
+  "battery_settings": {
+    "rt_eff": 0.85,
+    "eta": 0.922,
+    "duration_hours": 8,
+    "inverter_col": "Inverter_MW",
+    "retention_hours": "Inf",
+    "allow_multiday_carry": true,
+    "curtailment_only_charging": true
+  }
+}
