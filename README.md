@@ -1,12 +1,14 @@
 <img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> [<img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">](https://creativecommons.org/licenses/by/4.0/) [![preprint-doi](https://img.shields.io/badge/preprint_doi-10.31224/4684--4505/ad8fce-blue)](https://doi.org/10.31224/4684)
 
-# Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.
+# Probabilistic analysis of ecological, economic, and health tradeoffs of decarbonization pathways for New England, USA
 
 <p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
+  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>,
+  Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
+
 <p>
-  <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <sup>1</sup>Department of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>3</sup>School for the Environment, University of Massachusetts Boston, Boston, MA, 02125, USA<br/>
   <sup>4</sup>Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br/>
@@ -16,10 +18,29 @@
 
 <h1 id="abstract" tabindex="-1">Abstract</h1>
 
-Advocates, researchers and policymakers seek characterizations of tradeoffs from diverse decarbonization pathways beyond outputs of optimization models, and robust quantification of uncertainties. We develop and apply to New England, U.S.A. an hourly-scale probabilistic model accepting portfolio decisions and demand as inputs and simulating costs and impacts through 2050. In New England pathway incorporating small modular reactors lowers total social costs but increases cost uncertainties compared to the target “all options” pathway currently guiding policymakers ($470 ± 97 billion vs. $477 ± 87.5 billion by 2050). New natural gas minimizes direct monetary costs, but monetized impacts vastly outweigh these savings compared to decarbonized pathways (e.g., $262 billion above “all options”). Likewise, land use varies from negligible to 9,890 km<sup>2</sup> across pathways. Tracking uncertainties correlated across pathways improves decision support (e.g., >90% confidence that constraining transmission with Canada increases costs by ≥ $19.4 billion despite overlapping 90% CIs for absolute costs).
+Advocates, researchers, and policymakers seek characterizations of tradeoffs from
+diverse decarbonization pathways beyond outputs of optimization models and robust
+quantification of uncertainties. We develop and apply to New England, USA an
+hourly-scale probabilistic electricity-system model that accepts portfolio
+decisions and electricity demand as inputs and simulates costs and impacts through
+2050. A pathway incorporating small modular reactors lowers total social costs but
+increases cost uncertainty relative to the reference high-electrification pathway
+currently pursued by policymakers ($470 ± 97 billion vs. $477 ± 87.5 billion by
+2050). All decarbonization pathways have total costs and uncertainties of similar
+orders of magnitude, but differ substantially across ecological and public health
+impacts that strongly influence social acceptability (for example, land use ranges
+from negligible to 9,890 km<sup>2</sup>). Tracking uncertainties correlated across
+pathways improves decision support, yielding greater than 90% confidence that
+constraining transmission with Canada increases total system costs by at least
+$19.4 billion, despite overlapping 90% confidence intervals for absolute pathway
+costs.
 
+<p>
+  <strong>Keywords:</strong> integrated assessment model; discount rate; capacity
+  expansion model; decarbonization; renewable energy; energy policy; cost-benefit
+  analysis
+</p>
 
-<p><strong>Keywords:</strong> integrated assessment model; discount rate; capacity expansion model; decarbonization; renewable energy; energy policy; cost-benefit analysis</p>
 
 ## Computer Code and Data Download
 <a href="https://drive.google.com/file/d/1_4CJ6x3oWdZjMocYRkqfHUSGeeRW7L50/view?usp=sharing" target="_blank" rel="noopener noreferrer">
