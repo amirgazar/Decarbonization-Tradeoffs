@@ -24,6 +24,9 @@ excel_file <- file.path(proj_dir, "4 External Data",
                         "Massachusetts 2050 Decarbonization Roadmap Study", 
                         "Massachusetts Workbook of Energy Modeling Results 2024.xlsx")
 
+fig_dir <- file.path(proj_dir, "6 Figures", "Validation")
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+
 # --- 2. LOAD MODEL RESULTS ---
 if (!file.exists(model_file)) stop(paste("Model file not found at:", model_file))
 cat("Loading Model Results...\n")
@@ -111,7 +114,7 @@ cat(sprintf("\nR-squared (Renewables): %.4f\n", r2_renew))
 # Reshape for faceted plot
 plot_load <- melt(validation_df[, .(Year, Model = Model_TotalLoad, Benchmark = Bench_TotalLoad)], 
                   id.vars = "Year", variable.name = "Source", value.name = "TWh")
-plot_load[, Metric := "Total Annual Load"]
+plot_load[, Metric := "Total Generation and Imports"]
 
 plot_renew <- melt(validation_df[, .(Year, Model = Model_Renewables, Benchmark = Bench_Renewables)], 
                    id.vars = "Year", variable.name = "Source", value.name = "TWh")
@@ -122,7 +125,7 @@ plot_data <- rbind(plot_load, plot_renew)
 # Annotation Data for R2
 ann_text <- data.table(
   Year = 2025, TWh = 300, 
-  Metric = c("Total Annual Load", "Renewable Generation"),
+  Metric = c("Total Generation and Imports", "Renewable Generation"),
   Label = c(paste0("R² = ", round(r2_load, 3)), paste0("R² = ", round(r2_renew, 3)))
 )
 
@@ -137,6 +140,7 @@ p <- ggplot(plot_data, aes(x = Year, y = TWh, color = Source, linetype = Source)
             x = 2030, y = Inf, vjust = 2, color = "black", size = 5, fontface = "bold", inherit.aes = FALSE) +
   
   scale_color_manual(values = c("Model" = "#377eb8", "Benchmark" = "#e41a1c")) +
+  scale_y_continuous(limits = c(0, NA)) +
   
   labs(
        subtitle = paste("Scenario:", target_scenario, "| Comparisons of Median Model Trajectory vs ISO-NE Target"),
@@ -150,3 +154,23 @@ p <- ggplot(plot_data, aes(x = Year, y = TWh, color = Source, linetype = Source)
         axis.title = element_text(face = "bold", size = 12))
 
 print(p)
+
+
+ggsave(
+  filename = file.path(fig_dir, "Figure_S4_Validation_Lines.png"),
+  plot = p,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+# --- 3.5 UNCERTAINTY BANDS (90% INTERVALS) ---
+
+uncertainty_2050 <- model_sims[Year == 2050, .(
+  Renew_p05 = quantile(Renewables, 0.05),
+  Renew_p95 = quantile(Renewables, 0.95),
+  Load_p05  = quantile(Total_Load, 0.05),
+  Load_p95  = quantile(Total_Load, 0.95)
+)]
+
+print(uncertainty_2050)
