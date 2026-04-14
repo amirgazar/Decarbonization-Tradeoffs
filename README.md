@@ -6,8 +6,6 @@
   Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
 
-Decarbonization planning requires comparing diverse pathways across economic, ecological, and health dimensions under uncertainty. Capacity expansion models generally treat pathway uncertainties as independent, overestimating uncertainty around inter-scenario differences, which drive decisions. U.S.–Canada trade tensions and abrupt federal termination of offshore wind permits threaten key planks of regional decarbonization plans and illustrate the need for models spanning a wider pathway space. We present PHASE (Probabilistic Hourly Assessment of System Electricity), propagating correlated uncertainties across prescribed pathways through hourly dispatch over a 26-year horizon and generating joint posterior distributions across modeled outcomes. Applied to eight New England pathways, correlated uncertainty tracking yields >90% confidence in pairwise cost differences despite overlapping absolute cost intervals. Pathways with similar monetized impacts (roughly $470–477 billion by 2050) diverge on land use, avian mortality, and air quality. Rural areas receive greater relative air quality benefits than urban areas, cutting against assumptions that shape siting politics.
-
 <p>
   <sup>1</sup>Department of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
@@ -19,7 +17,7 @@ Decarbonization planning requires comparing diverse pathways across economic, ec
 
 <h1 id="abstract" tabindex="-1">Abstract</h1>
 
-
+Decarbonization planning requires comparing diverse pathways across economic, ecological, and health dimensions under uncertainty. Capacity expansion models generally treat pathway uncertainties as independent, overestimating uncertainty around inter-scenario differences, which drive decisions. U.S.–Canada trade tensions and abrupt federal termination of offshore wind permits threaten key planks of regional decarbonization plans and illustrate the need for models spanning a wider pathway space. We present PHASE (Probabilistic Hourly Assessment of System Electricity), propagating correlated uncertainties across prescribed pathways through hourly dispatch over a 26-year horizon and generating joint posterior distributions across modeled outcomes. Applied to eight New England pathways, correlated uncertainty tracking yields >90% confidence in pairwise cost differences despite overlapping absolute cost intervals. Pathways with similar monetized impacts (roughly $470–477 billion by 2050) diverge on land use, avian mortality, and air quality. Rural areas receive greater relative air quality benefits than urban areas, cutting against assumptions that shape siting politics.
 <p>
   <strong>Keywords:</strong> integrated assessment model; discount rate; capacity
   expansion model; decarbonization; renewable energy; energy policy; cost-benefit
