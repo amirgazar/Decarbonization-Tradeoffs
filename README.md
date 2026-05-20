@@ -1,7 +1,6 @@
-<img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> [<img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">](https://creativecommons.org/licenses/by/4.0/) [![preprint-doi](https://img.shields.io/badge/preprint_doi-10.31224/4684--4505/ad8fce-blue)](https://doi.org/10.31224/4684)
+<img width="468" height="26" alt="image" src="https://github.com/user-attachments/assets/764c77c2-af01-42d6-b44c-442123ff3900" /><img alt="GitHub Release Date" src="https://img.shields.io/github/release-date/amirgazar/Decarbonization-Tradeoffs?color=black"> <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/amirgazar/Decarbonization-Tradeoffs?color=gold"> <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/amirgazar/Decarbonization-Tradeoffs?color=cyan"> [<img alt="License: CC-BY-4.0" src="https://img.shields.io/badge/license-CC--BY--4.0-lightgrey">](https://creativecommons.org/licenses/by/4.0/) [![preprint-doi](https://img.shields.io/badge/preprint_doi-10.31224/4684--4505/ad8fce-blue)](https://doi.org/10.31224/4684)
 
-# Probabilistic analysis of ecological, economic, and health tradeoffs of decarbonization pathways for New England, USA
-
+# Correlated uncertainty propagation enables multi-impact decision support for electrical system decarbonization
 <p>
   Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>,
   Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
@@ -18,23 +17,7 @@
 
 <h1 id="abstract" tabindex="-1">Abstract</h1>
 
-Advocates, researchers, and policymakers seek characterizations of tradeoffs from
-diverse decarbonization pathways beyond outputs of optimization models and robust
-quantification of uncertainties. We develop and apply to New England, USA an
-hourly-scale probabilistic electricity-system model that accepts portfolio
-decisions and electricity demand as inputs and simulates costs and impacts through
-2050. A pathway incorporating small modular reactors lowers total social costs but
-increases cost uncertainty relative to the reference high-electrification pathway
-currently pursued by policymakers ($470 ± 97 billion vs. $477 ± 87.5 billion by
-2050). All decarbonization pathways have total costs and uncertainties of similar
-orders of magnitude, but differ substantially across ecological and public health
-impacts that strongly influence social acceptability (for example, land use ranges
-from negligible to 9,890 km<sup>2</sup>). Tracking uncertainties correlated across
-pathways improves decision support, yielding greater than 90% confidence that
-constraining transmission with Canada increases total system costs by at least
-$19.4 billion, despite overlapping 90% confidence intervals for absolute pathway
-costs.
-
+Decarbonization planning requires comparing diverse pathways across economic, ecological, and health dimensions under uncertainty. Capacity expansion models generally treat pathway uncertainties as independent, overestimating uncertainty around inter-scenario differences, which drive decisions. U.S.–Canada trade tensions and abrupt federal termination of offshore wind permits threaten key planks of regional decarbonization plans and illustrate the need for models spanning a wider pathway space. We present PHASED (Probabilistic Hourly Assessment of System Electricity Decarbonization), propagating correlated uncertainties across prescribed pathways through hourly dispatch over a 26-year horizon and generating joint posterior distributions across modeled outcomes. Applied to eight New England pathways, correlated uncertainty tracking yields >90% confidence in pairwise cost differences despite overlapping absolute cost intervals. Pathways with similar monetized impacts (roughly $470–477 billion by 2050) diverge on land use, avian mortality, and air quality. Rural areas receive greater relative air quality benefits than urban areas, cutting against assumptions that shape siting politics.
 <p>
   <strong>Keywords:</strong> integrated assessment model; discount rate; capacity
   expansion model; decarbonization; renewable energy; energy policy; cost-benefit
@@ -93,7 +76,7 @@ An interactive web portal offering probabilistic hourly generation and emissions
 <div class="citation">
   <p>
     <strong>Gazar, A. M.</strong>, Jackson, C., Mavrommati, G., Howarth, R. B., &amp; Calder, R. (2025). 
-    <em>Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A., Engineering Archive. </em> 
+    <em>Correlated uncertainty propagation enables multi-impact decision support for electrical system decarbonization, Engineering Archive. </em> 
     <a href="https://doi.org/10.31224/4684" target="_blank" rel="noopener">https://doi.org/10.31224/4684</a>
   </p>
 
