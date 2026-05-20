@@ -27,7 +27,7 @@ cfg <- list(
   duration_hours = 8,            # energy-to-power duration (h)
   inverter_col = "Inverter_MW",  # optional column in Hourly_Installed_Capacity
   allow_grid_charging = FALSE,   # (no price model here)
-  curtailment_only_charging = TRUE,
+  curtailment_only_charging = TRUE, # if TRUE only low-carbon is used for charging
   retention_hours = Inf,         # SOC_t = SOC_{t-1} * exp(-1/retention_hours)
   allow_multiday_carry = TRUE,   # if FALSE, SOC resets at midnight
   high_penalty_unserved = 10000  # documentation only
