@@ -26,10 +26,10 @@ Decarbonization planning requires comparing diverse pathways across economic, ec
 
 
 ## Computer Code and Data Download
-<a href="https://drive.google.com/file/d/1_4CJ6x3oWdZjMocYRkqfHUSGeeRW7L50/view?usp=sharing" target="_blank" rel="noopener noreferrer">
+<!--<a href="https://drive.google.com/file/d/1_4CJ6x3oWdZjMocYRkqfHUSGeeRW7L50/view?usp=sharing" target="_blank" rel="noopener noreferrer">
   Download the computer code and all required data
 </a>
-<p>Note: 30 GB of space is required.</p>
+<p>Note: 30 GB of space is required.</p>-->
 
 ## Reproduction Information Document
 A comprehensive step-by-step guide to reproduce every analysis in this repository:
