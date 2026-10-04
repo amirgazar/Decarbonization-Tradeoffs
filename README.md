@@ -285,4 +285,4 @@ Syntax and unit checks do not replace a complete run with the required datasets.
 
 This repository is distributed under [Creative Commons Attribution 4.0 International](LICENSE.txt). External datasets retain their own source-specific terms.
 
-Copyright (c) 2025 Amir M. Gazar, Chloe Jackson, Georgia Mavrommati, Rich B. Howarth and Ryan S.D. Calder.
+Copyright (c) 2025 Amir Gazar et al.
