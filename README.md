@@ -241,6 +241,7 @@ Give a coding assistant the [**PHASED agent runner instructions**](phased-agent-
 5. Start with **small_local_check**. Review the input and software checks before a larger run. Authorize any large downloads or cluster work within a defined scope and resource budget.
 
 NOTE: Always use the latest AI model available to you for the best result. 
+
 The JSON links to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable data catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). It explains how to find published download links and check file sizes, checksums and archive parts. Dataset availability must be checked at run time.
 
 <details open>
