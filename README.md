@@ -13,7 +13,7 @@
   <a href="#what-the-model-does">Overview</a> ·
   <a href="#repository-guide">Repository guide</a> ·
   <a href="#running-the-analysis">Run the analysis</a> ·
-  <a href="#study-authors-and-citation">Citation</a>
+  <a href="#relevant-studies-and-use-cases">Studies and use cases</a>
 </p>
 
 ---
@@ -85,21 +85,18 @@ The full analysis uses 1,000 simulations. Shared draws preserve paired compariso
 
 ## Running the analysis
 
-```mermaid
-flowchart LR
-    A[Prepare inputs] --> B[Run hourly dispatch]
-    B --> C[Combine results]
-    C --> D[Calculate costs]
-    D --> E[Create figures and tables]
-    classDef inputs fill:#eaf3f8,stroke:#466e85,color:#163b50;
-    classDef model fill:#e8f4f2,stroke:#418980,color:#174e47;
-    classDef outputs fill:#f7f1e5,stroke:#a18043,color:#62491c;
-    class A inputs;
-    class B,C model;
-    class D,E outputs;
-```
+Choose how to run the same PHASED scripts:
 
-**Choose your starting point:** Use step 1 for a new setup. If you already have completed dispatch summaries, continue with step 4. Expand each step for its inputs, settings and commands.
+| Option | How it works |
+| --- | --- |
+| [**Manual run**](#option-1-manual-run) | Set the paths and run each stage yourself in R, Python or your computing cluster. |
+| [**Using an AI Agent**](#option-2-using-an-ai-agent) | Open the repository in a coding assistant and use the supplied runner prompt to check inputs, run the selected stages and report results. |
+
+Both options require the same software, data and computing resources.
+
+### Option 1: Manual run
+
+Use step 1 for a new setup. If you already have completed dispatch summaries, continue with step 4. Expand each step for its inputs, settings and commands.
 
 <details>
 <summary><strong>1. Set up the software and project paths</strong></summary>
@@ -202,6 +199,79 @@ Supply EPA and FRED credentials through `EPA_API_KEY` and `FRED_API_KEY`. Keep c
 
 </details>
 
+### Option 2: Using an AI Agent
+
+Use a coding assistant that can read this repository and run local R and Python commands. The prompt below gives it the role of a **PHASED runner agent**. It uses the existing analysis scripts; there is no separate hosted PHASED agent to sign into.
+
+#### Access the agent
+
+1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) to your computer. In GitHub Desktop, use **File → Clone repository** and select the repository URL.
+2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex** for work with code.
+3. Open your local `Decarbonization-Tradeoffs` folder as the project. Start a task in that folder, where the agent can access the scripts and run commands.
+4. Make the required data available locally. If it is stored elsewhere, give the agent the full data-folder path and access to that folder. For costs and figures only, also provide the completed dispatch-summary folder.
+5. Copy the prompt below into the task, replace the bracketed fields, and send it. Choose a small local check for a first run. You can also use this prompt in another coding assistant with equivalent file and command access.
+
+The [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) list available datasets. The agent still needs the actual files and a working R/Python environment.
+
+<details open>
+<summary><strong>Copy the PHASED runner prompt</strong></summary>
+
+```text
+Act as the runner for the PHASED analysis in this repository.
+Read README.md and the relevant entry scripts before running anything.
+
+My run settings:
+- Repository: [full path to Decarbonization-Tradeoffs]
+- Input data: [full path to the data folder]
+- Completed dispatch summaries: [full path, or "not available"]
+- Run type: [small local check / costs and figures from completed
+  summaries / full analysis]
+- Computing environment: [local computer / configured cluster]
+- New run name: [unique name]
+
+Use the existing model calculations, assumptions and validation checks.
+Keep the shared random draws and their simulation IDs. Use a new output
+folder and preserve existing results and uncommitted work.
+
+1. Check R, Python, required packages, input paths and available disk
+   space. Read the relevant scripts to identify the required files.
+   List any missing inputs and their catalogue or preparation step.
+   Do not invent inputs, substitute example data or bypass checks.
+
+2. Configure PHASED_R1_ROOT, PHASED_DATA_ROOT and PHASED_PYTHON_R1
+   as needed. Set PHASED_FINAL_R1 when using completed summaries.
+   Use the entry scripts linked in README.md. Make any necessary
+   local path settings explicit and report them.
+
+3. Run the syntax and operating-emissions checks before the selected
+   analysis. For a small local check, use the local dispatch entry
+   script and report its actual hours, year, pathways and simulation ID.
+   Do not label a partial run as a full reproduction.
+
+4. For costs and figures, validate that the supplied summaries contain
+   all 1,000 simulations, eight pathways and years 2025 through 2050.
+   Run the full cost pipeline, then the figure and table entry script.
+   Do not source individual cost components directly.
+
+5. For a full analysis, check the required computing resources, run
+   dispatch in the selected environment, combine the completed results,
+   then run costs and figures. Use only the cluster account and resources
+   I provide. If a required input or setting is missing, explain what is
+   needed and complete the independent checks that remain possible.
+
+6. Save commands, run settings, software versions, logs and validation
+   results with the outputs. If a stage fails, report the error and its
+   cause before changing scientific code or assumptions.
+
+Finish with a short report listing completed stages, output locations,
+validation results, failures and anything still needed. Keep credentials
+out of reports. Do not commit or push repository changes.
+```
+
+</details>
+
+**Expected result:** A run report with links to the generated files, the checks performed and any incomplete stages. Review those checks before using the outputs in a publication.
+
 ## Validation and interpretation
 
 The [source-check workflow](.github/workflows/source-checks.yml) checks R and Python syntax, runs the operating-emissions tests and checks tracked file sizes. Dispatch and cost scripts also check input coverage, energy accounting and output consistency.
@@ -212,7 +282,7 @@ The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reprod
 
 ---
 
-## Study, authors and citation
+## Relevant studies and use cases
 
 **Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.**
 
