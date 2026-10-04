@@ -20,6 +20,11 @@
 
 PHASED compares electricity decarbonization pathways by linking hourly power-system operation with costs, air-pollution damages, greenhouse-gas damages and ecological impacts. This repository contains the model and analysis code for its New England application, covering 2025 through 2050.
 
+<p align="center">
+  <img src="assets/toc-art.png" width="1000" alt="PHASED graphical abstract: stakeholder priorities inform regional decarbonization scenarios and environmental impacts, while hourly dispatch and shared uncertainty draws support pathway comparisons.">
+</p>
+<p align="center"><em>Graphical abstract from the New England study.</em></p>
+
 | Study region | Analysis period | Dispatch pathways | Simulations |
 | :---: | :---: | :---: | :---: |
 | **New England, U.S.A.** | **2025–2050** | **8** | **1,000** |
@@ -201,76 +206,52 @@ Supply EPA and FRED credentials through `EPA_API_KEY` and `FRED_API_KEY`. Keep c
 
 ### Option 2: Using an AI Agent
 
-Use a coding assistant that can read this repository and run local R and Python commands. The prompt below gives it the role of a **PHASED runner agent**. It uses the existing analysis scripts; there is no separate hosted PHASED agent to sign into.
+Give a coding assistant the [**PHASED agent runner instructions**](phased-agent-runner.json). This JSON file contains the script paths, run settings, data links, download checks, validation steps and reporting requirements. It is an instruction file, not an executable program or a hosted service.
 
-#### Access the agent
+> [!WARNING]
+> AI agents can choose the wrong data, change code incorrectly or claim a run succeeded when it did not. Review their commands, logs and results before using any output in a publication. Full runs and large downloads can consume substantial storage, time and computing funds. Give the agent only the access it needs, and do not share passwords, API keys or unpublished material without checking your provider's data policies. The JSON instructions do not enforce these limits; use the agent's permission controls.
 
-1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) to your computer. In GitHub Desktop, use **File → Clone repository** and select the repository URL.
-2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex** for work with code.
-3. Open your local `Decarbonization-Tradeoffs` folder as the project. Start a task in that folder, where the agent can access the scripts and run commands.
-4. Make the required data available locally. If it is stored elsewhere, give the agent the full data-folder path and access to that folder. For costs and figures only, also provide the completed dispatch-summary folder.
-5. Copy the prompt below into the task, replace the bracketed fields, and send it. Choose a small local check for a first run. You can also use this prompt in another coding assistant with equivalent file and command access.
+#### Access the agent and give it the file
 
-The [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) list available datasets. The agent still needs the actual files and a working R/Python environment.
+1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) to your computer using GitHub Desktop or Git.
+2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex**, open your local `Decarbonization-Tradeoffs` folder as the project, and start a task there. Another coding assistant with local file and command access can also use these instructions.
+3. Attach `phased-agent-runner.json` to the task, or tell the agent to read that file from the repository root. To obtain it separately, open the [JSON file on GitHub](phased-agent-runner.json) and use **Download raw file**. Attaching the file alone does not give an agent access to the repository or datasets.
+4. Supply the local repository and data paths in the prompt below. The agent can fill the JSON's `user_settings` from your prompt; you do not have to edit JSON by hand. For costs and figures only, also provide the completed dispatch-summary folder.
+5. Start with **small_local_check**. Review the input and software checks before a larger run. Authorize any large downloads or cluster work within a defined scope and resource budget.
+
+The JSON links to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable data catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). It explains how to find published download links and check file sizes, checksums and archive parts. Dataset availability must be checked at run time.
 
 <details open>
-<summary><strong>Copy the PHASED runner prompt</strong></summary>
+<summary><strong>Copy this prompt with the JSON file</strong></summary>
 
 ```text
-Act as the runner for the PHASED analysis in this repository.
-Read README.md and the relevant entry scripts before running anything.
+Read phased-agent-runner.json from the repository root, or use the
+attached copy. Use it as the instruction guide for running PHASED.
+Read README.md and the relevant scripts before executing a stage.
 
-My run settings:
-- Repository: [full path to Decarbonization-Tradeoffs]
-- Input data: [full path to the data folder]
-- Completed dispatch summaries: [full path, or "not available"]
-- Run type: [small local check / costs and figures from completed
-  summaries / full analysis]
-- Computing environment: [local computer / configured cluster]
+Fill user_settings from these details:
+- Repository: [full local path]
+- Input data: [full local path]
+- Completed dispatch summaries: [full local path, or not available]
+- Run type: [small_local_check / costs_and_figures / full_analysis]
+- Computing environment: [local / cluster]
 - New run name: [unique name]
 
-Use the existing model calculations, assumptions and validation checks.
-Keep the shared random draws and their simulation IDs. Use a new output
-folder and preserve existing results and uncommitted work.
+Start by checking the software, required inputs, data links and available
+resources. Report missing files and failed checks. Do not invent inputs
+or change scientific calculations to make a run pass.
 
-1. Check R, Python, required packages, input paths and available disk
-   space. Read the relevant scripts to identify the required files.
-   List any missing inputs and their catalogue or preparation step.
-   Do not invent inputs, substitute example data or bypass checks.
+Proceed with the selected run when its requirements are met. Ask before
+large downloads or cluster submissions unless I have already authorized
+their scope and resource limits. Preserve existing results and user changes.
 
-2. Configure PHASED_R1_ROOT, PHASED_DATA_ROOT and PHASED_PYTHON_R1
-   as needed. Set PHASED_FINAL_R1 when using completed summaries.
-   Use the entry scripts linked in README.md. Make any necessary
-   local path settings explicit and report them.
-
-3. Run the syntax and operating-emissions checks before the selected
-   analysis. For a small local check, use the local dispatch entry
-   script and report its actual hours, year, pathways and simulation ID.
-   Do not label a partial run as a full reproduction.
-
-4. For costs and figures, validate that the supplied summaries contain
-   all 1,000 simulations, eight pathways and years 2025 through 2050.
-   Run the full cost pipeline, then the figure and table entry script.
-   Do not source individual cost components directly.
-
-5. For a full analysis, check the required computing resources, run
-   dispatch in the selected environment, combine the completed results,
-   then run costs and figures. Use only the cluster account and resources
-   I provide. If a required input or setting is missing, explain what is
-   needed and complete the independent checks that remain possible.
-
-6. Save commands, run settings, software versions, logs and validation
-   results with the outputs. If a stage fails, report the error and its
-   cause before changing scientific code or assumptions.
-
-Finish with a short report listing completed stages, output locations,
-validation results, failures and anything still needed. Keep credentials
-out of reports. Do not commit or push repository changes.
+Save a run report with commands, input sources, output locations,
+validation results and remaining work. Do not commit or push changes.
 ```
 
 </details>
 
-**Expected result:** A run report with links to the generated files, the checks performed and any incomplete stages. Review those checks before using the outputs in a publication.
+**Expected result:** A run report saved with the outputs, stating exactly what ran, which checks passed and what remains incomplete. Agent assistance does not replace scientific review.
 
 ## Validation and interpretation
 
