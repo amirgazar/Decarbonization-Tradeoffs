@@ -2,8 +2,8 @@
 # regenerate the publication exhibits from one completed cost run so the figures and tables share inputs.
 root_R1 <- Sys.getenv("PHASED_R1_ROOT", unset=getwd())
 if (!file.exists(file.path(root_R1, "README.md"))) stop("Set PHASED_R1_ROOT to the repository root")
-home_R1 <- file.path(root_R1,'7 Reproduction Information Document/Final results review R1')
-cost_home_R1 <- file.path(root_R1,'7 Reproduction Information Document/Cost production audit R1')
+home_R1 <- file.path(root_R1,'6 Figures/Final results review R1')
+cost_home_R1 <- file.path(root_R1,'3 Total Costs/Cost production audit R1')
 output_R1 <- readLines(file.path(cost_home_R1,'Last_output_R1.txt'),warn=FALSE)[1]
 stopifnot(file.exists(file.path(output_R1,'COMPLETE.txt')))
 python_R1 <- Sys.getenv('PHASED_PYTHON_R1',unset=Sys.which("python3"))

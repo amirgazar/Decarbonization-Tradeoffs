@@ -4,7 +4,7 @@ from pathlib import Path
 import os,json
 import numpy as np,pandas as pd
 ROOT=Path(os.environ.get('PHASED_R1_ROOT', os.getcwd()))
-RUN=Path(os.environ.get('PHASED_COST_OUTPUT_R1',(ROOT/'7 Reproduction Information Document/Cost production audit R1/Last_output_R1.txt').read_text().strip()))
+RUN=Path(os.environ.get('PHASED_COST_OUTPUT_R1',(ROOT/'3 Total Costs/Cost production audit R1/Last_output_R1.txt').read_text().strip()))
 OUT=Path(os.environ.get('PHASED_REVIEW_OUTPUT_R1',str(Path(__file__).resolve().parent/'Results R1')))
 DEST=OUT/'AP4 comparison R1';DEST.mkdir(parents=True,exist_ok=True)
 comp=RUN/'discount_R1_0.015/Components R1'

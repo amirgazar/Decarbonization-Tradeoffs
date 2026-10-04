@@ -111,9 +111,9 @@
     "emission_artifact": "2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Operating_emission_models_R1.rds",
     "cluster_controller": "2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/1 ARC Control_R1.R",
     "final_summary": "2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/Support R1/6_Summarization_Code_Final_R1.R",
-    "cost_pipeline": "7 Reproduction Information Document/Cost production audit R1/1 Run full cost pipeline_R1.R",
-    "cost_validation": "7 Reproduction Information Document/Cost production audit R1/Final_cost_support_R1.R",
-    "figures_and_tables": "7 Reproduction Information Document/Final results review R1/Run_figures_and_tables_R1.R"
+    "cost_pipeline": "3 Total Costs/Cost production audit R1/1 Run full cost pipeline_R1.R",
+    "cost_validation": "3 Total Costs/Cost production audit R1/Final_cost_support_R1.R",
+    "figures_and_tables": "6 Figures/Final results review R1/Run_figures_and_tables_R1.R"
   },
   "required_final_files": [
     "Yearly_Results.csv",

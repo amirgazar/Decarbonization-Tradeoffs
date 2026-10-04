@@ -3,7 +3,7 @@
 # 1. In RStudio edit ROOT_R1 / FINAL_R1 if needed, then Source this file. No Terminal or ARC rerun is needed.
 ROOT_R1 <- Sys.getenv("PHASED_R1_ROOT", unset=getwd())
 if (!file.exists(file.path(ROOT_R1, "README.md"))) stop("Set PHASED_R1_ROOT to the repository root")
-COST_REVIEW_HOME_R1 <- Sys.getenv('PHASED_COST_REVIEW_HOME_R1',unset=file.path(ROOT_R1,'7 Reproduction Information Document/Cost production audit R1'))
+COST_REVIEW_HOME_R1 <- Sys.getenv('PHASED_COST_REVIEW_HOME_R1',unset=file.path(ROOT_R1,'3 Total Costs/Cost production audit R1'))
 FINAL_R1 <- Sys.getenv('PHASED_FINAL_R1',unset=file.path(ROOT_R1,'2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/Downloads R1/R1_ensemble101_1000_20260920_01/Final'))
 EXPECTED_SIMULATIONS_R1 <- 1:1000
 AIR_MODEL_R1 <- Sys.getenv('PHASED_AIR_MODEL_R1',unset='AP4_hybrid')

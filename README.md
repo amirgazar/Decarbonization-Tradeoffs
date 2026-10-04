@@ -108,7 +108,6 @@ The full analysis uses 1,000 simulations. Shared draws preserve paired compariso
 | [4 External Data](4%20External%20Data/) | Supporting source tables and reference material. |
 | [5 Ecological impacts](5%20Ecological%20impacts/) | Ecological calculations and notebooks. |
 | [6 Figures](6%20Figures/) | Figure scripts, notebooks and publication-table exports. |
-| [7 Reproduction Information Document](7%20Reproduction%20Information%20Document/) | Cost and figure entry scripts, supporting checks and the original reproduction document. |
 
 ## Running the analysis
 
@@ -187,11 +186,11 @@ The [summary script](2%20Generation%20Expansion%20Model/5%20Dispatch%20Curve/2%2
 <details>
 <summary><strong>4. Calculate costs</strong></summary>
 
-Point to the completed summary folder and run the [full cost pipeline](7%20Reproduction%20Information%20Document/Cost%20production%20audit%20R1/1%20Run%20full%20cost%20pipeline_R1.R):
+Point to the completed summary folder and run the [full cost pipeline](3%20Total%20Costs/Cost%20production%20audit%20R1/1%20Run%20full%20cost%20pipeline_R1.R):
 
 ```r
 Sys.setenv(PHASED_FINAL_R1 = "/path/to/completed/Final")
-source("7 Reproduction Information Document/Cost production audit R1/1 Run full cost pipeline_R1.R")
+source("3 Total Costs/Cost production audit R1/1 Run full cost pipeline_R1.R")
 ```
 
 The runner checks all 1,000 simulations, eight dispatch pathways and years 2025 through 2050 before calculating costs. It runs the 13 components at each discount rate and writes results to a new folder. `Last_output_R1.txt` records the completed output location.
@@ -207,10 +206,10 @@ The default air-damage setting is `AP4_hybrid`. Set `PHASED_AIR_MODEL_R1` to use
 <details>
 <summary><strong>5. Generate figures and tables</strong></summary>
 
-Keep `PHASED_FINAL_R1` set to the same dispatch summaries, then run the [figure and table entry script](7%20Reproduction%20Information%20Document/Final%20results%20review%20R1/Run_figures_and_tables_R1.R):
+Keep `PHASED_FINAL_R1` set to the same dispatch summaries, then run the [figure and table entry script](6%20Figures/Final%20results%20review%20R1/Run_figures_and_tables_R1.R):
 
 ```r
-source("7 Reproduction Information Document/Final results review R1/Run_figures_and_tables_R1.R")
+source("6 Figures/Final results review R1/Run_figures_and_tables_R1.R")
 ```
 
 This stage reads the completed cost output and generates cost figures, annual summaries and ecological exhibits. It also requires the capacity workbook, county geometry, viewshed workbook and other reference inputs used by those scripts. The notebooks in folders 5 and 6 provide additional calculations and plots.
@@ -281,8 +280,9 @@ The [source-check workflow](.github/workflows/source-checks.yml) checks R and Py
 
 Syntax and unit checks do not replace a complete run with the required datasets. Annual accounting checks do not establish that every hourly storage, ramp or import constraint is satisfied. Separate weather-profile draws do not preserve joint weather, and storage input units must match the model's energy-capacity interpretation.
 
-The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf) provides background on the first submission. Use the entry scripts and instructions above for the current workflow.
 
 ## License
 
-This repository is distributed under [Creative Commons Attribution 4.0 International](LICENSE.txt). See [AUTHORS.txt](AUTHORS.txt) for attribution. External datasets retain their own source-specific terms.
+This repository is distributed under [Creative Commons Attribution 4.0 International](LICENSE.txt). External datasets retain their own source-specific terms.
+
+Copyright (c) 2025 Amir M. Gazar, Chloe Jackson, Georgia Mavrommati, Rich B. Howarth and Ryan S.D. Calder.

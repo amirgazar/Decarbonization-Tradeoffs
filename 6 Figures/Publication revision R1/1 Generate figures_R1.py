@@ -26,7 +26,7 @@ from Figure6_county_R1 import county_figures
 BASE = Path(__file__).resolve().parent
 # prefer the completed full ensemble so direct runs cannot silently publish the older 50-run preview.
 ROOT = BASE.parents[1]
-pointer = ROOT / "7 Reproduction Information Document/Cost production audit R1/Last_output_R1.txt"
+pointer = ROOT / "3 Total Costs/Cost production audit R1/Last_output_R1.txt"
 completed = Path(pointer.read_text().strip()) if pointer.exists() else None
 if completed is not None and (completed / "COMPLETE.txt").exists():
     DEFAULT_INPUT = completed / "Figure inputs R1"

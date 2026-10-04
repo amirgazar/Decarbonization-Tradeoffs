@@ -1,5 +1,4 @@
 /000 Deleted/
-/7 Reproduction Information Document/Code review 2026-09-19/
 **/.DS_Store
 **/.ipynb_checkpoints/
 **/__pycache__/
@@ -12,8 +11,7 @@
 **/Results R1/
 **/1 Test Results R1/
 **/1 Test Results R1.v2/
-/7 Reproduction Information Document/VER and 50 simulation cost review R1/R1_uncertainty_50_batches_01_20260910_104748/
-/7 Reproduction Information Document/Cost production audit R1/Full_intermediate_outputs_R1.zip
+/3 Total Costs/Cost production audit R1/Full_intermediate_outputs_R1.zip
 
 /1 Decarbonization Pathways/Hourly_Installed_Capacity.csv
 **/1 Comprehensive Results Samples/
@@ -26,15 +24,14 @@
 **/.RData
 **/*.log
 /Review outputs R1/
-/7 Reproduction Information Document/Final results review R1/Review preparation R1/
+/6 Figures/Final results review R1/Review preparation R1/
 /2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_Generation_Emissions.csv
 /2 Generation Expansion Model/4 Randomization/1 Randomized Data/Random_Sequence.csv
-/7 Reproduction Information Document/Cost production audit R1/Inputs R1/ATB_2024_numeric_R1.csv
+/3 Total Costs/Cost production audit R1/Inputs R1/ATB_2024_numeric_R1.csv
 
-/7 Reproduction Information Document/Final ensemble readiness R1/
-/7 Reproduction Information Document/Final results review R1/documents.json
-/7 Reproduction Information Document/Final results review R1/workbooks.json
-/7 Reproduction Information Document/Final results review R1/review_content.json
+/6 Figures/Final results review R1/documents.json
+/6 Figures/Final results review R1/workbooks.json
+/6 Figures/Final results review R1/review_content.json
 **/Delivery_manifest_R1.json
 **/Result_storage_manifest_R1.json
 **/Source_manifest_R1.json

@@ -2,7 +2,7 @@
 # generate Figures 5, 6, S5 and S6 from one completed 1000-run AP4 cost output.
 # No dispatch or cost recalculation.
 ROOT_R1 <- Sys.getenv("PHASED_R1_ROOT", unset=getwd())
-HOME_R1 <- file.path(ROOT_R1,'7 Reproduction Information Document/Cost production audit R1')
+HOME_R1 <- file.path(ROOT_R1,'3 Total Costs/Cost production audit R1')
 run_figures_R1 <- function() {
  suppressPackageStartupMessages(library(data.table))
  last <- file.path(HOME_R1,'Last_output_R1.txt')

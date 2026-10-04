@@ -13,7 +13,7 @@ ROOT=Path(os.environ.get('PHASED_R1_ROOT', os.getcwd()))
 FINAL=Path(os.environ.get('PHASED_FINAL_R1',str(ROOT/'2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/Downloads R1/R1_ensemble101_1000_20260920_01/Final')))
 OUTPUT=Path(os.environ.get('PHASED_ANNUAL_OUTPUT_R1',''))
 if not os.environ.get('PHASED_ANNUAL_OUTPUT_R1'):
-    OUTPUT=Path((ROOT/'7 Reproduction Information Document/Cost production audit R1/Last_annual_output_R1.txt').read_text().strip())
+    OUTPUT=Path((ROOT/'3 Total Costs/Cost production audit R1/Last_annual_output_R1.txt').read_text().strip())
 DEST=OUTPUT/'Figures R1';DEST.mkdir(parents=True,exist_ok=True)
 PATHS=['A','B1','B2','B3','C1','C2','C3','D']
 plt.rcParams.update({'font.size':11,'axes.spines.top':False,'axes.spines.right':False,'svg.fonttype':'none','pdf.fonttype':42})

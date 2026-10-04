@@ -11,7 +11,7 @@ from matplotlib.patches import Polygon
 from matplotlib.colors import TwoSlopeNorm
 from matplotlib.cm import ScalarMappable
 R=Path(os.environ.get('PHASED_R1_ROOT', os.getcwd()))
-P=R/'7 Reproduction Information Document/Final results review R1'
+P=R/'6 Figures/Final results review R1'
 O=Path(os.environ.get('PHASED_AUTHOR_FIGURE_OUTPUT_R1',str(P/'Results R1/Figures R1')));O.mkdir(parents=True,exist_ok=True)
 plt.rcParams.update({'font.size':16,'svg.fonttype':'none','pdf.fonttype':42,'axes.spines.top':False,'axes.spines.right':False})
 def save(fig,name):
