@@ -235,11 +235,12 @@ Give a coding assistant the [**PHASED agent runner instructions**](phased-agent-
 #### Access the agent and give it the file
 
 1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) to your computer using GitHub Desktop or Git.
-2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex**, open your local `Decarbonization-Tradeoffs` folder as the project, and start a task there. Another coding assistant with local file and command access can also use these instructions.
+2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex**, open your local `Decarbonization-Tradeoffs` folder as the project, and start a task there. Another coding assistant with local file and command access can also use these instructions. 
 3. Attach `phased-agent-runner.json` to the task, or tell the agent to read that file from the repository root. To obtain it separately, open the [JSON file on GitHub](phased-agent-runner.json) and use **Download raw file**. Attaching the file alone does not give an agent access to the repository or datasets.
 4. Supply the local repository and data paths in the prompt below. The agent can fill the JSON's `user_settings` from your prompt; you do not have to edit JSON by hand. For costs and figures only, also provide the completed dispatch-summary folder.
 5. Start with **small_local_check**. Review the input and software checks before a larger run. Authorize any large downloads or cluster work within a defined scope and resource budget.
 
+NOTE: Always use the latest AI model available to you for the best result. 
 The JSON links to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable data catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). It explains how to find published download links and check file sizes, checksums and archive parts. Dataset availability must be checked at run time.
 
 <details open>
