@@ -18,22 +18,22 @@
 
 ## Relevant studies and use cases
 
-**Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.**
+**Correlated uncertainty propagation enables multi-impact decision support for electrical system decarbonization**
 
 <p>
   Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
 
-PHASED compares electricity decarbonization pathways by linking hourly power-system operation with costs, air-pollution damages, greenhouse-gas damages and ecological impacts. This repository contains the model and analysis code for its New England application, covering 2025 through 2050.
+### Abstract
+
+Decarbonization planning requires comparing electricity pathways across economic, ecological and health outcomes under uncertainty. We present PHASED (Probabilistic Hourly Assessment of Scenarios for Electrical Decarbonization), which simulates hourly electricity supply and compares prescribed pathways using the same sampled inputs. At a 2% discount rate, mean monetized costs across expansion pathways and costing methods range from $448.3 to $509.7 billion (2024 USD, 2025–2050). For eight New England pathways over 2025–2050, we compare uncertainty in absolute costs with uncertainty in paired differences across 1,000 simulations. The standard deviation of estimates of total cost differences across pathways is roughly 1/3 that of absolute costs for a given pathway. A pathway incorporating small modular nuclear reactors lowers total monetized costs relative to the “All Options” pathway retained as the baseline planning scenario by utilities and governments. Pathways with similar mean monetized costs also differ widely in air emissions and other ecological impacts known to be of interest to stakeholders including avian mortality and water withdrawals.
+
+**Keywords:** decarbonization, energy system model, cost-benefit analysis, uncertainty quantification
 
 <p align="center">
   <img src="assets/toc-art.png" width="1000" alt="PHASED graphical abstract: stakeholder priorities inform regional decarbonization scenarios and environmental impacts, while hourly dispatch and shared uncertainty draws support pathway comparisons.">
 </p>
 <p align="center"><em>Graphical abstract from the New England study.</em></p>
-
-| Study region | Analysis period | Dispatch pathways | Simulations |
-| :---: | :---: | :---: | :---: |
-| **New England, U.S.A.** | **2025–2050** | **8** | **1,000** |
 
 <details>
 <summary>Affiliations and contact</summary>
@@ -48,8 +48,6 @@ PHASED compares electricity decarbonization pathways by linking hourly power-sys
 </p>
 
 </details>
-
-Use [citation.bib](citation.bib) for the archived preprint citation and the website's [citation page](https://amirgazar.github.io/us-powerplants-phased/citation.html) for related resources. Cite external datasets according to their source records.
 
 ---
 
