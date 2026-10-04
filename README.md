@@ -1,6 +1,40 @@
-<h1 align="center">PHASED</h1>
-<p align="center"><strong>Electricity decarbonization pathways</strong></p>
-<p align="center">Probabilistic Hourly Assessment of Scenarios for Electrical Decarbonization</p>
+<h1 align="center">Probabilistic Hourly Assessment of Scenarios<br>for Electrical Decarbonization</h1>
+<p align="center"><strong>Hourly electricity modeling for decisions on costs, health and ecological impacts</strong></p>
+
+## Relevant studies and use cases
+
+**Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.**
+
+<p>
+  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
+</p>
+
+PHASED compares electricity decarbonization pathways by linking hourly power-system operation with costs, air-pollution damages, greenhouse-gas damages and ecological impacts. This repository contains the model and analysis code for its New England application, covering 2025 through 2050.
+
+<p align="center">
+  <img src="assets/toc-art.png" width="1000" alt="PHASED graphical abstract: stakeholder priorities inform regional decarbonization scenarios and environmental impacts, while hourly dispatch and shared uncertainty draws support pathway comparisons.">
+</p>
+<p align="center"><em>Graphical abstract from the New England study.</em></p>
+
+| Study region | Analysis period | Dispatch pathways | Simulations |
+| :---: | :---: | :---: | :---: |
+| **New England, U.S.A.** | **2025–2050** | **8** | **1,000** |
+
+<details>
+<summary>Affiliations and contact</summary>
+
+<p>
+  <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <sup>3</sup>School for the Environment, University of Massachusetts Boston, Boston, MA, 02125, USA<br/>
+  <sup>4</sup>Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br/>
+  <sup>5</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
+  <strong>* Contact:</strong> rsdc@vt.edu
+</p>
+
+</details>
+
+Use [citation.bib](citation.bib) for the archived preprint citation and the website's [citation page](https://amirgazar.github.io/us-powerplants-phased/citation.html) for related resources. Cite external datasets according to their source records.
 
 <p align="center">
   <a href="https://amirgazar.github.io/us-powerplants-phased/index.html"><img src="https://img.shields.io/badge/Visit_the_website-163B50?style=for-the-badge" alt="Visit the U.S. Power Plants and PHASED website"></a>
@@ -17,17 +51,6 @@
 </p>
 
 ---
-
-PHASED compares electricity decarbonization pathways by linking hourly power-system operation with costs, air-pollution damages, greenhouse-gas damages and ecological impacts. This repository contains the model and analysis code for its New England application, covering 2025 through 2050.
-
-<p align="center">
-  <img src="assets/toc-art.png" width="1000" alt="PHASED graphical abstract: stakeholder priorities inform regional decarbonization scenarios and environmental impacts, while hourly dispatch and shared uncertainty draws support pathway comparisons.">
-</p>
-<p align="center"><em>Graphical abstract from the New England study.</em></p>
-
-| Study region | Analysis period | Dispatch pathways | Simulations |
-| :---: | :---: | :---: | :---: |
-| **New England, U.S.A.** | **2025–2050** | **8** | **1,000** |
 
 ## Explore the model and data
 
@@ -260,31 +283,6 @@ The [source-check workflow](.github/workflows/source-checks.yml) checks R and Py
 Syntax and unit checks do not replace a complete run with the required datasets. Annual accounting checks do not establish that every hourly storage, ramp or import constraint is satisfied. Separate weather-profile draws do not preserve joint weather, and storage input units must match the model's energy-capacity interpretation.
 
 The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf) provides background on the first submission. Use the entry scripts and instructions above for the current workflow.
-
----
-
-## Relevant studies and use cases
-
-**Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.**
-
-<p>
-  Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
-</p>
-<details>
-<summary>Affiliations and contact</summary>
-
-<p>
-  <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
-  <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
-  <sup>3</sup>School for the Environment, University of Massachusetts Boston, Boston, MA, 02125, USA<br/>
-  <sup>4</sup>Environmental Program, Dartmouth College, Hanover, NH, 03755, USA<br/>
-  <sup>5</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
-  <strong>* Contact:</strong> rsdc@vt.edu
-</p>
-
-</details>
-
-Use [citation.bib](citation.bib) for the archived preprint citation and the website's [citation page](https://amirgazar.github.io/us-powerplants-phased/citation.html) for related resources. Cite external datasets according to their source records.
 
 ## License
 
