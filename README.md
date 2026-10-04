@@ -1,4 +1,19 @@
 <h1 align="center">Probabilistic Hourly Assessment of Scenarios<br>for Electrical Decarbonization</h1>
+
+<p align="center">
+  <a href="https://amirgazar.github.io/us-powerplants-phased/index.html"><img src="https://img.shields.io/badge/Visit_the_website-163B50?style=for-the-badge" alt="Visit the U.S. Power Plants and PHASED website"></a>
+  <a href="https://amirgazar.github.io/us-powerplants-phased/phased-model.html"><img src="https://img.shields.io/badge/Explore_PHASED-227C83?style=for-the-badge" alt="Explore the PHASED model"></a>
+  <a href="https://doi.org/10.31224/4684"><img src="https://img.shields.io/badge/Read_the_preprint-596778?style=for-the-badge" alt="Read the study preprint"></a>
+</p>
+
+<p align="center">
+  <a href="#explore-the-model-and-data">Model and data</a> ·
+  <a href="#what-the-model-does">Overview</a> ·
+  <a href="#repository-guide">Repository guide</a> ·
+  <a href="#running-the-analysis">Run the analysis</a> ·
+  <a href="#relevant-studies-and-use-cases">Studies and use cases</a>
+</p>
+
 <p align="center"><strong>Hourly electricity modeling for decisions on costs, health and ecological impacts</strong></p>
 
 ## Relevant studies and use cases
@@ -35,20 +50,6 @@ PHASED compares electricity decarbonization pathways by linking hourly power-sys
 </details>
 
 Use [citation.bib](citation.bib) for the archived preprint citation and the website's [citation page](https://amirgazar.github.io/us-powerplants-phased/citation.html) for related resources. Cite external datasets according to their source records.
-
-<p align="center">
-  <a href="https://amirgazar.github.io/us-powerplants-phased/index.html"><img src="https://img.shields.io/badge/Visit_the_website-163B50?style=for-the-badge" alt="Visit the U.S. Power Plants and PHASED website"></a>
-  <a href="https://amirgazar.github.io/us-powerplants-phased/phased-model.html"><img src="https://img.shields.io/badge/Explore_PHASED-227C83?style=for-the-badge" alt="Explore the PHASED model"></a>
-  <a href="https://doi.org/10.31224/4684"><img src="https://img.shields.io/badge/Read_the_preprint-596778?style=for-the-badge" alt="Read the study preprint"></a>
-</p>
-
-<p align="center">
-  <a href="#explore-the-model-and-data">Model and data</a> ·
-  <a href="#what-the-model-does">Overview</a> ·
-  <a href="#repository-guide">Repository guide</a> ·
-  <a href="#running-the-analysis">Run the analysis</a> ·
-  <a href="#relevant-studies-and-use-cases">Studies and use cases</a>
-</p>
 
 ---
 
