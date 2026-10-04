@@ -1,31 +1,72 @@
-# PHASED: electricity decarbonization pathways
+<h1 align="center">PHASED</h1>
+<p align="center"><strong>Electricity decarbonization pathways</strong></p>
+<p align="center">Probabilistic Hourly Assessment of Scenarios for Electrical Decarbonization</p>
 
-**Probabilistic Hourly Assessment of Scenarios for Electrical Decarbonization**
+<p align="center">
+  <a href="https://amirgazar.github.io/us-powerplants-phased/index.html"><img src="https://img.shields.io/badge/Visit_the_website-163B50?style=for-the-badge" alt="Visit the U.S. Power Plants and PHASED website"></a>
+  <a href="https://amirgazar.github.io/us-powerplants-phased/phased-model.html"><img src="https://img.shields.io/badge/Explore_PHASED-227C83?style=for-the-badge" alt="Explore the PHASED model"></a>
+  <a href="https://doi.org/10.31224/4684"><img src="https://img.shields.io/badge/Read_the_preprint-596778?style=for-the-badge" alt="Read the study preprint"></a>
+</p>
+
+<p align="center">
+  <a href="#explore-the-model-and-data">Model and data</a> ·
+  <a href="#what-the-model-does">Overview</a> ·
+  <a href="#repository-guide">Repository guide</a> ·
+  <a href="#running-the-analysis">Run the analysis</a> ·
+  <a href="#study-authors-and-citation">Citation</a>
+</p>
+
+---
 
 PHASED compares electricity decarbonization pathways by linking hourly power-system operation with costs, air-pollution damages, greenhouse-gas damages and ecological impacts. This repository contains the model and analysis code for its New England application, covering 2025 through 2050.
 
-**[U.S. Power Plants and PHASED website](https://amirgazar.github.io/us-powerplants-phased/index.html)** · **[Explore PHASED](https://amirgazar.github.io/us-powerplants-phased/phased-model.html)** · **[Study preprint](https://doi.org/10.31224/4684)**
+| Study region | Analysis period | Dispatch pathways | Simulations |
+| :---: | :---: | :---: | :---: |
+| **New England, U.S.A.** | **2025–2050** | **8** | **1,000** |
 
 ## Explore the model and data
 
 The companion website brings the power-plant database and PHASED resources together. Use it to find source data, inspect model components and access available output downloads.
 
-| Resource | What you can find |
-| --- | --- |
-| [Power-plant search and reports](https://amirgazar.github.io/us-powerplants-phased/datalookup.html) | Individual U.S. fossil-fuel power plants, generation and emissions reports, and data links. |
-| [State and national datasets](https://amirgazar.github.io/us-powerplants-phased/download.html) | Facility information and simulated hourly power-plant data. |
-| [Historical EPA records](https://amirgazar.github.io/us-powerplants-phased/campd.html) | Historical generation and emissions records used to develop the plant models. |
-| [PHASED input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) | Model input datasets, source details and download availability. |
-| [Interactive model diagram](https://amirgazar.github.io/us-powerplants-phased/model-components.html) | The main calculation steps and links to their code. |
-| [PHASED output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) | Available outputs from the New England application. |
+<table>
+<tr>
+<td width="50%" valign="top">
 
-Large datasets are stored separately from the code. Check each catalogue entry for its download status, citation and reuse terms.
+### U.S. power-plant data
+
+Find plants, inspect their reports and obtain generation and emissions data.
+
+- [Search power plants and reports](https://amirgazar.github.io/us-powerplants-phased/datalookup.html)
+- [Download state and national datasets](https://amirgazar.github.io/us-powerplants-phased/download.html)
+- [Access historical EPA records](https://amirgazar.github.io/us-powerplants-phased/campd.html)
+
+</td>
+<td width="50%" valign="top">
+
+### PHASED model resources
+
+Follow the analysis from source inputs to model components and available results.
+
+- [Browse the input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html)
+- [Explore the interactive model diagram](https://amirgazar.github.io/us-powerplants-phased/model-components.html)
+- [Browse model output downloads](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html)
+
+</td>
+</tr>
+</table>
+
+> **Data access:** Large datasets are stored separately from the code. Each catalogue entry lists its download status, citation and reuse terms.
 
 ## What the model does
 
 The analysis follows electricity supply and demand hour by hour across eight pathways: A, B1, B2, B3, C1, C2, C3 and D. It combines installed-capacity schedules, uncertain generation, electricity imports, storage operation and fossil-fuel dispatch. Power-plant emissions are calculated from the final operating conditions.
 
-The cost analysis combines investment, fixed and variable operating costs, fuel, electricity imports, greenhouse-gas damages, air-pollution damages and unmet-demand penalties. Ecological calculations cover land occupation, bird and bat mortality, water withdrawals and visual impacts.
+| Electricity system | Costs and damages | Ecological impacts |
+| --- | --- | --- |
+| Hourly generation and imports | Investment and operating costs | Land occupation |
+| Storage and demand balance | Fuel and electricity purchases | Bird and bat mortality |
+| Fossil-fuel operation and emissions | Climate and air-pollution damages | Water withdrawals |
+| Unmet demand | Unmet-demand penalties | Visual impacts |
 
 The full analysis uses 1,000 simulations. Shared draws preserve paired comparisons between pathways. Costs are evaluated at discount rates of 1.5%, 2% and 2.5%. Pathway B3 has two cost-accounting cases, giving nine cost presentations from eight dispatch pathways.
 
@@ -44,9 +85,24 @@ The full analysis uses 1,000 simulations. Shared draws preserve paired compariso
 
 ## Running the analysis
 
-The workflow is **prepare inputs → run dispatch → combine results → calculate costs → generate figures and tables**. You can start from completed dispatch summaries if you only need to run the cost and figure stages.
+```mermaid
+flowchart LR
+    A[Prepare inputs] --> B[Run hourly dispatch]
+    B --> C[Combine results]
+    C --> D[Calculate costs]
+    D --> E[Create figures and tables]
+    classDef inputs fill:#eaf3f8,stroke:#466e85,color:#163b50;
+    classDef model fill:#e8f4f2,stroke:#418980,color:#174e47;
+    classDef outputs fill:#f7f1e5,stroke:#a18043,color:#62491c;
+    class A inputs;
+    class B,C model;
+    class D,E outputs;
+```
 
-### 1. Set up the software and project paths
+**Choose your starting point:** Use step 1 for a new setup. If you already have completed dispatch summaries, continue with step 4. Expand each step for its inputs, settings and commands.
+
+<details>
+<summary><strong>1. Set up the software and project paths</strong></summary>
 
 The study used R 4.4.2. Figure scripts and notebooks also require Python 3. Scripts list their package imports. Main dependencies include:
 
@@ -66,7 +122,10 @@ Sys.setenv(
 
 `PHASED_DATA_ROOT` can point to a separate input-data folder with the same numbered folder structure. Set `PHASED_PYTHON_R1` to your Python executable if it is not available on the system path. Run Python scripts from the repository root or set `PHASED_R1_ROOT` in their environment.
 
-### 2. Obtain and prepare the inputs
+</details>
+
+<details>
+<summary><strong>2. Obtain and prepare the inputs</strong></summary>
 
 Start with the [PHASED input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and the [power-plant datasets](https://amirgazar.github.io/us-powerplants-phased/download.html). Run the preparation scripts for the stages you need. Keep the same random columns across pathways when reproducing paired results.
 
@@ -74,7 +133,10 @@ Dispatch requires capacity schedules, facility tables, generation distributions,
 
 Large generated tables, including `Hourly_Installed_Capacity.csv`, `Fossil_Fuel_Generation_Emissions.csv` and `Random_Sequence.csv`, must be supplied or generated before a full run. The saved operating-emissions model must match its helper code and fleet input. Use the [calibration script](2%20Generation%20Expansion%20Model/5%20Dispatch%20Curve/2%20Advanced%20Research%20Computing/1%20ARC%20Codes/Support%20R1/0%20Calibrate%20Operating%20Emissions_R1.R) after changing those calculations or the fleet.
 
-### 3. Run dispatch and combine the results
+</details>
+
+<details>
+<summary><strong>3. Run dispatch and combine the results</strong></summary>
 
 For a small local run, open [Run local review](2%20Generation%20Expansion%20Model/5%20Dispatch%20Curve/1%20Run%20local%20review_R1.R). Set the action, hours, start year and pathways. Its default is a 2,000-hour test in 2050 using simulation 1. Set `PHASED_RANDOM_FILE` to choose the saved random table. A partial run cannot supply the annual production cost analysis.
 
@@ -96,7 +158,10 @@ The [summary script](2%20Generation%20Expansion%20Model/5%20Dispatch%20Curve/2%2
 - `Coverage_and_accounting.csv`
 - `SUMMARY_COMPLETE.txt`
 
-### 4. Calculate costs
+</details>
+
+<details>
+<summary><strong>4. Calculate costs</strong></summary>
 
 Point to the completed summary folder and run the [full cost pipeline](7%20Reproduction%20Information%20Document/Cost%20production%20audit%20R1/1%20Run%20full%20cost%20pipeline_R1.R):
 
@@ -113,7 +178,10 @@ Required supporting inputs include the NREL ATB table at `4 External Data/NREL A
 
 The default air-damage setting is `AP4_hybrid`. Set `PHASED_AIR_MODEL_R1` to use another supported valuation mode.
 
-### 5. Generate figures and tables
+</details>
+
+<details>
+<summary><strong>5. Generate figures and tables</strong></summary>
 
 Keep `PHASED_FINAL_R1` set to the same dispatch summaries, then run the [figure and table entry script](7%20Reproduction%20Information%20Document/Final%20results%20review%20R1/Run_figures_and_tables_R1.R):
 
@@ -123,11 +191,16 @@ source("7 Reproduction Information Document/Final results review R1/Run_figures_
 
 This stage reads the completed cost output and generates cost figures, annual summaries and ecological exhibits. It also requires the capacity workbook, county geometry, viewshed workbook and other reference inputs used by those scripts. The notebooks in folders 5 and 6 provide additional calculations and plots.
 
-### Additional settings
+</details>
+
+<details>
+<summary><strong>Additional settings</strong></summary>
 
 Historical data helpers use `PHASED_STATES_HISTORICAL_DATA`, `PHASED_SIMULATED_DATA_FACILITY_LEVEL`, `PHASED_SIMULATED_DATA_PARQUET`, `PHASED_ARC_SSH_FOSSIL_FUELS_USA`, `PHASED_AUTOMATION` and `PHASED_FOSSIL_FUELS_RDS` for their input or output locations. Set only the variables needed by the helper you are running. The separate AP4 cluster controller uses `PHASED_AP4_ARC`.
 
 Supply EPA and FRED credentials through `EPA_API_KEY` and `FRED_API_KEY`. Keep credentials, saved R sessions, notebook checkpoints and large generated results outside version control.
+
+</details>
 
 ## Validation and interpretation
 
@@ -137,6 +210,8 @@ Syntax and unit checks do not replace a complete run with the required datasets.
 
 The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reproduction%20Information%20Document.pdf) provides background on the first submission. Use the entry scripts and instructions above for the current workflow.
 
+---
+
 ## Study, authors and citation
 
 **Cost uncertainties and ecological impacts drive tradeoffs between electrical system decarbonization pathways in New England, U.S.A.**
@@ -144,6 +219,9 @@ The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reprod
 <p>
   Amir M. Gazar<sup>1,2</sup>, Chloe Jackson<sup>3</sup>, Georgia Mavrommati<sup>3</sup>, Rich B. Howarth<sup>4</sup>, Ryan S.D. Calder<sup>1,2,5,*</sup>
 </p>
+<details>
+<summary>Affiliations and contact</summary>
+
 <p>
   <sup>1</sup>Dept. of Population Health Sciences, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <sup>2</sup>Global Change Center, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
@@ -152,6 +230,8 @@ The [original reproduction PDF](7%20Reproduction%20Information%20Document/Reprod
   <sup>5</sup>Dept. of Civil & Environmental Engineering, Virginia Tech, Blacksburg, VA, 24061, USA<br/>
   <strong>* Contact:</strong> rsdc@vt.edu
 </p>
+
+</details>
 
 Use [citation.bib](citation.bib) for the archived preprint citation and the website's [citation page](https://amirgazar.github.io/us-powerplants-phased/citation.html) for related resources. Cite external datasets according to their source records.
 
