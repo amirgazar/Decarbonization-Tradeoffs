@@ -3,7 +3,7 @@ library(httr)
 library(jsonlite)
 
 # Set up your Dataverse API key and server
-api_token <- "dcde5cbe-2043-4d84-8cb4-248716537659"  # Replace with your API key
+api_token <- Sys.getenv("API_TOKEN")  # Replace with your API key
 server_url <- "https://dataverse.harvard.edu"  # Replace with your Dataverse server URL
 dataverse_id <- "amirgazar_test"  # Replace with your Dataverse alias (the collection you're creating the dataset in)
 

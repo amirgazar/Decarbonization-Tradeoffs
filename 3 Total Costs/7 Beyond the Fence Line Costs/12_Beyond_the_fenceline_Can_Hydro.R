@@ -1,3 +1,4 @@
+if (!isTRUE(getOption("phased.r1.cost_runner", FALSE))) stop("Source 1 Run full cost pipeline_R1.R, not individual cost components")
 # Load libraries
 library(data.table)
 library(readxl)
@@ -17,8 +18,6 @@ base_year <- 2024
 n_hours_in_year <- 8760
 hydro_CF <- 65/100 # From Hydro quebec
 
-# API KEY 63522eae4ec927d6f1d9d86bf7826cc8
-fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
 cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
 
 # Interpolation function for costs
@@ -38,10 +37,10 @@ Hydropower <- data.table(
 )
 
 # Load Capacity data
-path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/Imports/Import Capacity.xlsx"
+path <- "__PROJECT_ROOT__/Imports/Import Capacity.xlsx"
 
 # Load Capacity data
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
+file_path <- "__PROJECT_ROOT__/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
 sheet_names <- excel_sheets(file_path)
 data_tables <- list()
 # Loop through each sheet, read it into a data table, and add the Pathway column
@@ -54,7 +53,7 @@ decarbonization_pathways <- rbindlist(data_tables, fill = TRUE)
 setorder(decarbonization_pathways, Pathway, Year)
 
 # Calculate new capacity built each year
-import_columns <- c("Imports QC") # we are only interested in imports from Quebec 
+import_columns <- c("Imports QC") # we are only interested in imports from Quebec
 for (col in import_columns) {
   new_col_name <- paste0("new_capacity_", gsub(" ", "_", col))  # Create new column names
   decarbonization_pathways[, (new_col_name) := get(col) - shift(get(col), 1, type = "lag"), by = Pathway]
@@ -83,11 +82,11 @@ last_cumsum <- 0
 
 # Loop through the rows to calculate the cumulative sum with the desired behavior
 for (i in 1:nrow(Imports_Capacity)) {
- 
+
   # If the current difference is not zero and different from the previous one, add it to the cumulative sum
   if (Imports_Capacity$new_capacity[i] != 0 && Imports_Capacity$new_capacity[i] != Imports_Capacity$new_capacity[i-1]) {
     last_cumsum <- last_cumsum + Imports_Capacity$new_capacity[i]
-  } 
+  }
   # Set the cumulative sum for the current row
   Imports_Capacity$cumsum_diff[i] <- last_cumsum
 }
@@ -106,109 +105,31 @@ Hydropower <- Hydropower %>%
 
 # Load Imports data#left_join() Load Imports data
 #-- Stepwise
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
 
 Yearly_Results <- as.data.table(fread(file_path))
 Yearly_Results <- Yearly_Results[ Pathway == pathway_B3, ]
 
-# Compute base imports from each source (in TWh)
-Yearly_Results[, Total_QC_import_TWh := Spot_Market_Imports_HQ_TWh + Long_Term_Imports_HQ_TWh]
-Yearly_Results[, Total_base_import_TWh := Total_QC_import_TWh + Import_NYISO_TWh + Import_NBSO_TWh]
+#: dispatch already records delivered energy on each intertie.
+# Use those annual sums instead of reconstructing them from annual shares and
+# hourly MW limits (which mixed annual energy and hourly capacity).
+required_imports <- c("Calibrated_Long_Term_Imports_HQ_TWh","Calibrated_Spot_Market_Imports_HQ_TWh",
+                      "Calibrated_Import_NYISO_TWh","Calibrated_Import_NBSO_TWh")
+if (!all(required_imports %in% names(Yearly_Results))) stop("Calibrated link import totals required")
+Yearly_Results[, `:=`(
+  Calibrated_QC_import_net_TWh=Calibrated_Long_Term_Imports_HQ_TWh+Calibrated_Spot_Market_Imports_HQ_TWh,
+  Calibrated_NYISO_import_net_TWh=Calibrated_Import_NYISO_TWh,
+  Calibrated_NBSO_import_net_TWh=Calibrated_Import_NBSO_TWh)]
 
-# Calculate fractional shares from the base values
-Yearly_Results[, QC_import_share := Total_QC_import_TWh / Total_base_import_TWh]
-Yearly_Results[, NYISO_import_share := Import_NYISO_TWh / Total_base_import_TWh]
-Yearly_Results[, NBSO_import_share := Import_NBSO_TWh / Total_base_import_TWh]
-
-# Calculate maximum import capacities from the installed capacity columns,
-# converting from MWh to TWh (1 TWh = 1,000 MWh) using the factor 0.95 for the max CF.
-imports_max_CF <- 0.95
-Yearly_Results[, Total_QC_import_max_MWh := Imports_HQ_MW * imports_max_CF]
-Yearly_Results[, Total_NYISO_import_max_MWh := Imports_NYISO_MW * imports_max_CF]
-Yearly_Results[, Total_NBSO_import_max_MWh := Imports_NBSO_MW * imports_max_CF]
-
-# Convert maximum capacities from MWh to TWh
-Yearly_Results[, Total_QC_import_max_TWh := Total_QC_import_max_MWh / 1000]
-Yearly_Results[, Total_NYISO_import_max_TWh := Total_NYISO_import_max_MWh / 1000]
-Yearly_Results[, Total_NBSO_import_max_TWh := Total_NBSO_import_max_MWh / 1000]
-
-# Compute the extra capacity available for each source (in TWh)
-Yearly_Results[, extra_possible_QC := pmax(Total_QC_import_max_TWh - Total_QC_import_TWh, 0)]
-Yearly_Results[, extra_possible_NYISO := pmax(Total_NYISO_import_max_TWh - Import_NYISO_TWh, 0)]
-Yearly_Results[, extra_possible_NBSO := pmax(Total_NBSO_import_max_TWh - Import_NBSO_TWh, 0)]
-
-Yearly_Results$Import_diff <- Yearly_Results$Calibrated_Total_import_net_TWh - Yearly_Results$Total_import_net_TWh
-Yearly_Results[, c("Calibrated_QC_import_net_TWh", 
-                   "Calibrated_NYISO_import_net_TWh", 
-                   "Calibrated_NBSO_import_net_TWh") := {
-                     
-                     # Base import values (in TWh)
-                     base_QC    = Total_QC_import_TWh
-                     base_NYISO = Import_NYISO_TWh
-                     base_NBSO  = Import_NBSO_TWh
-                     
-                     # Maximum available capacities (in TWh)
-                     max_QC    = Total_QC_import_max_TWh
-                     max_NYISO = Total_NYISO_import_max_TWh
-                     max_NBSO  = Total_NBSO_import_max_TWh
-                     
-                     # Initial proportional allocation from Import_diff (in TWh)
-                     alloc_QC    = QC_import_share * Import_diff
-                     alloc_NYISO = NYISO_import_share * Import_diff
-                     alloc_NBSO  = NBSO_import_share * Import_diff
-                     
-                     # Cap each allocation so that base + extra does not exceed maximum capacity
-                     alloc_QC    = min(alloc_QC, max_QC - base_QC)
-                     alloc_NYISO = min(alloc_NYISO, max_NYISO - base_NYISO)
-                     alloc_NBSO  = min(alloc_NBSO, max_NBSO - base_NBSO)
-                     
-                     # Calculate the total allocated extra so far and remaining extra to allocate
-                     allocated = alloc_QC + alloc_NYISO + alloc_NBSO
-                     leftover = Import_diff - allocated
-                     tol = 1e-6
-                     
-                     # Redistribute any leftover extra among sources with remaining capacity.
-                     while(leftover > tol) {
-                       avail_QC    = max_QC - (base_QC + alloc_QC)
-                       avail_NYISO = max_NYISO - (base_NYISO + alloc_NYISO)
-                       avail_NBSO  = max_NBSO - (base_NBSO + alloc_NBSO)
-                       
-                       total_avail = max(avail_QC + avail_NYISO + avail_NBSO, tol)
-                       if(total_avail < tol) break  # No further capacity available
-                       
-                       # Determine additional shares based on available capacity
-                       share_QC    = avail_QC / total_avail
-                       share_NYISO = avail_NYISO / total_avail
-                       share_NBSO  = avail_NBSO / total_avail
-                       
-                       # Additional allocation for each source is the minimum of the share and the available capacity.
-                       add_QC    = min(leftover * share_QC, avail_QC)
-                       add_NYISO = min(leftover * share_NYISO, avail_NYISO)
-                       add_NBSO  = min(leftover * share_NBSO, avail_NBSO)
-                       
-                       add_total = add_QC + add_NYISO + add_NBSO
-                       if(add_total < tol) break  # Nothing further can be allocated
-                       
-                       # Update allocations with the additional amounts and reduce the leftover accordingly.
-                       alloc_QC    = alloc_QC + add_QC
-                       alloc_NYISO = alloc_NYISO + add_NYISO
-                       alloc_NBSO  = alloc_NBSO + add_NBSO
-                       leftover = leftover - add_total
-                     }
-                     
-                     # Final calibrated import for each source is the base plus its extra allocation.
-                     list(base_QC + alloc_QC, base_NYISO + alloc_NYISO, base_NBSO + alloc_NBSO)
-                   }, by = 1:nrow(Yearly_Results)]
-
-
-
-# Calculate mean, max, and min for Calibrated_QC_import_net_TWh by Year and Scenario
+# Keep coefficient bounds within each simulation because they are not ensemble percentiles.
+stopifnot(!anyDuplicated(Yearly_Results, by=c("Simulation","Pathway","Year")))
+# Each annual simulation has one delivered-import quantity for both cost-bound cases.
 Yearly_imports <- Yearly_Results[, .(
   Mean_imports_QC_MWh = mean(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6, #TWh to MWh
   Max_imports_QC_MWh = max(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6,
   Min_imports_QC_MWh = min(Calibrated_QC_import_net_TWh, na.rm = TRUE) * 1e6
-), by = .(Year, Pathway)]
+), by = .(Simulation, Year, Pathway)]
 
 # Evaluate how much of imports are from new transmission lines
 Hydropower <- merge(Yearly_imports, Hydropower, by = c("Year", "Pathway"), all.x = TRUE)
@@ -220,12 +141,13 @@ Hydropower <- Hydropower %>%
   mutate(Base_hydro_MW = Base_hydro_MW * import_ratio)
 
 setDT(Hydropower)
-Hydropower[, Increase_hydro_MW := pmax(0, c(0, diff(Base_hydro_MW)))]
-# total sum of all year-on-year hydro increases
-total_hydro_increase <- Hydropower[, sum(Increase_hydro_MW)]
-setkey(Hydropower, Pathway, Year)
+# Allocate capacity separately within each simulation so one draw cannot change another draw’s costs.
+setorder(Hydropower, Simulation, Pathway, Year)
+Hydropower[, Increase_hydro_MW := pmax(0, c(0, diff(Base_hydro_MW))), by=.(Simulation,Pathway)]
+Hydropower[, total_hydro_increase := sum(Increase_hydro_MW), by=.(Simulation,Pathway)]
+setkey(Hydropower, Simulation, Pathway, Year)
 Hydropower[, Increase_hydro_MW := {
-  pool <- total_hydro_increase    # start with the full pool
+  pool <- total_hydro_increase[1]    # this simulation only
   draws <- numeric(.N)
   for(i in seq_len(.N)) {
     # draw no more than this year’s Base_MW, and no more than what's left
@@ -233,7 +155,7 @@ Hydropower[, Increase_hydro_MW := {
     pool <- pool - draws[i]
   }
   draws
-}, by=Pathway]
+}, by=.(Simulation,Pathway)]
 
 #Hydropower[, Base_hydro_MW := cumsum(Increase_hydro_MW), by = Pathway]
 
@@ -276,35 +198,20 @@ BFL_costs_pathway_B3$CAPEX_lower <- Hydropower[, "Increase_hydro_MW"] * direct_c
 BFL_costs_pathway_B3$CAPEX_upper <- Hydropower[, "Increase_hydro_MW"] * direct_costs$Hydropower$Upfront[2]
 BFL_costs_pathway_B3$FOM_lower <- Hydropower[, "QC_import_cap_MW"] * direct_costs$Hydropower$Fixed_OM[1]/hydro_CF
 BFL_costs_pathway_B3$FOM_upper <- Hydropower[, "QC_import_cap_MW"] * direct_costs$Hydropower$Fixed_OM[2]/hydro_CF
-BFL_costs_pathway_B3$VOM_lower <- Hydropower[, "Min_imports_QC_MWh"] * VOM_mean /hydro_CF
-BFL_costs_pathway_B3$VOM_upper <- Hydropower[, "Max_imports_QC_MWh"] * VOM_mean /hydro_CF
+BFL_costs_pathway_B3$VOM_lower <- Hydropower[, "Min_imports_QC_MWh"] * VOM_mean # Multiply delivered MWh by the VOM rate because the rate is per MWh.
+BFL_costs_pathway_B3$VOM_upper <- Hydropower[, "Max_imports_QC_MWh"] * VOM_mean # Use the same MWh basis for the upper coefficient case.
 
-# Calculate NPV for CAPEX and FOM with lower costs
-capex_npv_lower <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Lower = calculate_npv(.SD, discount_rate, base_year, "CAPEX_lower"))]
-fom_npv_lower <- BFL_costs_pathway_B3[, .(NPV_FOM_Lower = calculate_npv(.SD, discount_rate, base_year, "FOM_lower"))]
-vom_npv_lower <- BFL_costs_pathway_B3[, .(NPV_VOM_Lower = calculate_npv(.SD, discount_rate, base_year, "VOM_lower"))]
-
-# Calculate NPV for CAPEX and FOM with upper costs
-capex_npv_upper <- BFL_costs_pathway_B3[, .(NPV_CAPEX_Upper = calculate_npv(.SD, discount_rate, base_year, "CAPEX_upper"))]
-fom_npv_upper <- BFL_costs_pathway_B3[, .(NPV_FOM_Upper = calculate_npv(.SD, discount_rate, base_year, "FOM_upper"))]
-vom_npv_upper <- BFL_costs_pathway_B3[, .(NPV_VOM_Upper = calculate_npv(.SD, discount_rate, base_year, "VOM_upper"))]
-
-# For the lower NPV results
-npv_results_lower <- cbind(capex_npv_lower, fom_npv_lower, vom_npv_lower)
-
-# For the upper NPV results
-npv_results_upper <- cbind(capex_npv_upper, fom_npv_upper, vom_npv_upper)
-
-# Rename columns for clarity
-setnames(npv_results_lower, c("NPV_CAPEX_Lower", "NPV_FOM_Lower", "NPV_VOM_Lower"), c("NPV_CAPEX", "NPV_FOM", "NPV_VOM"))
-setnames(npv_results_upper, c("NPV_CAPEX_Upper", "NPV_FOM_Upper", "NPV_VOM_Upper"), c("NPV_CAPEX", "NPV_FOM", "NPV_VOM"))
-
-# Add cost type information
-npv_results_lower[, Cost_Type := "Lower"]
-npv_results_upper[, Cost_Type := "Upper"]
-
-# Combine all results
-npv_results <- rbind(npv_results_lower, npv_results_upper)
+# Retain both coefficient cases within each simulation so cost bounds do not mix independent runs.
+npv_results <- rbindlist(lapply(c("Lower","Upper"),function(case) {
+ suffix <- tolower(case)
+ z <- BFL_costs_pathway_B3[, .(
+  NPV_CAPEX=calculate_npv(.SD,discount_rate,base_year,paste0("CAPEX_",suffix)),
+  NPV_FOM=calculate_npv(.SD,discount_rate,base_year,paste0("FOM_",suffix)),
+  NPV_VOM=calculate_npv(.SD,discount_rate,base_year,paste0("VOM_",suffix))
+ ),by=.(Simulation,Pathway)]
+ z[,Cost_Type:=case];z
+}))
+stopifnot(!anyDuplicated(npv_results,by=c("Simulation","Pathway","Cost_Type")))
 
 # Save combined NPV results to a single CSV file
 write.csv(npv_results, file = file.path(output_path, "CAPEX_FOM_CAN_Hydro.csv"), row.names = FALSE)
@@ -312,7 +219,7 @@ npv_results_CAPEX_FOM <- npv_results
 
 # -------------------------------
 # CH4 Emissions
-#Emissions using Delwiche et al, 
+#Emissions using Delwiche et al,
 # -------------------------------
 # 1. Setup and Data Preparation
 # -------------------------------
@@ -320,10 +227,11 @@ npv_results_CAPEX_FOM <- npv_results
 min_emission_factor <- 0.16  # Lower bound
 max_emission_factor <- 1.22  # Upper bound
 
-# Convert imported energy from MWh to TWh (1 TWh = 1e6 MWh) 
-Yearly_imports[, Generation_TWh_Mean := Mean_imports_QC_MWh / imports_max_CF]
-Yearly_imports[, Generation_TWh_Max  := Max_imports_QC_MWh / imports_max_CF]
-Yearly_imports[, Generation_TWh_Min  := Min_imports_QC_MWh / imports_max_CF]
+# Use delivered MWh directly because multiplying by hours again would double-count energy.
+# No capacity-factor rescaling; multiply MWh by kg CH4-C/MWh.
+Yearly_imports[, Generation_MWh_Mean := Mean_imports_QC_MWh]
+Yearly_imports[, Generation_MWh_Max  := Max_imports_QC_MWh]
+Yearly_imports[, Generation_MWh_Min  := Min_imports_QC_MWh]
 
 # -------------------------------
 # 2. Calculate Annual CH4-C and CH4 Emissions
@@ -331,8 +239,8 @@ Yearly_imports[, Generation_TWh_Min  := Min_imports_QC_MWh / imports_max_CF]
 # Scale the emission factors by the imported generation (in TWh)
 
 # Annual CH4-C emissions (in kg) for the lower and upper bounds:
-Yearly_imports[, Annual_CH4_C_emissions_kg_Lower := Generation_TWh_Min * min_emission_factor]
-Yearly_imports[, Annual_CH4_C_emissions_kg_Upper := Generation_TWh_Max * max_emission_factor]
+Yearly_imports[, Annual_CH4_C_emissions_kg_Lower := Generation_MWh_Min * min_emission_factor]
+Yearly_imports[, Annual_CH4_C_emissions_kg_Upper := Generation_MWh_Max * max_emission_factor]
 
 # Convert CH4-C to CH4 using the conversion factor (12 g CH4-C = 16 g CH4)
 conversion_factor <- 16 / 12
@@ -353,8 +261,6 @@ end_year   <- 2050
 # Define cost estimates for CH4 in 2024 and 2050 (adjusted to 2024 dollars)
 # (Note: If needed, these base years could be aligned with the projection period.)
 
-# API KEY 63522eae4ec927d6f1d9d86bf7826cc8
-fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
 cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
 
 # Extracting CPI values for specific years
@@ -383,17 +289,17 @@ GHG_Costs[, CH4_cost := interpolate_cost(Year, start_year, end_year, costs_2025$
 # 4. Merge Emission Estimates with Cost Projections
 # -------------------------------
 # Select only the years available in Yearly_imports
-emissions <- Yearly_imports[Year %in% (start_year:end_year), 
-                            .(Year, Annual_CH4_emissions_tonnes_Lower, Annual_CH4_emissions_tonnes_Upper)]
+emissions <- Yearly_imports[Year %in% (start_year:end_year),
+                            .(Simulation,Pathway,Year, Annual_CH4_emissions_tonnes_Lower, Annual_CH4_emissions_tonnes_Upper)]
 
 # Merge the emissions estimates with the cost projections
-BFL_costs_pathway_B3_CH4_Lower <- merge(emissions[, .(Year, Annual_CH4_emissions_tonnes_Lower)], 
-                                        GHG_Costs, 
+BFL_costs_pathway_B3_CH4_Lower <- merge(emissions[, .(Simulation,Pathway,Year, Annual_CH4_emissions_tonnes_Lower)],
+                                        GHG_Costs,
                                         by = "Year")
 BFL_costs_pathway_B3_CH4_Lower[, total_CH4_USD_Lower := CH4_cost * Annual_CH4_emissions_tonnes_Lower]
 
-BFL_costs_pathway_B3_CH4_Upper <- merge(emissions[, .(Year, Annual_CH4_emissions_tonnes_Upper)], 
-                                        GHG_Costs, 
+BFL_costs_pathway_B3_CH4_Upper <- merge(emissions[, .(Simulation,Pathway,Year, Annual_CH4_emissions_tonnes_Upper)],
+                                        GHG_Costs,
                                         by = "Year")
 BFL_costs_pathway_B3_CH4_Upper[, total_CH4_USD_Upper := CH4_cost * Annual_CH4_emissions_tonnes_Upper]
 
@@ -405,11 +311,13 @@ BFL_costs_pathway_B3_CH4_Upper <- na.omit(BFL_costs_pathway_B3_CH4_Upper)
 # 5. Calculate Net Present Value (NPV) of CH4 Costs
 # -------------------------------
 # Use an existing function 'calculate_npv' that accepts the data table, discount rate, year column, and cost column name.
-CH4_npv_lower <- BFL_costs_pathway_B3_CH4_Lower[, .(NPV_CH4_Lower = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Lower"))]
-CH4_npv_upper <- BFL_costs_pathway_B3_CH4_Upper[, .(NPV_CH4_Upper = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Upper"))]
+CH4_npv_lower <- BFL_costs_pathway_B3_CH4_Lower[, .(NPV_CH4_Lower = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Lower")),by=.(Simulation,Pathway)]
+CH4_npv_upper <- BFL_costs_pathway_B3_CH4_Upper[, .(NPV_CH4_Upper = calculate_npv(.SD, discount_rate, base_year, "total_CH4_USD_Upper")),by=.(Simulation,Pathway)]
 
 # Combine the lower and upper NPV estimates into a single data table
-CH4_npv <- cbind(CH4_npv_lower, CH4_npv_upper)
+# Join bounds by simulation and pathway because row order is not a reliable identifier.
+CH4_npv <- merge(CH4_npv_lower, CH4_npv_upper, by=c("Simulation","Pathway"),all=TRUE)
+stopifnot(!anyDuplicated(CH4_npv,by=c("Simulation","Pathway")),!anyNA(CH4_npv))
 
 # -------------------------------
 # 6. Save the Results to CSV

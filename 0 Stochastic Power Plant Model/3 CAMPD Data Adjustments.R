@@ -10,16 +10,16 @@ library(data.table)
 stateCodes <- c("CT", "ME", "MA", "NH", "RI", "VT")
 
 # Define the base directory
-base_dir <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD"
+base_dir <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "4 External Data/U.S. EPA CAMPD")
 
 process_state_data <- function(state) {
   # Define directories and file paths
   emissions_dir <- file.path(base_dir, state, "Yearly")
   facilities_data_path <- file.path(base_dir, state, paste0("Facilities_Data_", state, ".parquet"))
-  
+
   # Initialize list to store processed data
   result <- list(facilities_data = NULL, emissions_data = NULL)
-  
+
   # -------------------------------------------------------------------------
   # Part A: Load Emissions Data from Parquet files in the "Yearly" folder
   # -------------------------------------------------------------------------
@@ -28,7 +28,7 @@ process_state_data <- function(state) {
     pattern    = paste0("Hourly_Emissions_", state, "_\\d{4}\\.parquet$"),
     full.names = TRUE
   )
-  
+
   if (length(parquet_files) > 0) {
     emissions_data <- purrr::map_dfr(parquet_files, function(file) {
       df <- arrow::read_parquet(file)
@@ -38,7 +38,7 @@ process_state_data <- function(state) {
       }
       return(df)
     })
-    
+
     # Standardize column names for emissions data
     emissions_data <- emissions_data %>%
       rename(
@@ -59,45 +59,45 @@ process_state_data <- function(state) {
         Secondary_Fuel_Type  = Secondary.Fuel.Type,
         Unit_Type            = Unit.Type
       )
-    
+
     # Ensure 'Date' is formatted correctly
     if ("Date" %in% names(emissions_data) && !inherits(emissions_data$Date, "Date")) {
       emissions_data$Date <- ymd(emissions_data$Date)
     }
-    
+
     # Add a column for the day of the year
     emissions_data <- emissions_data %>% mutate(DayLabel = yday(Date))
-    
+
     # Increment 'Hour' by 1 (if needed)
     if ("Hour" %in% names(emissions_data)) {
       emissions_data$Hour <- emissions_data$Hour + 1
     }
-    
+
     # Create a combined Facility_Unit.ID
     emissions_data <- emissions_data %>% mutate(Facility_Unit.ID = paste(Facility_ID, Unit_ID, sep = "_"))
-    
+
     result$emissions_data <- emissions_data
-    
+
     # ---------------------------------------------------------------------
     # Save the processed hourly emissions data as a Parquet file
     # ---------------------------------------------------------------------
     emissions_clean_parquet_path <- file.path(base_dir, state, paste0("Hourly_Emissions_", state, "_Clean.parquet"))
     arrow::write_parquet(emissions_data, emissions_clean_parquet_path)
-    
+
     # ---- Calculate Reliability Metrics ----
     valid_points <- emissions_data %>%
       group_by(Facility_Unit.ID, DayLabel, Hour) %>%
       summarise(Valid_Data_Points = sum(!is.na(Gross_Load_MW), na.rm = TRUE), .groups = "drop") %>%
       mutate(Threshold_3 = Valid_Data_Points >= 3)
-    
+
     sufficient_points <- valid_points %>%
       group_by(Facility_Unit.ID) %>%
       summarise(Time_Slots_Above_3 = sum(Threshold_3), .groups = "drop")
-    
+
     total_possible_points <- emissions_data %>%
       group_by(Facility_Unit.ID) %>%
       summarise(Total_Expected_Points = n_distinct(DayLabel) * 24, .groups = "drop")
-    
+
     reliability_data <- total_possible_points %>%
       left_join(sufficient_points, by = "Facility_Unit.ID") %>%
       mutate(
@@ -109,7 +109,7 @@ process_state_data <- function(state) {
           TRUE ~ "Low"
         )
       )
-    
+
     summary_data <- emissions_data %>%
       group_by(Facility_Unit.ID) %>%
       summarise(
@@ -128,17 +128,17 @@ process_state_data <- function(state) {
         mean_Heat_Input_mmBtu  = mean(Heat_Input_mmBtu, na.rm = TRUE),
         .groups = "drop"
       )
-    
+
   } else {
     warning(paste("No emissions data found for state:", state))
   }
-  
+
   # -------------------------------------------------------------------------
   # Part B: Load Facilities Data from a top-level Parquet file
   # -------------------------------------------------------------------------
   if (file.exists(facilities_data_path)) {
     facilities_data <- arrow::read_parquet(facilities_data_path)
-    
+
     facilities_data <- facilities_data %>%
       rename(
         State                          = stateCode,
@@ -172,13 +172,13 @@ process_state_data <- function(state) {
         Max_Hourly_HI_Rate             = maxHourlyHIRate,
         Associated_Generators_Capacity = associatedGeneratorsAndNameplateCapacity
       )
-    
-    facilities_data <- facilities_data %>% 
+
+    facilities_data <- facilities_data %>%
       mutate(Facility_Unit.ID = paste(Facility_ID, Unit_ID, sep = "_"))
-    
+
     facilities_data <- facilities_data %>%
       distinct(Facility_Unit.ID, Operating_Status, Associated_Generators_Capacity, .keep_all = TRUE)
-    
+
     # Estimate nameplate capacity from the text field
     nameplateData <- data.frame(facilities_data$Associated_Generators_Capacity, stringsAsFactors = FALSE)
     nameplateData <- nameplateData %>%
@@ -193,7 +193,7 @@ process_state_data <- function(state) {
         )
       )
     facilities_data$Estimated_NameplateCapacity_MW <- nameplateData$Estimated_NameplateCapacity_MW
-    
+
     # Join with emissions summary and reliability data if available
     if (exists("summary_data")) {
       facilities_data <- facilities_data %>%
@@ -202,17 +202,17 @@ process_state_data <- function(state) {
     } else {
       message("summary_data not available, skipping join.")
     }
-    
+
     result$facilities_data <- facilities_data
-    
+
     # Save cleaned facilities data as a Parquet file
     facilities_clean_parquet_path <- file.path(base_dir, state, paste0("Facilities_Data_", state, "_Clean.parquet"))
     arrow::write_parquet(facilities_data, facilities_clean_parquet_path)
-    
+
   } else {
     warning(paste("Facilities data file not found for state:", state))
   }
-  
+
   gc()  # Invoke garbage collection
   return(result)
 }

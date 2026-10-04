@@ -3,10 +3,10 @@ library(data.table)
 library(ggplot2)
 
 # Load facility (NPC) data with retirement info and generation data
-npc_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+npc_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv")
 Fossil_Fuels_NPC <- fread(npc_path)
 
-gen_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_Generation_Emissions.csv"
+gen_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions/Fossil_Fuel_Generation_Emissions.csv")
 Fossil_Fuels_Gen <- fread(gen_path)
 
 # Create simulation grid: Dates (2025-2050) x Hours (1-24)
@@ -23,18 +23,18 @@ hourly_max <- Fossil_Fuels_Gen[, .(
 
 # Merge retirement info into the generation data
 hourly_max <- merge(
-  hourly_max, 
-  Fossil_Fuels_NPC[, .(Facility_Unit.ID, Retirement_year)], 
-  by = "Facility_Unit.ID", 
+  hourly_max,
+  Fossil_Fuels_NPC[, .(Facility_Unit.ID, Retirement_year)],
+  by = "Facility_Unit.ID",
   all.x = TRUE
 )
 
 # Merge the simulation grid with hourly generation data.
 # The merge by DayLabel and Hour "broadcasts" each facility's daily profile across all Dates sharing that DayLabel.
 merged_grid <- merge(
-  full_grid, 
-  hourly_max, 
-  by = c("DayLabel", "Hour"), 
+  full_grid,
+  hourly_max,
+  by = c("DayLabel", "Hour"),
   allow.cartesian = TRUE
 )
 
@@ -121,10 +121,10 @@ hourly_totals[, c("prev_retired", "next_retired", "prev_no_retired", "next_no_re
 #----- END ADJUSTMENTS ----
 
 # Reshape to long format for plotting the maximum generation values
-hourly_long <- melt(hourly_totals, 
-                    id.vars = c("Date", "DayLabel", "Hour"), 
+hourly_long <- melt(hourly_totals,
+                    id.vars = c("Date", "DayLabel", "Hour"),
                     measure.vars = c("max_gen_hr_retirement_MW", "max_gen_hr_no_retirement_MW"),
-                    variable.name = "Retirement_Status", 
+                    variable.name = "Retirement_Status",
                     value.name = "Total_Gen")
 
 # Plot by DayLabel, faceted by Retirement_Status and simulation year (extracted from Date)
@@ -137,10 +137,10 @@ ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
        title = "Hourly Total Maximum Generation by Retirement Status") +
   theme_minimal()
 
-hourly_long <- melt(hourly_totals, 
-                    id.vars = c("Date", "DayLabel", "Hour"), 
+hourly_long <- melt(hourly_totals,
+                    id.vars = c("Date", "DayLabel", "Hour"),
                     measure.vars = c("min_gen_hr_retirement_MW", "min_gen_hr_no_retirement_MW"),
-                    variable.name = "Retirement_Status", 
+                    variable.name = "Retirement_Status",
                     value.name = "Total_Gen")
 
 ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
@@ -153,7 +153,7 @@ ggplot(hourly_long, aes(x = DayLabel, y = Total_Gen, color = factor(Hour))) +
   theme_minimal()
 
 # Save the processed results to CSV (includes both max and min generation columns)
-dir_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions"
+dir_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/2 Fossil Fuels Generation and Emissions")
 if (!dir.exists(dir_path)) {
   dir.create(dir_path, recursive = TRUE)
 }

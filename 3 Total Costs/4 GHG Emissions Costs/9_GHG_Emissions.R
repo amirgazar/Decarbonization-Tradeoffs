@@ -1,3 +1,4 @@
+if (!isTRUE(getOption("phased.r1.cost_runner", FALSE))) stop("Source 1 Run full cost pipeline_R1.R, not individual cost components")
 # Load libraries
 library(data.table)
 library(readxl)
@@ -14,9 +15,9 @@ base_year <- 2024
 ### All emissions data is presented in units of metric tons of carbon dioxide equivalent using GWP's from IPCC's AR4
 # Load Results - Facility level gen (old facilities)
 #-- Stepwise
-file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
-file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
+file_path_1 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
+file_path_2 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
 
 Yearly_Facility_Level_Results <- as.data.table(fread(file_path_1))
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
@@ -25,10 +26,10 @@ Yearly_Results <- as.data.table(fread(file_path_2))
 
 # Load facilities data
 # Old/existing fossil fuels
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
 GHG_Fuels_NPC <- fread(file_path)
-# New fossil fuels 
-file_path <-"/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+# New fossil fuels
+file_path <-"__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 GHG_Fuels_NPC_new <- fread(file_path)
 GHG_Fuels_NPC_new <- GHG_Fuels_NPC_new[1,]
 
@@ -39,8 +40,6 @@ calculate_npv <- function(dt, rate, base_year, col) {
 }
 
 
-# API KEY 63522eae4ec927d6f1d9d86bf7826cc8
-fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
 cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
 
 # Interpolation function for costs
@@ -78,7 +77,7 @@ GHG_Costs[, `:=`(
 )]
 
 # Other GHG emissions ratios from EPA Greenhouse Gas Reporting Program for 2011-2022
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA GHGRP/emissions_by_unit_and_fuel_type_c_d_aa_09_2023.xlsx"
+file_path <- "__PROJECT_ROOT__/4 External Data/U.S. EPA GHGRP/emissions_by_unit_and_fuel_type_c_d_aa_09_2023.xlsx"
 sheet_name <- "UNIT_DATA"
 EPA_GHG_2022 <- read_excel(file_path, sheet = sheet_name, skip = 6)
 setDT(EPA_GHG_2022)
@@ -86,12 +85,17 @@ setDT(EPA_GHG_2022)
 new_england_states <- c("CT", "ME", "MA", "NH", "RI", "VT")
 
 EPA_GHG_2022 <- EPA_GHG_2022[
-  `Industry Type (sectors)` == "Power Plants" & 
-    State %in% new_england_states & 
+  `Industry Type (sectors)` == "Power Plants" &
+    State %in% new_england_states &
     `Unit Type` == "Electricity Generator" &
     `Reporting Year` == 2022
 ]
 
+# Divide the source CO2-equivalent quantities by the AR4 factors to recover CH4 and N2O masses.
+# Convert to tonnes of each gas BEFORE multiplying by gas-specific social costs.
+# AR4 GWP100: methane=25; nitrous oxide=298 (EPA 2022 emission factors, Table 11).
+EPA_GHG_2022[, `Unit Methane (CH4) emissions` := `Unit Methane (CH4) emissions` / 25]
+EPA_GHG_2022[, `Unit Nitrous Oxide (N2O) emissions` := `Unit Nitrous Oxide (N2O) emissions` / 298]
 EPA_GHG_2022[, `:=`(
   CH4_CO2_ratio_non_biogenic = `Unit Methane (CH4) emissions` / `Unit CO2 emissions (non-biogenic)`,
   N2O_CO2_ratio_non_biogenic = `Unit Nitrous Oxide (N2O) emissions` / `Unit CO2 emissions (non-biogenic)`,
@@ -138,30 +142,27 @@ GHG_Fuels_NPC[, c("mean_CH4_CO2_ratio_non_biogenic", "mean_N2O_CO2_ratio_non_bio
 selected_cols <- GHG_Fuels_NPC[, .(Facility_Unit.ID, Unit_Type, Fuel_Category, CH4_CO2_ratio_non_biogenic, N2O_CO2_ratio_non_biogenic, mean_CO2_tons_MW, mean_CO2_tons_MW_estimate)]
 Yearly_Facility_Level_Results <- selected_cols[Yearly_Facility_Level_Results, on = "Facility_Unit.ID"]
 
-# Calculate CO2 emissions
-Yearly_Facility_Level_Results$total_CO2_tons <- Yearly_Facility_Level_Results$total_generation_GWh * 1e3 * Yearly_Facility_Level_Results$mean_CO2_tons_MW
-Yearly_Facility_Level_Results$total_CO2_tons <- ifelse(
-  is.na(Yearly_Facility_Level_Results$total_CO2_tons),
-  Yearly_Facility_Level_Results$total_generation_GWh * 1e3 *
-    Yearly_Facility_Level_Results$mean_CO2_tons_MW_estimate,
-  Yearly_Facility_Level_Results$total_CO2_tons
-)
+# Convert the saved dispatch masses to metric tonnes because the GHG valuation rates use that unit.
+# CAMPD CO2_Mass_short_tons is the operating-rate calibration source. Keep the raw mass explicitly.
+if(any(!is.finite(Yearly_Facility_Level_Results$total_CO2_tons)|Yearly_Facility_Level_Results$total_CO2_tons<0))stop("Missing/invalid dispatched CO2 mass before valuation")
+Yearly_Facility_Level_Results[, total_CO2_short_tons := total_CO2_tons]
+Yearly_Facility_Level_Results[, total_CO2_tons := total_CO2_short_tons * 0.90718474]
 
 # Calculate CH4 and N2O emissions
-Yearly_Facility_Level_Results[, total_CH4_tons_eq := CH4_CO2_ratio_non_biogenic * total_CO2_tons]
-Yearly_Facility_Level_Results[, total_N2O_tons_eq := N2O_CO2_ratio_non_biogenic * total_CO2_tons]
+Yearly_Facility_Level_Results[, total_CH4_metric_tonnes := CH4_CO2_ratio_non_biogenic * total_CO2_tons]
+Yearly_Facility_Level_Results[, total_N2O_metric_tonnes := N2O_CO2_ratio_non_biogenic * total_CO2_tons]
 
 # Summarize based on Fuel Type, sim, year and Pathway
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
   total_CO2_tons = sum(total_CO2_tons, na.rm = TRUE),
-  total_CH4_tons_eq = sum(total_CH4_tons_eq, na.rm = TRUE),
-  total_N2O_tons_eq = sum(total_N2O_tons_eq, na.rm = TRUE)
+  total_CH4_metric_tonnes = sum(total_CH4_metric_tonnes, na.rm = TRUE),
+  total_N2O_metric_tonnes = sum(total_N2O_metric_tonnes, na.rm = TRUE)
 ), by = .(Year, Simulation, Pathway)]
 
 
 # Calculate the total cost of CO2 equivalent
 Yearly_Facility_Level_Results <- merge(Yearly_Facility_Level_Results, GHG_Costs, by = "Year", all.x = TRUE)
-Yearly_Facility_Level_Results[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_tons_eq * CH4_cost + total_N2O_tons_eq * N2O_cost]
+Yearly_Facility_Level_Results[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_metric_tonnes * CH4_cost + total_N2O_metric_tonnes * N2O_cost]
 
 #Yearly_Facility_Level_Results[, total_cost_GHG := total_GHG_CO2_eq * CO2_cost]
 
@@ -198,24 +199,27 @@ combined_npvs <- combined_npvs %>%
     NPV_max = max(NPV),
     NPV_mean = mean(NPV),
     NPV_min = min(NPV)
-  ) 
+  )
 
 
 # New fossil fuel emissions
-Yearly_Results$Fossil_new.CO2_tons <- GHG_Fuels_NPC_new$mean_CO2_tons_MW * Yearly_Results$New_Fossil_Fuel_TWh * 1e6
-Yearly_Results$Fossil_new.CH4_tons_eq <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_CH4_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"] 
-Yearly_Results$Fossil_new.N2O_tons_eq <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_N2O_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"] 
-Yearly_Results$Fossil_new.CO2_tons_eq <- Yearly_Results$Fossil_new.CO2_tons + Yearly_Results$Fossil_new.CH4_tons_eq + Yearly_Results$Fossil_new.N2O_tons_eq 
+# Use one copy of the identical new-gas rates to avoid duplicating annual generation rows.
+new_co2_rate <- unique(GHG_Fuels_NPC_new$mean_CO2_tons_MW)
+if(length(new_co2_rate)!=1L||!is.finite(new_co2_rate)||new_co2_rate<0)stop("New-gas rates require an explicit unit generation allocation")
+Yearly_Results$Fossil_new.CO2_tons <- new_co2_rate * Yearly_Results$New_Fossil_Fuel_TWh * 1e6 * 0.90718474
+Yearly_Results$Fossil_new.CH4_metric_tonnes <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_CH4_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"]
+Yearly_Results$Fossil_new.N2O_metric_tonnes <- Yearly_Results$Fossil_new.CO2_tons * mean_ratios$mean_N2O_CO2_ratio_non_biogenic[mean_ratios$Fuel_Category == "Gas_CC"]
+Yearly_Results$Fossil_new.CO2_tons_eq <- Yearly_Results$Fossil_new.CO2_tons + 25 * Yearly_Results$Fossil_new.CH4_metric_tonnes + 298 * Yearly_Results$Fossil_new.N2O_metric_tonnes
 
 Yearly_Results_Summary <- Yearly_Results[, .(
   total_CO2_tons = sum(Fossil_new.CO2_tons, na.rm = TRUE),
-  total_CH4_tons_eq = sum(Fossil_new.CH4_tons_eq, na.rm = TRUE),
-  total_N2O_tons_eq = sum(Fossil_new.N2O_tons_eq, na.rm = TRUE),
+  total_CH4_metric_tonnes = sum(Fossil_new.CH4_metric_tonnes, na.rm = TRUE),
+  total_N2O_metric_tonnes = sum(Fossil_new.N2O_metric_tonnes, na.rm = TRUE),
   total_GHG_tons_CO2_eq = sum(Fossil_new.CO2_tons_eq, na.rm = TRUE)
 ), by = .(Year, Simulation, Pathway)]
 
 Yearly_Results_Summary <- merge(Yearly_Results_Summary, GHG_Costs, by = "Year", all.x = TRUE)
-Yearly_Results_Summary[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_tons_eq * CH4_cost + total_N2O_tons_eq * N2O_cost]
+Yearly_Results_Summary[, total_cost_GHG := total_CO2_tons * CO2_cost + total_CH4_metric_tonnes * CH4_cost + total_N2O_metric_tonnes * N2O_cost]
 
 # Set up correct loop inputs
 simulations_summary <- unique(as.character(Yearly_Results_Summary$Simulation))
@@ -246,7 +250,7 @@ combined_npvs_hourly <- combined_npvs_hourly %>%
     NPV_newNG_max = max(NPV_newNG),
     NPV_newNG_mean = mean(NPV_newNG),
     NPV_newNG_min = min(NPV_newNG)
-  ) 
+  )
 
 combined_npvs <- merge(combined_npvs, combined_npvs_hourly, by = c("Pathway"))
 combined_npvs$NPV_mean <- combined_npvs$NPV_mean + combined_npvs$NPV_newNG_mean
@@ -273,5 +277,5 @@ combined_npvs_sim_summary <- combined_npvs_sim %>%
     NPV_max = max(NPV)/1e9,
     NPV_mean = mean(NPV)/1e9,
     NPV_min = min(NPV)/1e9
-  ) 
+  )
 

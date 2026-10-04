@@ -1,98 +1,25 @@
-# Load libraries
+if(!isTRUE(getOption('phased.r1.cost_runner',FALSE)))stop('Source an R1 cost runner')
 library(data.table)
-library(readxl)
-
-# NPV Calculator
-calculate_npv <- function(dt, rate, base_year) {
-  npv <- sum(dt[, 2] / (1 + rate)^(dt[, 1] - base_year))
-  return(npv)
-}
-
 discount_rate <- 0.025
 base_year <- 2024
-
-# Load ATB Costs
-ATBe <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/NREL ATB/ATBe_2024.csv")
-ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
-
-# Load Generation data
-#-- Stepwise
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
-
-Yearly_Results <- as.data.table(fread(file_path))
-Yearly_Results[, V1 := NULL]
-Yearly_Results[, V1 := NULL]
-
-# Define a function to process non-fossil VOM
-process_non_fossil <- function(technology, techdetail, dataset, column_name, simulation, pathway) {
-  # Define the variables for filtering
-  technology_filter <- technology
-  techdetail_filter <- techdetail
-  core_metric_case_filter <- "Market"
-  crpyears_filter <- 30
-  core_metric_variable_filter <- 2025
-  
-  # Apply all filters using data.table syntax
-  tech_data <- ATBe[
-    technology == technology_filter & 
-      techdetail == techdetail_filter & 
-      core_metric_case == core_metric_case_filter & 
-      crpyears == crpyears_filter & 
-      core_metric_variable >= core_metric_variable_filter
-  ]
-  
-  var_om_data <- tech_data[core_metric_parameter == "Fuel"]
-  
-  filtered_dataset <- dataset[Simulation == simulation & Pathway == pathway]
-  var_om_data <- merge(var_om_data, filtered_dataset, by.x = "core_metric_variable", by.y = "Year")
-  var_om_data[, Var_OM := get(column_name) * value * 1e6] # MWh to TWh
-  
-  Var_om_npv <- numeric(length(ATB_scenarios))
-  
-  for (i in seq_along(ATB_scenarios)) {
-    Var_om_scenario_data <- var_om_data[scenario == ATB_scenarios[i], .(core_metric_variable, Var_OM)]
-    Var_om_npv[i] <- calculate_npv(Var_om_scenario_data, discount_rate, base_year)
-  }
-  
-  names(Var_om_npv) <- ATB_scenarios
-  
-  list(Var_OM_NPV = Var_om_npv)
-}
-
-simulations <- unique(Yearly_Results$Simulation)
-pathways <- unique(Yearly_Results$Pathway)
-
-# Process each tech for each combination of simulation and Pathway
-technologies <- list(
-  list(tech = "Nuclear", detail = "Nuclear - Large", column_name = "Nuclear_TWh"),
-  list(tech = "Nuclear", detail = "Nuclear - Small", column_name = "SMR_TWh"),
-  list(tech = "Biopower", detail = "Dedicated", column_name = "Biomass_TWh")
-)
-
-npv_results <- list()
-
-for (sim in simulations) {
-  for (path in pathways) {
-    for (tech_info in technologies) {
-      result <- process_non_fossil(tech_info$tech, tech_info$detail, Yearly_Results, tech_info$column_name, sim, path)
-      npv_results[[paste0(sim, "_", path, "_", tech_info$tech, "_Var_OM_NPV")]] <- result$Var_OM_NPV
-    }
-  }
-}
-
-# Combine NPV results into a single data.table
-combined_npvs <- rbindlist(lapply(names(npv_results), function(name) {
-  parts <- strsplit(name, "_")[[1]]
-  data.table(Simulation = parts[1], Pathway = parts[2], ATB_Scenario = names(npv_results[[name]]), NPV = npv_results[[name]], Technology = parts[3])
-}), fill = TRUE)
-
-combined_npvs <- combined_npvs[NPV != 0,]
-combined_npvs_summary_1 <- combined_npvs[, .(
-  mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
-  sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway)] 
-
-
-# Save combined NPV results to a single CSV file
-write.csv(combined_npvs, file = file.path(output_path, "Fuel_Non_Fossil.csv"), row.names = FALSE)
+ATBe <- fread("__PROJECT_ROOT__/4 External Data/NREL ATB/ATBe_2024.csv")
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
+y <- fread(file_path)
+# join coefficient years once so the 1000-run calculation avoids repeated full-table filtering while retaining the original fuel formula.
+techs <- data.table(technology=c('Nuclear','Nuclear','Biopower'),techdetail=c('Nuclear - Large','Nuclear - Small','Dedicated'),Column=c('Nuclear_TWh','SMR_TWh','Biomass_TWh'),Technology=c('Nuclear','SMR','Biopower'))
+rates <- merge(ATBe[core_metric_case=='Market' & crpyears==30 & core_metric_parameter=='Fuel' & core_metric_variable %in% 2025:2050 & scenario %in% c('Advanced','Moderate','Conservative')],techs,by=c('technology','techdetail'))
+rates <- rates[,.(Year=core_metric_variable,Technology,ATB_Scenario=scenario,Rate=as.numeric(value))]
+if(!setequal(rates$Technology,techs$Technology)||!setequal(rates$ATB_Scenario,c('Advanced','Moderate','Conservative'))||anyDuplicated(rates,by=c('Year','Technology','ATB_Scenario'))||any(!is.finite(rates$Rate)))stop('Incomplete or duplicate non-fossil fuel coefficients')
+# record uncovered coefficient years because the original inner join omits them; no extrapolated rates are invented here.
+expected <- CJ(Year=2025:2050,Technology=techs$Technology,ATB_Scenario=c('Advanced','Moderate','Conservative'))
+missing <- fsetdiff(expected,rates[,.(Year,Technology,ATB_Scenario)])
+fwrite(missing,file.path(output_path,'Fuel_coefficient_years_missing_R1.csv'))
+if(nrow(missing))warning('Non-fossil fuel retains original coefficient-year coverage; see Fuel_coefficient_years_missing_R1.csv')
+gen <- melt(y,id.vars=c('Simulation','Pathway','Year'),measure.vars=techs$Column,variable.name='Column',value.name='Generation_TWh')
+gen <- merge(gen,techs[,.(Column,Technology)],by='Column')
+cost <- merge(gen,rates,by=c('Year','Technology'),allow.cartesian=TRUE)
+# retain zero-generation cases so every expected technology/pathway/simulation key remains explicit.
+combined_npvs <- cost[,.(NPV=sum(Generation_TWh*1e6*Rate/(1+discount_rate)^(Year-base_year))),by=.(Simulation,Pathway,ATB_Scenario,Technology)]
+if(any(!is.finite(combined_npvs$NPV)))stop('Nonfinite non-fossil fuel costs')
+fwrite(combined_npvs,file.path(output_path,'Fuel_Non_Fossil.csv'))

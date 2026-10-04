@@ -1,7 +1,7 @@
-# Install/Import SSH library 
+# Install/Import SSH library
 library(ssh)
 
-setwd("/Users/amirgazar/Documents/GitHub/EPA_Debarbonization/ARC SSH Fossil Fuels USA")
+setwd(Sys.getenv("PHASED_ARC_SSH_FOSSIL_FUELS_USA", unset=""))
 
 host <- "tinkercliffs2.arc.vt.edu"
 username <- "amirgazar" # VT PID

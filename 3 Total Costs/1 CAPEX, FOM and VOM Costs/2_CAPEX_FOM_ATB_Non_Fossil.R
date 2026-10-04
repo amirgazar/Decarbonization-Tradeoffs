@@ -14,12 +14,12 @@ discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
-ATBe <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/NREL ATB/ATBe_2024.csv")
+ATBe <- fread("__PROJECT_ROOT__/4 External Data/NREL ATB/ATBe_2024.csv")
 ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
 
 # Load Capacity data
 # Define the file path
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
+file_path <- "__PROJECT_ROOT__/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
 sheet_names <- excel_sheets(file_path)
 data_tables <- list()
 # Loop through each sheet, read it into a data table, and add the Pathway column
@@ -40,47 +40,47 @@ process_non_fossil <- function(tech_info, dataset) {
   core_metric_case_filter <- "Market"
   crpyears_filter <- 30
   core_metric_variable_filter <- 2025
-  
+
   # Apply all filters using data.table syntax
   tech_data <- ATBe[
-    technology == technology_filter & 
-      techdetail == techdetail_filter & 
-      core_metric_case == core_metric_case_filter & 
-      crpyears == crpyears_filter & 
+    technology == technology_filter &
+      techdetail == techdetail_filter &
+      core_metric_case == core_metric_case_filter &
+      crpyears == crpyears_filter &
       core_metric_variable >= core_metric_variable_filter
   ]
-  
+
   capex_data <- tech_data[core_metric_parameter == "CAPEX"]
   fixed_om_data <- tech_data[core_metric_parameter == "Fixed O&M"]
-  
-  dataset[, new_capacity := get(column_name) - shift(get(column_name), 1, type = "lag")] 
+
+  dataset[, new_capacity := get(column_name) - shift(get(column_name), 1, type = "lag")]
   dataset[1, new_capacity := 0]
-  
+
   capex_data <- merge(capex_data, dataset, by.x = "core_metric_variable", by.y = "Year")
   capex_data[, CAPEX := new_capacity * value * 1000] # KW to MW
-  
+
   fixed_om_data <- merge(fixed_om_data, dataset, by.x = "core_metric_variable", by.y = "Year")
   fixed_om_data[, Fixed_OM := get(column_name) * value * 1000] # KW to MW
-  
+
   capex_npv <- numeric(length(ATB_scenarios))
   fixed_om_npv <- numeric(length(ATB_scenarios))
-  
+
   for (i in seq_along(ATB_scenarios)) {
     capex_scenario_data <- capex_data[scenario == ATB_scenarios[i], .(core_metric_variable, CAPEX)]
     capex_npv[i] <- calculate_npv(capex_scenario_data, discount_rate, base_year)
-    
+
     fixed_om_scenario_data <- fixed_om_data[scenario == ATB_scenarios[i], .(core_metric_variable, Fixed_OM)]
     fixed_om_npv[i] <- calculate_npv(fixed_om_scenario_data, discount_rate, base_year)
   }
-  
+
   names(capex_npv) <- ATB_scenarios
   names(fixed_om_npv) <- ATB_scenarios
-  
+
   list(CAPEX_NPV = capex_npv, Fixed_OM_NPV = fixed_om_npv)
 }
 
 # Process NPVs
-# Process  technologies 
+# Process  technologies
 technologies <- list(
   list(tech = "UtilityPV", detail = "Class5", column_name = "Solar"),
   list(tech = "LandbasedWind", detail = "Class4", column_name = "Onshore Wind"),
@@ -121,14 +121,14 @@ combined_npvs <- rbindlist(lapply(names(results), function(name) {
 combined_npvs_summary <- combined_npvs[NPV != 0, .(
   mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
   sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway, Cost_Type, Technology)] 
+), by = .(Pathway, Cost_Type, Technology)]
 
 combined_npvs_summary_more <- combined_npvs_summary[, .(
   sum_NPV = sum(mean_NPV, na.rm = TRUE)
-), by = .(Pathway, Cost_Type)] 
+), by = .(Pathway, Cost_Type)]
 
 # Save combined NPV results to a single CSV file
-write.csv(combined_npvs, file = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Non_Fossil.csv", row.names = FALSE)
+write.csv(combined_npvs, file = "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Non_Fossil.csv", row.names = FALSE)
 
 
 # Tax revenue estimates
@@ -199,7 +199,7 @@ events[, capex_total := new_capacity_MW * 1000 * capex_per_kW]
 
 # 5) Load & clean county tax rates for New England
 tax_raw <- fread(
-  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Tax Foundation/Property_taxes.csv",
+  "__PROJECT_ROOT__/4 External Data/Tax Foundation/Property_taxes.csv",
   header = TRUE
 )
 tax <- tax_raw %>%
@@ -226,7 +226,7 @@ for (i in seq_len(n_sim)) {
   # draw row-indices from tax (one row per NE county)
   idx       <- sample(nrow(tax), size = n_events, replace = TRUE)
   assigned  <- tax[idx]          # data.table of length n_events
-  
+
   # copy events and tack on the sampled tax info
   sim_dt <- copy(events)[
     , `:=`(
@@ -235,14 +235,14 @@ for (i in seq_len(n_sim)) {
       effective_rate = assigned$effective_rate
     )
   ]
-  
+
   # compute tax revenue = CAPEX_total * rate
   sim_dt[, tax_rev := capex_total * effective_rate]
-  
+
   # sum up by pathway
   summary_dt <- sim_dt[, .(tax_rev = sum(tax_rev, na.rm = TRUE)), by = Pathway]
   summary_dt[, sim := i]
-  
+
   sim_list[[i]] <- summary_dt
 }
 
@@ -259,6 +259,6 @@ nonfossil_stats <- sim_dt[
 # 7) Save only the summary statistics
 fwrite(
   nonfossil_stats,
-  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/Non_Fossil_Tax_Revenue.csv"
+  "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results/Non_Fossil_Tax_Revenue.csv"
 )
 

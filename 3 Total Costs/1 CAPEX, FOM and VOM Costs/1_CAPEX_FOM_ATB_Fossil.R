@@ -1,3 +1,4 @@
+if (!isTRUE(getOption("phased.r1.cost_runner", FALSE))) stop("Source 1 Run full cost pipeline_R1.R, not individual cost components")
 # Load libraries
 library(data.table)
 library(readxl)
@@ -14,23 +15,26 @@ discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
-ATBe <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/NREL ATB/ATBe_2024.csv")
+ATBe <- fread("__PROJECT_ROOT__/4 External Data/NREL ATB/ATBe_2024.csv")
 ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
 
 # Load Fossil Fuels data
 # Old fossil
-Fossil_Fuels_NPC <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv")
+Fossil_Fuels_NPC <- fread("__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv")
+# Filter the starting fleet to match the units represented in dispatch.
+# Retired-before-2025 facilities must not incur recurring FOM in A/D.
+Fossil_Fuels_NPC <- Fossil_Fuels_NPC[Retirement_year >= 2025]
 
 Coal_NPC <- Fossil_Fuels_NPC[grepl("Coal", Primary_Fuel_Type, ignore.case = TRUE)]
 Wood_NPC <- Fossil_Fuels_NPC[grepl("Wood", Primary_Fuel_Type, ignore.case = TRUE)]
 Oil_NPC <- Fossil_Fuels_NPC[grepl("Oil", Primary_Fuel_Type, ignore.case = TRUE)]
-Gas_CC_NPC <- Fossil_Fuels_NPC[grepl("Gas", Fossil_Fuels_NPC$Primary_Fuel_Type, ignore.case = TRUE) & 
+Gas_CC_NPC <- Fossil_Fuels_NPC[grepl("Gas", Fossil_Fuels_NPC$Primary_Fuel_Type, ignore.case = TRUE) &
                                  grepl("Combined Cycle", Fossil_Fuels_NPC$Unit_Type, ignore.case = TRUE), ]
-Gas_CT_NPC <-  Fossil_Fuels_NPC[grepl("Gas", Fossil_Fuels_NPC$Primary_Fuel_Type, ignore.case = TRUE) & 
+Gas_CT_NPC <-  Fossil_Fuels_NPC[grepl("Gas", Fossil_Fuels_NPC$Primary_Fuel_Type, ignore.case = TRUE) &
                                   !grepl("Combined Cycle", Fossil_Fuels_NPC$Unit_Type, ignore.case = TRUE), ]
 
 # New fossil (Note this is all new NG CC)
-New_Fossil_Fuels_NPC <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv")
+New_Fossil_Fuels_NPC <- fread("__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv")
 
 # Create annual data tables for each fuel type
 create_annual_data_table <- function(start_year, end_year) {
@@ -48,10 +52,10 @@ calculate_capacity <- function(fuel_subset, result_table) {
   for (year in start_year:end_year) {
     # Calculate total capacity without considering retirements
     total_capacity_no_retirements <- sum(fuel_subset$Estimated_NameplateCapacity_MW, na.rm = TRUE)
-    
+
     # Calculate total capacity considering retirements for the current year
     total_capacity <- sum(fuel_subset[Retirement_year >= year, ]$Estimated_NameplateCapacity_MW, na.rm = TRUE)
-    
+
     # Update the result_table for the current year
     result_table[Year == as.integer(year), `:=`(
       Estimated_NameplateCapacity_MW = total_capacity,
@@ -80,10 +84,10 @@ Gas_CC_NPC_annual <- merge(Gas_CC_NPC_annual, New_Fossil_Fuels_NPC, by = "Year",
 
 # Integrating pathways retirement schedule
 Gas_CC_NPC_annual <- Gas_CC_NPC_annual %>%
-  dplyr::select(Year, 
-                Estimated_NameplateCapacity_MW, 
+  dplyr::select(Year,
+                Estimated_NameplateCapacity_MW,
                 Estimated_NameplateCapacity_MW_no_retirements,
-                Total.NewNGCC_NameplateCapacity_MW, 
+                Total.NewNGCC_NameplateCapacity_MW,
                 NewNGCC_NameplateCapacity_MW) %>%
   mutate(
     B_C_FOM = Estimated_NameplateCapacity_MW,
@@ -103,26 +107,26 @@ Gas_CC_NPC_annual <- Gas_CC_NPC_annual %>%
 calculate_fixed_om_npv <- function(fuel_data, atb_data, atb_scenarios, discount_rate, base_year) {
   # Initialize an empty data table to store results
   fixed_npv <- data.table(Scenario = character(), Pathway = character(), NPV = numeric())
-  
+
   for (i in seq_along(atb_scenarios)) {
     # Merge data for the current scenario
     scenario_data <- merge(atb_data[scenario == atb_scenarios[i]], fuel_data, by.x = "core_metric_variable", by.y = "Year")
-    
+
     # Calculate fixed O&M costs
     scenario_data[, B_C_Fixed_OM := Estimated_NameplateCapacity_MW * value * 1000] # KW to MW
     scenario_data[, A_D_Fixed_OM := Estimated_NameplateCapacity_MW_no_retirements * value * 1000] # KW to MW
-    
+
     # Calculate NPV for each pathway
     B_C_npv <- calculate_npv(scenario_data[, .(core_metric_variable, B_C_Fixed_OM)], discount_rate, base_year)
     A_D_npv <- calculate_npv(scenario_data[, .(core_metric_variable, A_D_Fixed_OM)], discount_rate, base_year)
-    
+
     # Append results for each pathway
-    fixed_npv <- rbind(fixed_npv, 
+    fixed_npv <- rbind(fixed_npv,
                        data.table(Scenario = atb_scenarios[i], Pathway = "B_C", NPV = B_C_npv))
-    fixed_npv <- rbind(fixed_npv, 
+    fixed_npv <- rbind(fixed_npv,
                        data.table(Scenario = atb_scenarios[i], Pathway = "A_D", NPV = A_D_npv))
   }
-  
+
   # Return the results
   return(fixed_npv)
 }
@@ -133,36 +137,36 @@ fuel_types <- c("Coal", "Wood", "Gas_CT", "Oil")
 npv_results <- list()
 for (fuel in fuel_types) {
   # Define the filtering criteria based on the switch cases
-  technology_filter <- switch(fuel, 
-                              Coal = "Coal_FE", 
-                              Wood = "Biopower", 
-                              Gas_CT = "NaturalGas_FE", 
+  technology_filter <- switch(fuel,
+                              Coal = "Coal_FE",
+                              Wood = "Biopower",
+                              Gas_CT = "NaturalGas_FE",
                               Oil = "NaturalGas_FE")
-  
-  techdetail_filter <- switch(fuel, 
-                               Coal = "Coal-IGCC", 
-                               Wood = "Dedicated", 
-                               Gas_CT = "NG Combustion Turbine (F-Frame)", 
+
+  techdetail_filter <- switch(fuel,
+                               Coal = "Coal-IGCC",
+                               Wood = "Dedicated",
+                               Gas_CT = "NG Combustion Turbine (F-Frame)",
                                Oil = "NG Combustion Turbine (F-Frame)")
-  
+
   core_metric_case_filter <- "Market"
   crpyears_filter <- 30
   core_metric_variable_filter <- 2025
   maturity_filter <- "Y"
   core_metric_parameter_filter <- "Fixed O&M"
-  
+
   # Apply all filters simultaneously
   atb_data_FOM <- ATBe[
-    technology == technology_filter & 
-      techdetail == techdetail_filter & 
-      core_metric_case == core_metric_case_filter & 
-      crpyears == crpyears_filter & 
+    technology == technology_filter &
+      techdetail == techdetail_filter &
+      core_metric_case == core_metric_case_filter &
+      crpyears == crpyears_filter &
       maturity == maturity_filter &
-      core_metric_variable >= core_metric_variable_filter & 
+      core_metric_variable >= core_metric_variable_filter &
       core_metric_parameter == core_metric_parameter_filter
   ]
-  
-  fixed_npv <- calculate_fixed_om_npv(get(paste0(fuel, "_NPC_annual")), atb_data_FOM, 
+
+  fixed_npv <- calculate_fixed_om_npv(get(paste0(fuel, "_NPC_annual")), atb_data_FOM,
                                       ATB_scenarios, discount_rate, base_year)
   npv_results[[paste0(fuel, "_fixed_NPV")]] <- fixed_npv
 }
@@ -178,24 +182,24 @@ techdetail_filter <- "NG 1-on-1 Combined Cycle (H-Frame)"
 
 # Apply all filters simultaneously
 atb_data_FOM <- ATBe[
-  technology == technology_filter & 
-    techdetail == techdetail_filter & 
-    core_metric_case == core_metric_case_filter & 
-    crpyears == crpyears_filter & 
+  technology == technology_filter &
+    techdetail == techdetail_filter &
+    core_metric_case == core_metric_case_filter &
+    crpyears == crpyears_filter &
     maturity == maturity_filter &
-    core_metric_variable >= core_metric_variable_filter & 
+    core_metric_variable >= core_metric_variable_filter &
     core_metric_parameter == core_metric_parameter_filter
 ]
-  
+
 core_metric_parameter_filter <- "CAPEX"
 atb_data_CAPEX <- ATBe[
-  technology == technology_filter & 
-    techdetail == techdetail_filter & 
-    core_metric_case == core_metric_case_filter & 
-    crpyears == crpyears_filter & 
-    core_metric_variable >= core_metric_variable_filter & 
+  technology == technology_filter &
+    techdetail == techdetail_filter &
+    core_metric_case == core_metric_case_filter &
+    crpyears == crpyears_filter &
+    core_metric_variable >= core_metric_variable_filter &
     core_metric_parameter == core_metric_parameter_filter
-]  
+]
 
 # Initialize an empty data frame to store results
 gas_CC_npv <- data.table(Scenario = character(), Cost_Type =  character(), Pathway = character(), Fuel = character(), NPV = numeric())
@@ -203,31 +207,31 @@ gas_CC_npv <- data.table(Scenario = character(), Cost_Type =  character(), Pathw
 for (i in seq_along(ATB_scenarios)) {
   # Merge data for the current scenario
   scenario_data <- merge(atb_data_FOM[scenario == ATB_scenarios[i]], Gas_CC_NPC_annual, by.x = "core_metric_variable", by.y = "Year")
-  
+
   # Calculate fixed O&M costs
   scenario_data[, B_C_Fixed_OM := B_C_FOM * value * 1000] # KW to MW
   scenario_data[, A_Fixed_OM := A_FOM * value * 1000]     # KW to MW
   scenario_data[, D_Fixed_OM := D_FOM * value * 1000]     # KW to MW
-  
+
 
   # Calculate FOM NPV for each pathway
   B_C_npv <- calculate_npv(scenario_data[, .(core_metric_variable, B_C_Fixed_OM)], discount_rate, base_year)
   A_npv <- calculate_npv(scenario_data[, .(core_metric_variable, A_Fixed_OM)], discount_rate, base_year)
   D_npv <- calculate_npv(scenario_data[, .(core_metric_variable, D_Fixed_OM)], discount_rate, base_year)
-  
+
   # CAPEX NPV
   scenario_data <- merge(atb_data_CAPEX[scenario == ATB_scenarios[i]], Gas_CC_NPC_annual, by.x = "core_metric_variable", by.y = "Year")
   scenario_data[, D_CAPEX := D_CAPEX * value * 1000]     # KW to MW
   D_CAPEX_npv <- calculate_npv(scenario_data[, .(core_metric_variable, D_CAPEX)], discount_rate, base_year)
-  
+
   # Append results for each pathway
-  gas_CC_npv <- rbind(gas_CC_npv, 
+  gas_CC_npv <- rbind(gas_CC_npv,
                           data.table(Scenario = ATB_scenarios[i], Pathway = "B_C", Cost_Type = "FOM", Fuel = "Gas_CC", NPV = B_C_npv))
-  gas_CC_npv <- rbind(gas_CC_npv, 
+  gas_CC_npv <- rbind(gas_CC_npv,
                           data.table(Scenario = ATB_scenarios[i], Pathway = "A", Cost_Type = "FOM", Fuel = "Gas_CC", NPV = A_npv))
-  gas_CC_npv <- rbind(gas_CC_npv, 
+  gas_CC_npv <- rbind(gas_CC_npv,
                           data.table(Scenario = ATB_scenarios[i], Pathway = "D", Cost_Type = "FOM", Fuel = "Gas_CC", NPV = D_npv))
-  gas_CC_npv <- rbind(gas_CC_npv, 
+  gas_CC_npv <- rbind(gas_CC_npv,
                       data.table(Scenario = ATB_scenarios[i], Pathway = "D", Cost_Type = "CAPEX", Fuel = "Gas_CC", NPV = D_CAPEX_npv))
 }
 
@@ -240,10 +244,10 @@ pathway_expansion <- list(
 
 # Expand the pathways
 expanded_gas_CC_npv <- gas_CC_npv[, .(
-  Pathway = unlist(pathway_expansion[Pathway]), 
-  Scenario, 
-  NPV, 
-  Cost_Type, 
+  Pathway = unlist(pathway_expansion[Pathway]),
+  Scenario,
+  NPV,
+  Cost_Type,
   Fuel
 ), by = .(rowid = .I)]
 
@@ -255,11 +259,11 @@ combined_npvs <- rbindlist(lapply(names(npv_results), function(fuel) {
   base_fuel <- sub("_.*$", "", fuel)
   # Conditionally change "Gas" to "Gas_CT"
   base_fuel <- ifelse(base_fuel == "Gas", "Gas_CT", base_fuel)
-  
+
   # Create a data table with additional columns
   data.table(
-    npv_results[[fuel]], 
-    Cost_Type = "FOM", 
+    npv_results[[fuel]],
+    Cost_Type = "FOM",
     Fuel = base_fuel
   )
 }), fill = TRUE)
@@ -272,10 +276,10 @@ pathway_expansion <- list(
 
 # Expand the pathways
 expanded_combined_npvs <- combined_npvs[, .(
-  Pathway = unlist(pathway_expansion[Pathway]), 
-  Scenario, 
-  NPV, 
-  Cost_Type, 
+  Pathway = unlist(pathway_expansion[Pathway]),
+  Scenario,
+  NPV,
+  Cost_Type,
   Fuel
 ), by = .(rowid = .I)]
 
@@ -288,10 +292,10 @@ combined_npvs_all <- rbind(expanded_gas_CC_npv, expanded_combined_npvs)
 combined_npvs_summary <- combined_npvs_all[NPV != 0, .(
   mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
   sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway, Cost_Type, Fuel)] 
+), by = .(Pathway, Cost_Type, Fuel)]
 
 # Save combined NPV results to a single CSV file
-write.csv(combined_npvs_all, file = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Fossil.csv", row.names = FALSE)
+write.csv(combined_npvs_all, file = "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results/CAPEX_Fixed_Fossil.csv", row.names = FALSE)
 
 
 # Tax revenue
@@ -313,7 +317,7 @@ capex_dt <- capex_dt[, .(capex_per_kW = mean(capex_per_kW, na.rm = TRUE)), by = 
 
 # 2) Prepare plants table: add year, capacity_kW, and CAPEX per kW
 plants_dt <- fread(
-  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+  "__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 ) %>%
   mutate(
     Year    = year(as.Date(Commercial_Operation_Date)),
@@ -326,7 +330,7 @@ plants_dt <- merge(plants_dt, capex_dt, by = "Year", all.x = TRUE)
 
 # 3) Load & clean property‐tax rates for New England
 tax_raw <- fread(
-  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Tax Foundation/Property_taxes.csv",
+  "__PROJECT_ROOT__/4 External Data/Tax Foundation/Property_taxes.csv",
   header = TRUE
 )
 tax <- tax_raw %>%
@@ -351,7 +355,7 @@ sim_list <- vector("list", n_sim)
 for (i in seq_len(n_sim)) {
   # assign each plant a random county
   assigned_counties <- sample(tax$county, size = n_plants, replace = TRUE)
-  
+
   sim_dt <- copy(plants_dt)[
     , county := assigned_counties
   ][
@@ -365,7 +369,7 @@ for (i in seq_len(n_sim)) {
   ][
     , sim := i
   ]
-  
+
   sim_list[[i]] <- sim_dt
 }
 
@@ -383,5 +387,5 @@ tax_stats <- sim_summary[, .(
 # 7) Save only the summary statistics
 fwrite(
   tax_stats,
-  "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/NG_Tax_Revenue.csv"
+  "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results/NG_Tax_Revenue.csv"
 )

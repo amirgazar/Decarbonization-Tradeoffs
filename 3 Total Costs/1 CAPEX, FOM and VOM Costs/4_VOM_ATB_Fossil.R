@@ -12,14 +12,14 @@ discount_rate <- 0.025
 base_year <- 2024
 
 # Load ATB Costs
-ATBe <- fread("/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/NREL ATB/ATBe_2024.csv")
+ATBe <- fread("__PROJECT_ROOT__/4 External Data/NREL ATB/ATBe_2024.csv")
 ATB_scenarios <- c("Advanced", "Moderate", "Conservative")
 
 # Load Results - Facility level gen (old facilities)
 #-- Stepwise
-file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
-file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
+file_path_1 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
+file_path_2 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
 
 Yearly_Facility_Level_Results <- as.data.table(fread(file_path_1))
 Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
@@ -29,10 +29,10 @@ Yearly_Results <- as.data.table(fread(file_path_2))
 
 # Load facilities data
 # Old/existing fossil fuels
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC <- fread(file_path)
-# New fossil fuels 
-file_path <-"/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+# New fossil fuels
+file_path <-"__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC_new <- fread(file_path)
 Fossil_Fuels_NPC_new <- Fossil_Fuels_NPC_new[1,]
 
@@ -81,7 +81,7 @@ Yearly_Facility_Level_Results <- Yearly_Facility_Level_Results[, .(
   Fossil_gen_MWh_min = sum(Fossil_gen_MWh_min, na.rm = TRUE)
 ), by = .(Year, Pathway, Fuel_Category)]
 
-  
+
 # Define a function to process fossil VOM
 process_fossil <- function(technology, techdetail, dataset, column_name, pathway) {
   # Define the variables for filtering
@@ -90,31 +90,31 @@ process_fossil <- function(technology, techdetail, dataset, column_name, pathway
   core_metric_case_filter <- "Market"
   crpyears_filter <- 30
   core_metric_variable_filter <- 2025
-  
+
   # Apply all filters using data.table syntax
   tech_data <- ATBe[
-    technology == technology_filter & 
-      techdetail == techdetail_filter & 
-      core_metric_case == core_metric_case_filter & 
-      crpyears == crpyears_filter & 
+    technology == technology_filter &
+      techdetail == techdetail_filter &
+      core_metric_case == core_metric_case_filter &
+      crpyears == crpyears_filter &
       core_metric_variable >= core_metric_variable_filter
   ]
-  
+
   var_om_data <- tech_data[core_metric_parameter == "Variable O&M"]
 
   filtered_dataset <- dataset[Pathway == pathway]
   var_om_data <- merge(var_om_data, filtered_dataset, by.x = "core_metric_variable", by.y = "Year")
-  var_om_data[, Var_OM := get(column_name) * value] # MWh 
-  
+  var_om_data[, Var_OM := get(column_name) * value] # MWh
+
   Var_om_npv <- numeric(length(ATB_scenarios))
-  
+
   for (i in seq_along(ATB_scenarios)) {
     Var_om_scenario_data <- var_om_data[scenario == ATB_scenarios[i], .(core_metric_variable, Var_OM)]
     Var_om_npv[i] <- calculate_npv(Var_om_scenario_data, discount_rate, base_year)
   }
-  
+
   names(Var_om_npv) <- ATB_scenarios
-  
+
   list(Var_OM_NPV = Var_om_npv)
 }
 
@@ -153,11 +153,11 @@ combined_npvs_fossil <- combined_npvs_fossil[NPV != 0,]
 combined_npvs_summary_2 <- combined_npvs_fossil[NPV != 0, .(
   mean_NPV = mean(NPV, na.rm = TRUE)/1e9,
   sd_NPV = sd(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway, Technology)] 
+), by = .(Pathway, Technology)]
 
 combined_npvs_summary_again_2 <- combined_npvs_summary_2[, .(
   sum_NPV = sum(mean_NPV, na.rm = TRUE)
-), by = .(Pathway)] 
+), by = .(Pathway)]
 
 # Save combined NPV results to a single CSV file
 fwrite(combined_npvs_fossil, file = file.path(output_path, "VOM_Fossil.csv"), row.names = FALSE)
@@ -202,7 +202,7 @@ for (scen in pathways) {
       Pathway == scen & Fuel_Category == fossil_info$fuel_type
     ]
     if (nrow(fossil_data_sim)==0) next
-    
+
     # pull VOM rates from ATBe
     tech_data <- ATBe[
       technology       == fossil_info$tech &
@@ -212,7 +212,7 @@ for (scen in pathways) {
         core_metric_variable >= base_year
     ]
     var_om_param <- tech_data[core_metric_parameter == "Variable O&M"]
-    
+
     # merge on year
     merged_sim <- merge(
       var_om_param,
@@ -222,7 +222,7 @@ for (scen in pathways) {
       allow.cartesian = TRUE
     )
     merged_sim[, Var_OM := Fossil_gen_MWh * value]  # $ cost = MWh × $/MWh
-    
+
     # discounted sum per ATB scenario & Simulation
     npv_sim <- merged_sim[
       , .(NPV = sum(
@@ -235,7 +235,7 @@ for (scen in pathways) {
       Pathway    = scen,
       Technology = fossil_info$fuel_type
     )]
-    
+
     npv_results_by_sim[[paste0(scen, "_", fossil_info$fuel_type)]] <- npv_sim
   }
 }

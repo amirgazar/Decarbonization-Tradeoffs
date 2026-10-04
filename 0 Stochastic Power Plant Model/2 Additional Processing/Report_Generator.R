@@ -8,17 +8,17 @@ library(rmarkdown)
 library(dplyr)
 
 # Define state codes
-stateCodes <- c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", 
-                "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN", 
-                "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH", 
-                "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", 
+stateCodes <- c("AK", "AL", "AR", "AZ", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI",
+                "IA", "ID", "IL", "IN", "KS", "KY", "LA", "MA", "MD", "ME", "MI", "MN",
+                "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH",
+                "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT",
                 "WA", "WI", "WV", "WY")
 
 state <- c("MA", "RI", "CT", "VT", "ME", "NH")
 state <- "NH"
 
 # Define the base directory
-base_dir <- "/Users/amirgazar/Documents/GitHub/States Historical Data"
+base_dir <- Sys.getenv("PHASED_STATES_HISTORICAL_DATA", unset="")
 
 # Define the state directory dynamically
 state_dir <- file.path(base_dir, state)
@@ -44,7 +44,7 @@ emissions_data_operating <- emissions_data[!Facility_Unit.ID %in% retired_ids]
 calculate_sum <- function(column_prefix) {
   # Create an empty data.table to store results for each i
   result_dt <- data.table()
-  
+
   # Loop through 1 to 99 to calculate sums for each column
   for (i in 1:99) {
     column_name <- paste0(column_prefix, "_", i)  # Generate the column name
@@ -54,11 +54,11 @@ calculate_sum <- function(column_prefix) {
       is.finite(get(column_gen)) & is.finite(get(column_name)),  # Filter finite values for column_gen and current column
       .(sum_value = sum(get(column_gen) * get(column_name) / 1e3, na.rm = TRUE))
     ]
-    
+
     # Add the sum_value to the data.table as a new column
     result_dt[, (paste0(column_prefix, "_", i)) := sum_value$sum_value]
   }
-  
+
   return(result_dt)  # Return the data.table with all sums for this prefix
 }
 
@@ -90,19 +90,19 @@ for (facility in unique_facilities) {
     pull(Facility_Name) %>%
     unique()
   facility_name <- gsub("&", "\\\\&", facility_name)
-  
+
   facility_data <- emissions_data %>%
     filter(Facility_Unit.ID == facility)
-  
+
   # Skip the facility if no data is available or if max_gen is zero
   if (nrow(facility_data) == 0 || facilities_data$max_gen_MW[facilities_data$Facility_Unit.ID == facility][1] == 0) {
     next
   }
-  
+
   report_path <- file.path(report_dir, paste0("Report_", facility, ".pdf"))
-  
+
   rmarkdown::render(
-    input = file.path("/Users/amirgazar/Documents/GitHub/EPA_Debarbonization/ARC SSH Fossil Fuels USA/Automation", "facility_report_template.Rmd"),
+    input = file.path(Sys.getenv("PHASED_AUTOMATION", unset=""), "facility_report_template.Rmd"),
     output_file = report_path,
     params = list(
       state = facilities_data$State[facilities_data$Facility_Unit.ID == facility][1],

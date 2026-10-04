@@ -16,7 +16,7 @@ base_year <- 2024
 new_england_states <- c("CT", "ME", "MA", "NH", "RI", "VT")
 
 # API KEY 63522eae4ec927d6f1d9d86bf7826cc8
-fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
+fredr_set_key(Sys.getenv("FRED_API_KEY"))
 cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
 
 # Extracting CPI values for specific years
@@ -27,7 +27,7 @@ cpi_2024 <- filter(cpi_data, year(date) == 2024) %>% summarise(YearlyAvg = mean(
 conversion_rate <- cpi_2024$YearlyAvg / cpi_2021$YearlyAvg
 
 # Load costs ATB 2021
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/NREL ATB/ATB_2021_Fuel_Costs_Fossil.xlsx"
+file_path <- "__PROJECT_ROOT__/4 External Data/NREL ATB/ATB_2021_Fuel_Costs_Fossil.xlsx"
 sheet_names <- excel_sheets(file_path)
 # Read all sheets into a list of data frames
 all_sheets <- lapply(sheet_names, function(sheet) read_excel(file_path, sheet = sheet))
@@ -63,9 +63,9 @@ setDT(ATB_2024)
 
 # Load Results
 #-- Stepwise
-file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
-file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
+file_path_1 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results.csv"
+file_path_2 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
 
 Facility_Level_Results <- as.data.table(fread(file_path_1))
 Facility_Level_Results <- Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
@@ -75,10 +75,10 @@ Yearly_Results <- as.data.table(fread(file_path_2))
 
 # Load facilities data
 # Old/existing fossil fuels
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC <- fread(file_path)
-# New fossil fuels 
-file_path <-"/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+# New fossil fuels
+file_path <-"__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC_new <- fread(file_path)
 Fossil_Fuels_NPC_new <- Fossil_Fuels_NPC_new[1,]
 
@@ -98,8 +98,8 @@ Facility_Level_Results <- merge(Facility_Level_Results, Facilities_Data[, .(Faci
 # Cross join Facility_Level_Results with cost_categories
 Facility_Level_Results[, Year := as.character(Year)]
 
-# Perform the merge 
-Facility_Level_Results <- merge(Facility_Level_Results, ATB_2024[, .(Fuel_Category, Year, Cost_USD_per_MWh)], 
+# Perform the merge
+Facility_Level_Results <- merge(Facility_Level_Results, ATB_2024[, .(Fuel_Category, Year, Cost_USD_per_MWh)],
            by = c("Fuel_Category", "Year"), all.x = TRUE)
 
 # Fuel costs calculation
@@ -123,8 +123,8 @@ Facility_Level_Results <- Facility_Level_Results[, .(
 # Add new natural gas costs
 Fossil_new_gen <- Yearly_Results[, .(Year, Simulation, Pathway, Fuel_Category = as.character("Gas_CC"), total_generation_GWh = New_Fossil_Fuel_TWh * 1e3)]
 ATB_2024[, Year := as.integer(as.character(Year))]
-Fossil_new_gen <- merge(Fossil_new_gen, 
-                        ATB_2024[, .(Fuel_Category, Year, Cost_USD_per_MWh)], 
+Fossil_new_gen <- merge(Fossil_new_gen,
+                        ATB_2024[, .(Fuel_Category, Year, Cost_USD_per_MWh)],
                         by = c("Fuel_Category", "Year"), all.x = TRUE)
 
 Fossil_new_gen[, Total_Cost_USD := total_generation_GWh * Cost_USD_per_MWh * 1000] # GWh to MWh
@@ -173,12 +173,12 @@ combined_npvs_fuel <- rbindlist(lapply(names(npv_results_fossil), function(name)
 combined_npvs_fuel <- combined_npvs_fuel[NPV != 0,]
 combined_npvs_summary_1 <- combined_npvs_fuel[, .(
   sum_NPV = sum(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway)] 
+), by = .(Pathway)]
 
 # Save combined NPV results to a single CSV file
 write.csv(combined_npvs_fuel, file = file.path(output_path, "Fuel_Fossil.csv"), row.names = FALSE)
 
-# Per Simulation 
+# Per Simulation
 Facility_Level_Results_sim <- rbind(Facility_Level_Results_sim, Fossil_new_gen_sim)
 Facility_Level_Results_sim$Year <- as.numeric(as.character(Facility_Level_Results_sim$Year))
 npv_per_sim <- Facility_Level_Results_sim[, .(
@@ -188,11 +188,11 @@ npv_per_sim <- Facility_Level_Results_sim[, .(
 npv_per_sim <- npv_per_sim[NPV != 0,]
 npv_per_sim <- npv_per_sim[, .(
   sum_NPV = sum(NPV, na.rm = TRUE)/1e9
-), by = .(Pathway, Simulation)] 
+), by = .(Pathway, Simulation)]
 combined_npvs_summary_2 <- npv_per_sim[, .(
   mean_NPV = mean(sum_NPV, na.rm = TRUE),
   sd_NPV = sd(sum_NPV, na.rm = TRUE)
-), by = .(Pathway)] 
+), by = .(Pathway)]
 
 
 write.csv(

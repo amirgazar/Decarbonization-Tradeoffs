@@ -4,7 +4,7 @@ library(data.table)
 library(lubridate) # For date handling
 
 # Define the file path
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
+file_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "1 Decarbonization Pathways/Decarbonization_Pathways.xlsx")
 
 # Get all sheet names
 sheet_names <- excel_sheets(file_path)
@@ -16,10 +16,10 @@ data_tables <- list()
 for (sheet in sheet_names) {
   # Read the sheet
   sheet_data <- as.data.table(read_excel(file_path, sheet = sheet))
-  
+
   # Add the Pathway column
   sheet_data[, Pathway := sheet]
-  
+
   # Store in the list
   data_tables[[sheet]] <- sheet_data
 }
@@ -52,10 +52,10 @@ base_table[, Year := year(Date)]
 
 # Perform a left join, mapping annual data to each hourly record
 final_table <- merge(
-  base_table, 
-  combined_data, 
-  by = "Year", 
-  all.x = TRUE, 
+  base_table,
+  combined_data,
+  by = "Year",
+  all.x = TRUE,
   allow.cartesian = TRUE
 )
 
@@ -72,10 +72,10 @@ final_table[, Long_Term_QC_Imports := ifelse(`Imports QC` > spot_capacity, `Impo
 
 # Rename capacity-related columns to include the _MW suffix
 setnames(final_table,
-         old = c("Nuclear", "Hydropower", "Biomass", "Solar", "Onshore Wind", "Offshore Wind", 
+         old = c("Nuclear", "Hydropower", "Biomass", "Solar", "Onshore Wind", "Offshore Wind",
                  "SMR", "New NG", "Imports QC", "Imports NBSO", "Imports NYISO", "Storage",
                  "Spot_Market_QC_Imports", "Long_Term_QC_Imports"),
-         new = c("Nuclear_MW", "Hydropower_MW", "Biomass_MW", "Solar_MW", "Onshore_Wind_MW", "Offshore_Wind_MW", 
+         new = c("Nuclear_MW", "Hydropower_MW", "Biomass_MW", "Solar_MW", "Onshore_Wind_MW", "Offshore_Wind_MW",
                  "SMR_MW", "New_NG_MW", "Imports_HQ_MW", "Imports_NBSO_MW", "Imports_NYISO_MW", "Storage_MW",
                  "Spot_Market_Imports_HQ_MW", "Long_Term_Imports_HQ_MW"))
 

@@ -17,5 +17,5 @@ Percentile_sequences_random <- generate_pseudo_random_sequences(num_sequences, n
 Percentile_sequences_matrix <- t(do.call(rbind, Percentile_sequences_random))
 
 # Save Pseudo-random sequences as a CSV
-file_path_random_csv <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/4 Randomization/1 Randomized Data/Random_Sequence.csv"
+file_path_random_csv <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/4 Randomization/1 Randomized Data/Random_Sequence.csv")
 write.csv(Percentile_sequences_matrix, file_path_random_csv, row.names = FALSE)

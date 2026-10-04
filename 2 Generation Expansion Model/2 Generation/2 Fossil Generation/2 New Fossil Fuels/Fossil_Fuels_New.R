@@ -2,7 +2,7 @@
 library(data.table)
 
 # Load facilities data
-path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv")
 facilities_data_NE <- fread(path)
 setDT(facilities_data_NE)
 
@@ -39,6 +39,6 @@ new_facility_units <- new_facilities[, .(
 new_facility_units[, Facility_Unit.ID := paste0(Facility_ID, "_", Unit_ID)]
 
 # Save the data.table as a CSV file
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+file_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv")
 fwrite(new_facility_units, file_path)
 

@@ -16,21 +16,21 @@ stateCodes <- c(
 #stateCodes <- c("CT", "ME", "MA", "NH", "RI", "VT")
 
 
-base_dir <- "/Users/amirgazar/Documents/GitHub/States Historical Data"
+base_dir <- Sys.getenv("PHASED_STATES_HISTORICAL_DATA", unset="")
 all_facilities_data <- list()
 
 for (state in stateCodes) {
   state_dir <- file.path(base_dir, state)
   facilities_data_path <- file.path(state_dir, paste0("Facilities_Data_", state, "_Clean.csv"))
-  
+
   if (file.exists(facilities_data_path)) {
     facilities_data <- fread(facilities_data_path)
-    
+
     if (state == "DC" && !is.null(all_facilities_data[["AK"]])) {
       example_state <- all_facilities_data[["AK"]]
       class_38 <- class(example_state[[38]])[1]
       class_39 <- class(example_state[[39]])[1]
-      
+
       if (class_38 == "IDate") {
         facilities_data[[38]] <- as.IDate(facilities_data[[38]], origin = "1970-01-01")
       }
@@ -43,7 +43,7 @@ for (state in stateCodes) {
       }
       facilities_data <- facilities_data[, 1:38]
     }
-    
+
     facilities_data <- facilities_data[, .SD[which.max(Year)], by = "Facility_Unit.ID"]
     all_facilities_data[[state]] <- facilities_data
   }
@@ -64,11 +64,11 @@ ggplot(combined_facilities_data, aes(x = date_range)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-base_dir <- "/Users/amirgazar/Documents/GitHub/States Historical Data"
+base_dir <- Sys.getenv("PHASED_STATES_HISTORICAL_DATA", unset="")
 usa_dir <- file.path(base_dir, "USA")
 
 facilities_na_reliability <- combined_facilities_data[
-  !grepl("retired", Operating_Status, ignore.case = TRUE) & 
+  !grepl("retired", Operating_Status, ignore.case = TRUE) &
     (is.na(Reliability_Score_3) | is.na(Reliability_Label) |
        is.na(mean_CO2_tons_MW) | is.na(mean_NOx_lbs_MW) |
        is.na(mean_SO2_lbs_MW) |
@@ -78,7 +78,7 @@ facilities_na_reliability <- combined_facilities_data[
 cat("Number of facilities with NA reliability or zero max_gen_MW:", nrow(facilities_na_reliability), "\n")
 
 facilities_na_reliability[
-  !is.na(Reliability_Label), 
+  !is.na(Reliability_Label),
   Reliability_Label := NA_character_
 ]
 cat("Replaced Reliability_Label with NA for unmatched facilities.\n")
@@ -88,9 +88,9 @@ facilities_high_reliability <- combined_facilities_data[Reliability_Label == "Hi
 facilities_high_reliability$CF <- facilities_high_reliability$mean_gen_MW /facilities_high_reliability$Estimated_NameplateCapacity_MW
 facilities_high_reliability <- facilities_high_reliability[facilities_high_reliability$CF <= 1, ]
 facilities_high_reliability[, mean_HI_mmBtu_per_MW := mean_Heat_Input_mmBtu / mean_gen_MW]
-facilities_high_reliability <- facilities_high_reliability[!is.na(mean_CO2_tons_MW) & 
-                                                             !is.na(mean_SO2_lbs_MW) & 
-                                                             !is.na(mean_NOx_lbs_MW) & 
+facilities_high_reliability <- facilities_high_reliability[!is.na(mean_CO2_tons_MW) &
+                                                             !is.na(mean_SO2_lbs_MW) &
+                                                             !is.na(mean_NOx_lbs_MW) &
                                                              !is.na(mean_HI_mmBtu_per_MW)]
 
 
@@ -99,7 +99,7 @@ cat("Number of high-reliability facilities:", nrow(facilities_high_reliability),
 required_columns <- c("Unit_Type", "Primary_Fuel_Type", "State", "Estimated_NameplateCapacity_MW", "Facility_Unit.ID")
 
 unit_type_mapping <- list(
-  "boiler" = c("Dry bottom wall-fired boiler", "Other boiler", "Cyclone boiler", 
+  "boiler" = c("Dry bottom wall-fired boiler", "Other boiler", "Cyclone boiler",
                "Dry bottom vertically-fired boiler", "Circulating fluidized bed boiler"),
   "tangentially-fired" = "Tangentially-fired",
   "combustion turbine" = "Combustion turbine",
@@ -132,7 +132,7 @@ find_similar_unit_exact <- function(target, high_rel_data) {
   target_unit_type <- target$Unit_Type_Standard
   target_primary_fuel <- target$Primary_Fuel_Type
   target_capacity <- target$Estimated_NameplateCapacity_MW
-  
+
   if (!is.na(target_capacity) && target_capacity > 0) {
     matched <- high_rel_data[
       Unit_Type_Standard == target_unit_type &
@@ -201,11 +201,11 @@ setnames(facilities_high_reliability, "Facility_Unit.ID", "Similar_Facility_Unit
 combined_facilities_data <- merge(
   combined_facilities_data,
   facilities_high_reliability[, .(
-    Similar_Facility_Unit_ID, 
-    CF, 
-    mean_CO2_tons_MW, 
-    mean_NOx_lbs_MW, 
-    mean_SO2_lbs_MW, 
+    Similar_Facility_Unit_ID,
+    CF,
+    mean_CO2_tons_MW,
+    mean_NOx_lbs_MW,
+    mean_SO2_lbs_MW,
     mean_HI_mmBtu_per_MW
   )],
   by = "Similar_Facility_Unit_ID",

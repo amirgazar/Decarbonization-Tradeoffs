@@ -1,3 +1,4 @@
+if (!isTRUE(getOption("phased.r1.cost_runner", FALSE))) stop("Source 1 Run full cost pipeline_R1.R, not individual cost components")
 # Load libraries
 library(data.table)
 library(readxl)
@@ -22,9 +23,9 @@ ton_conversion <- 0.907185 # Conversion factor from US tons to metric tons
 
 # Load Results
 #-- Stepwise
-file_path_1 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results_County_added_in.csv"
-file_path_2 <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
-output_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results"
+file_path_1 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Facility_Level_Results_County_added_in.csv"
+file_path_2 <- "__PROJECT_ROOT__/2 Generation Expansion Model/5 Dispatch Curve/4 Final Results/1 Comprehensive Days Summary Results/Yearly_Results.csv"
+output_path <- "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results"
 
 Facility_Level_Results <- fread(file_path_1)
 Facility_Level_Results <- Facility_Level_Results[Pathway %in% c("A", "D", "B1", "B2", "B3", "C1", "C2", "C3")]
@@ -36,15 +37,13 @@ Yearly_Results <- Yearly_Results[, .(Simulation, Year, Pathway, New_Fossil_Fuel_
 # Nameplate Capacity
 # Load facilities data
 # Old/existing fossil fuels
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
+file_path <- "__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/1 Existing Fossil Fuels/1 Fossil Fuels Facilities Data/Fossil_Fuel_Facilities_Data.csv"
 Facilities_Data <- fread(file_path)
-# New fossil fuels 
-file_path <-"/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
+# New fossil fuels
+file_path <-"__PROJECT_ROOT__/2 Generation Expansion Model/2 Generation/2 Fossil Generation/2 New Fossil Fuels/1 New Fossil Fuels Facilities Data/New_Fossil_Fuel_Facilities_Data.csv"
 Fossil_Fuels_NPC_new <- fread(file_path) # Note stack height is assumed 150 feet for this facility
 setkey(Fossil_Fuels_NPC_new, "Unit_ID")
 
-# API KEY 63522eae4ec927d6f1d9d86bf7826cc8
-fredr_set_key("63522eae4ec927d6f1d9d86bf7826cc8") 
 cpi_data <- fredr(series_id = "CPIAUCSL", observation_start = as.Date("2000-01-01"), observation_end = as.Date("2024-01-01"))
 
 # Extracting CPI values for specific years
@@ -59,8 +58,8 @@ conversion_rate <- cpi_2024$YearlyAvg / cpi_2000$YearlyAvg
 ne_fips <- c("90", "23", "25", "33", "44", "50")
 
 # Load air emissions data
-path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/AP3 Model/air_emissions_below250.csv"
-air_emissions_below250 <- read.csv(path, check.names = TRUE)
+path <- "__PROJECT_ROOT__/4 External Data/AP3 Model/air_emissions_below250.csv"
+air_emissions_below250 <- as.data.frame(fread(file = path)) # Use fread because these coefficient files contain BOM-prefixed headers.
 air_emissions_below250$fips <- as.character(air_emissions_below250$fips)
 air_emissions_below250 <- air_emissions_below250 %>%
   filter(substr(fips, 1, 2) %in% ne_fips)
@@ -69,16 +68,16 @@ air_emissions_below250 <- air_emissions_below250 %>%
   select(-County) %>%
   mutate(across(NH3:PM10, ~ (.x * conversion_rate / ton_conversion)))
 
-path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/AP3 Model/air_emissions_above500.csv"
-air_emissions_above500 <- read.csv(path, check.names = TRUE)
+path <- "__PROJECT_ROOT__/4 External Data/AP3 Model/air_emissions_above500.csv"
+air_emissions_above500 <- as.data.frame(fread(file = path)) # Use fread because these coefficient files contain BOM-prefixed headers.
 air_emissions_above500$fips <- as.character(air_emissions_above500$fips)
 air_emissions_above500 <- air_emissions_above500 %>%
   filter(substr(fips, 1, 2) %in% ne_fips)
 air_emissions_above500 <- air_emissions_above500 %>%
   mutate(across(NH3:PM10, ~ (.x * conversion_rate / ton_conversion)))
 
-path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/AP3 Model/air_emissions_above250_below500.csv"
-air_emissions_between250_500 <- read.csv(path, check.names = TRUE)
+path <- "__PROJECT_ROOT__/4 External Data/AP3 Model/air_emissions_above250_below500.csv"
+air_emissions_between250_500 <- as.data.frame(fread(file = path)) # Use fread because these coefficient files contain BOM-prefixed headers.
 air_emissions_between250_500$fips <- as.character(air_emissions_between250_500$fips)
 air_emissions_between250_500 <- air_emissions_between250_500 %>%
   filter(substr(fips, 1, 2) %in% ne_fips)
@@ -90,18 +89,18 @@ air_emissions_between250_500 <- air_emissions_between250_500 %>%
 # Stack heights
 # Load stack heights
 new_england_states <- c("CT", "ME", "MA", "NH", "RI", "VT")
-## Integrating stack height using EIA 860 
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EIA 860/eia8602023/6_2_EnviroEquip_Y2023.xlsx"
+## Integrating stack height using EIA 860
+file_path <- "__PROJECT_ROOT__/4 External Data/U.S. EIA 860/eia8602023/6_2_EnviroEquip_Y2023.xlsx"
 sheet_name <- "Stack Flue"
 # Read the Excel file with column names in the second row
 eia_860_2023_stack <- read_excel(file_path, sheet = sheet_name, skip = 1)
 eia_860_2023_stack<- eia_860_2023_stack[eia_860_2023_stack$State %in% new_england_states, ]
 setDT(eia_860_2023_stack)
 
-# Perform the left join using EIA 860 
-Facilities_Data_updated <- eia_860_2023_stack[Facilities_Data, 
-                                              on = c("Plant Code" = "Facility_ID"), 
-                                              .(Facility_ID = Facility_ID, Unit_ID = Unit_ID, Stack_Height_ft = `Stack Height (Feet)`), 
+# Perform the left join using EIA 860
+Facilities_Data_updated <- eia_860_2023_stack[Facilities_Data,
+                                              on = c("Plant Code" = "Facility_ID"),
+                                              .(Facility_ID = Facility_ID, Unit_ID = Unit_ID, Stack_Height_ft = `Stack Height (Feet)`),
                                               nomatch = 0L]
 
 Facilities_Data_updated <- Facilities_Data_updated[, .SD[1], by = Facility_ID]
@@ -118,10 +117,10 @@ manual_matches <- data.frame(
 additional_matches <- data.frame(
   Stack_Height_ft = rep(600, 23),
   Facility_Unit.ID = c(
-    "1507_1", "1507_2", "1507_3", "1507_4", 
-    "1599_1", "1599_2", "1599_3", 
-    "1619_1", "1619_2", "1619_3", "1619_4", 
-    "1626_1", "1626_2", "1626_3", "1626_4", 
+    "1507_1", "1507_2", "1507_3", "1507_4",
+    "1599_1", "1599_2", "1599_3",
+    "1619_1", "1619_2", "1619_3", "1619_4",
+    "1626_1", "1626_2", "1626_3", "1626_4",
     "1588_7", "1588_81", "1588_82", "1588_93", "1588_94", "1588_MJ-1",
     "55661_1", "55661_2"),
   NH3 = c(422, 422, 422, 422, 1192, 1192, 1192, 2970, 2970, 2970, 2970, 2360, 2360, 2360, 2360, 3256, 3256, 3256, 3256, 3256, 3256, 790, 790),
@@ -132,6 +131,8 @@ additional_matches <- data.frame(
   PM10 = c(71, 71, 71, 71, 171, 171, 171, 317, 317, 317, 317, 274, 274, 274, 274, 362, 362, 362, 362, 362, 362, 109, 109)
 )
 
+# Convert tall-source AP3 rates from 2000 USD per short ton to match the other AP3 coefficients.
+additional_matches <- additional_matches %>% mutate(across(NH3:PM10, ~ .x * conversion_rate / ton_conversion))
 # Combining manual matches and additional matches, giving priority to additional matches
 combined_matches <- bind_rows(additional_matches, manual_matches) %>%
   distinct(Facility_Unit.ID, .keep_all = TRUE)
@@ -194,7 +195,7 @@ print(summary(facilities_above_500$NOx))
 # After merge
 print(summary(Facility_Level_Results$NOx))
 
-# add in CO costs 
+# add in CO costs
 # Define the CO cost range (2019-USD) from Total Costs paper
 co_cost_min_2019 <- 2
 co_cost_max_2019 <- 1982
@@ -209,20 +210,29 @@ conversion_rate <- cpi_2024$YearlyAvg / cpi_2019$YearlyAvg
 co_cost_min_2024 <- co_cost_min_2019 * conversion_rate
 co_cost_max_2024 <- co_cost_max_2019 * conversion_rate
 
+# Reject missing AP3 coefficients because missing matches must not become zero damage.
+if (anyNA(Facility_Level_Results[,.(NOx,SO2,PM2.5,PM10,VOC)])) stop("Missing AP3 damage coefficients")
 # Calculate the relative SO2 emissions across all facilities
 Facility_Level_Results[, SO2_ratio := SO2 / max(SO2, na.rm = TRUE)]
 
 # Assign CO cost based on SO2 ratio
 Facility_Level_Results[, CO := co_cost_min_2024 + (co_cost_max_2024 - co_cost_min_2024) * SO2_ratio]
 
+# replace four common pollutant rates using native validated AP4.
+# apply AP4 after the published CO-range calculation because CO is unavailable in the AP4 tables used here.
+air_model_R1 <- getOption("phased.r1.air_model","AP4_hybrid")
+Facility_Level_Results <- r1_apply_ap4(Facility_Level_Results,review_root,output_path,cpi_data,air_model_R1)
+AP4_VSL_R1 <- attr(Facility_Level_Results,"AP4_VSL_R1")
+# New plants inherit their existing source-location donors; these remain explicit proxies.
+
 ## Load emission ratio data
 # Other Air_Pollutant emissions ratios from EPA Greenhouse Gas Reporting Program for 2011-2022
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EIA 923/f923_2023/EIA923_Schedule_8_Annual_Envir_Infor_2023_Final.xlsx"
+file_path <- "__PROJECT_ROOT__/4 External Data/U.S. EIA 923/f923_2023/EIA923_Schedule_8_Annual_Envir_Infor_2023_Final.xlsx"
 sheet_name <- "8C Air Emissions Control Info"
 EPA_f923_2023 <- read_excel(file_path, sheet = sheet_name, skip = 4)
 setDT(EPA_f923_2023)
 # ALL US Facilities data
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/U.S. EPA CAMPD/States Historical and Simulated Data/USA/Facilities_Data_USA.csv"
+file_path <- "__PROJECT_ROOT__/4 External Data/U.S. EPA CAMPD/States Historical and Simulated Data/USA/Facilities_Data_USA.csv"
 Fossil_Fuels_NPC_USA <- fread(file_path)
 
 # Merge NPC with Air_Pollutant ratios
@@ -279,8 +289,8 @@ Air_Pollutant_Fuels_NPC[is.na(PM_lbs_mmBTU), PM_lbs_mmBTU := mean_ratios_USA$mea
 Air_Pollutant_Fuels_NPC[, c("mean_PM_lbs_mmBTU") := NULL]
 
 # Merge Facilities with yearly results
-selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, Facility_ID, Unit_ID.x, Primary_Fuel_Type, Facility_Name,PM_lbs_mmBTU, mean_NOx_lbs_MW, 
-                                             mean_SO2_lbs_MW, mean_HI_mmBtu_per_MW = mean_Heat_Input_mmBtu/Estimated_NameplateCapacity_MW, mean_NOx_lbs_MW_estimate, 
+selected_cols <- Air_Pollutant_Fuels_NPC[, .(Facility_Unit.ID, Facility_ID, Unit_ID.x, Primary_Fuel_Type, Facility_Name,PM_lbs_mmBTU, mean_NOx_lbs_MW,
+                                             mean_SO2_lbs_MW, mean_HI_mmBtu_per_MW = mean_Heat_Input_mmBtu/Estimated_NameplateCapacity_MW, mean_NOx_lbs_MW_estimate,
                                              mean_SO2_lbs_MW_estimate, mean_HI_mmBtu_per_MW_estimate = mean_HI_mmBtu_per_MW)]
 Facility_Level_Results <- selected_cols[Facility_Level_Results, on = "Facility_Unit.ID"]
 
@@ -330,7 +340,7 @@ Facility_Level_Results[, total_NOx_tons := total_NOx_lbs * lbs_tons_conversion]
 Facility_Level_Results[, total_SO2_tons := total_SO2_lbs * lbs_tons_conversion]
 
 # CO calculation
-# Data from EPA AP 42 
+# Data from EPA AP 42
 # Calculate total CO emissions using conditional logic with fcase
 Facility_Level_Results[, CO_tons := fcase(
   grepl("oil", Fuel_type_1, ignore.case = TRUE), total_HI_mmBtu * (5/150) * lbs_tons_conversion,  # Oil (Distillate), 150 MMBtu/103gal
@@ -366,7 +376,7 @@ Yearly_Facility_Level_Results <- Facility_Level_Results[, .(
 ), by = .(Year, Simulation, Pathway)]
 
 # Total air pollutants
-Yearly_Facility_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD + 
+Yearly_Facility_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD +
                                 total_PM10_USD + total_CO_USD + total_VOC_USD]
 
 # Save the results
@@ -402,10 +412,10 @@ combined_npvs <- combined_npvs[NPV != 0]
 fwrite(combined_npvs, file = file.path(output_path, "Air_Emissions_Existing.csv"), row.names = FALSE)
 
 # Plots
-Yearly_Facility_Level_Results_long <- melt(Yearly_Facility_Level_Results, 
-                                           id.vars = c("Year", "Simulation", "Pathway"), 
+Yearly_Facility_Level_Results_long <- melt(Yearly_Facility_Level_Results,
+                                           id.vars = c("Year", "Simulation", "Pathway"),
                                            measure.vars = c("total_NOx_USD", "total_SO2_USD", "total_PM2.5_USD", "total_PM10_USD", "total_CO_USD", "total_VOC_USD", "total_air_emission_USD"),
-                                           variable.name = "Pollutant", 
+                                           variable.name = "Pollutant",
                                            value.name = "Value")
 setDT(Yearly_Facility_Level_Results_long)
 # Convert costs to billions
@@ -434,9 +444,14 @@ conversion_rate <- cpi_2024$YearlyAvg / cpi_2006$YearlyAvg
 # 2024 mortality cost
 mortality_million_USD_2024 <- mortality_million_USD_2006 * conversion_rate
 
-# How many moralities 
+# How many moralities
 combined_npvs$NPV_millions <- combined_npvs$NPV /1e6
-combined_npvs$mortality <- combined_npvs$NPV_millions / mortality_million_USD_2024
+# annual AP4 mortality component only; exclude PM10/CO and do not divide NPV by VSL.
+if(air_model_R1!="AP3_pipeline") {
+ mortality_R1 <- Yearly_Facility_Level_Results[,.(mortality=sum(total_NOx_USD+total_SO2_USD+total_PM2.5_USD+total_VOC_USD)/AP4_VSL_R1),by=.(Simulation,Pathway)]
+ combined_npvs[,Simulation:=as.integer(Simulation)]
+ combined_npvs <- merge(combined_npvs,mortality_R1,by=c("Simulation","Pathway"),all.x=TRUE)
+} else combined_npvs$mortality <- combined_npvs$NPV_millions / mortality_million_USD_2024
 
 # County level results
 # Summarize data for Sim, Pathway, year and County
@@ -450,10 +465,13 @@ Yearly_County_Level_Results <- Facility_Level_Results[, .(
 ), by = .(Year, Simulation, Pathway, County, State)]
 
 # Total air pollutants
-Yearly_County_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD + 
+Yearly_County_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD +
                                 total_PM10_USD + total_CO_USD + total_VOC_USD]
 # Annual Mortality
 Yearly_County_Level_Results[, mortality_annual_person := total_air_emission_USD/ mortality_million_USD_2024/ 1e6]
+# source-attributed, undiscounted AP4 mortality for modeled common pollutants.
+if(air_model_R1!="AP3_pipeline") Yearly_County_Level_Results[,mortality_annual_person:=(total_NOx_USD+total_SO2_USD+total_PM2.5_USD+total_VOC_USD)/AP4_VSL_R1]
+
 
 # Summarize the data by County, State, Simulation, and Pathway, and calculate NPV
 Yearly_County_Level_Results[, Year := as.numeric(as.character(Year))]
@@ -465,7 +483,7 @@ County_Level_NPV <- Yearly_County_Level_Results[, .(
   npv_PM10_USD = calculate_npv(.SD, discount_rate, base_year, "total_PM10_USD"),
   npv_CO_USD = calculate_npv(.SD, discount_rate, base_year, "total_CO_USD"),
   npv_VOC_USD = calculate_npv(.SD, discount_rate, base_year, "total_VOC_USD"),
-  npv_total_air_emission_USD = calculate_npv(.SD, discount_rate, base_year, "total_air_emission_USD"), 
+  npv_total_air_emission_USD = calculate_npv(.SD, discount_rate, base_year, "total_air_emission_USD"),
   mortality_person = sum(mortality_annual_person)
 ), by = .(County, State, Simulation, Pathway)]
 
@@ -479,10 +497,10 @@ fwrite(County_Level_NPV, file = file.path(output_path, "Air_Emissions_County_Lev
 Fossil_Fuels_NPC_new[, Facility_Unit.ID := NULL]
 Fossil_Fuels_NPC_new[, Year := year(Commercial_Operation_Date)]
 Fossil_Fuels_NPC_new <- Fossil_Fuels_NPC_new[!duplicated(Facility_ID)]
-columns_to_multiply <- c("Estimated_NameplateCapacity_MW", "mean_Heat_Input_mmBtu")  
+columns_to_multiply <- c("Estimated_NameplateCapacity_MW", "mean_Heat_Input_mmBtu")
 Fossil_Fuels_NPC_new[, (columns_to_multiply) := lapply(.SD, function(x) x * 2), .SDcols = columns_to_multiply]
 
-# Facility details (randomly assigned to these locations  By contrast, Rockingham and Strafford Counties in New Hampshire 
+# Facility details (randomly assigned to these locations  By contrast, Rockingham and Strafford Counties in New Hampshire
 #Fairfield, Hartford, Middlesex, New Haven, New London, and Windham (CT) and Newport, Providence, and Washington (RI) counties
 # Define the target counties by state
 nh_counties <- c("Rockingham County", "Strafford County")
@@ -514,7 +532,7 @@ random_selection <- random_selection[, .(Facility_Unit.ID, Latitude, Longitude, 
 Fossil_Fuels_NPC_new[, index := .I]
 random_selection[, index := .I]
 
-# Merge back—this will attach latitude/longitude, etc., only for the sampled rows
+# Merge back-this will attach latitude/longitude, etc., only for the sampled rows
 Fossil_Fuels_NPC_new <- merge(
   Fossil_Fuels_NPC_new,
   random_selection,
@@ -522,11 +540,11 @@ Fossil_Fuels_NPC_new <- merge(
   all.x = TRUE
 )
 
-# 
-# 
+#
+#
 # Facilities_Data_filtered <- Air_Pollutant_Fuels_NPC[Primary_Fuel_Type == "Pipeline Natural Gas" & Unit_Type == "Combined cycle",]
 # set.seed(1) # For reproducibility
-# random_selection <- Facilities_Data_filtered[sample(1:nrow(Facilities_Data_filtered), 
+# random_selection <- Facilities_Data_filtered[sample(1:nrow(Facilities_Data_filtered),
 #                                                     min(18, nrow(Facilities_Data_filtered))), ]
 # random_selection <- random_selection[, .(Facility_Unit.ID, Latitude, Longitude, State, County)]
 # Fossil_Fuels_NPC_new[, index := .I]
@@ -534,12 +552,27 @@ Fossil_Fuels_NPC_new <- merge(
 # Fossil_Fuels_NPC_new <- merge(Fossil_Fuels_NPC_new, random_selection, by = "index", all.x = TRUE)
 
 selected_cols <- Facility_Level_Results[, .(Facility_Unit.ID, PM_lbs_mmBTU, CO, NH3, PM2.5, NOx, SO2, VOC, PM10)]
+# Keep every commissioned plant and reject missing donors so new-gas generation is not silently omitted.
 selected_cols <- unique(selected_cols, by = "Facility_Unit.ID")
+if (any(!Fossil_Fuels_NPC_new$Facility_Unit.ID %in% selected_cols$Facility_Unit.ID)) stop("Missing new-gas damage-location donor")
 Fossil_Fuels_NPC_new <- merge(selected_cols, Fossil_Fuels_NPC_new, by = "Facility_Unit.ID")
 
 # Add in parameters to generation
-Yearly_Results <- merge(Yearly_Results, Fossil_Fuels_NPC_new, by = "Year", all.x = TRUE)
-Yearly_Results <- Yearly_Results[New_Fossil_Fuel_TWh > 0, ]
+# Allocate new-gas generation by commissioned capacity so the plant shares sum to the fleet total.
+# Templates have identical capacity factors, so capacity shares equal generation shares.
+new_gas_expected <- Yearly_Results[New_Fossil_Fuel_TWh > 0, .(Year, Simulation, Pathway, Expected_TWh=New_Fossil_Fuel_TWh)]
+setnames(Fossil_Fuels_NPC_new, "Year", "Commissioning_Year")
+Fossil_Fuels_NPC_new <- as.data.table(tidyr::crossing(as.data.frame(Fossil_Fuels_NPC_new), Year=sort(unique(Yearly_Results$Year))))
+Fossil_Fuels_NPC_new <- Fossil_Fuels_NPC_new[Commissioning_Year <= Year]
+Fossil_Fuels_NPC_new[, Generation_share := Estimated_NameplateCapacity_MW / sum(Estimated_NameplateCapacity_MW), by=Year]
+Yearly_Results <- merge(Yearly_Results, Fossil_Fuels_NPC_new, by="Year", all.x=TRUE, allow.cartesian=TRUE)
+Yearly_Results <- Yearly_Results[New_Fossil_Fuel_TWh > 0]
+if (anyNA(Yearly_Results$Generation_share)) stop("New-gas generation has no commissioned plant")
+Yearly_Results[, New_Fossil_Fuel_TWh := New_Fossil_Fuel_TWh * Generation_share]
+new_gas_allocated <- Yearly_Results[, .(Allocated_TWh=sum(New_Fossil_Fuel_TWh)), by=.(Year,Simulation,Pathway)]
+new_gas_allocation_check <- merge(new_gas_expected,new_gas_allocated,by=c("Year","Simulation","Pathway"),all=TRUE)
+if (anyNA(new_gas_allocation_check) || any(abs(new_gas_allocation_check$Expected_TWh-new_gas_allocation_check$Allocated_TWh)>1e-8)) stop("New-gas air-damage allocation does not conserve generation")
+fwrite(new_gas_allocation_check,file.path(output_path,"New_gas_allocation_audit.csv"))
 
 # Calculate emissions and costs
 # Calculate emissions and costs for Gas_CC facilities
@@ -547,8 +580,8 @@ Yearly_Results[, total_HI_mmBtu := New_Fossil_Fuel_TWh * 1e6 * mean_Heat_Input_m
 Yearly_Results[, PM.total_tons := total_HI_mmBtu * PM_lbs_mmBTU * lbs_tons_conversion]
 
 # Calculate PM2.5 and PM10 specifically for Gas_CC
-Yearly_Results[, PM2.5_tons := PM.total_tons] 
-Yearly_Results[, PM10_tons := 0]  
+Yearly_Results[, PM2.5_tons := PM.total_tons]
+Yearly_Results[, PM10_tons := 0]
 
 # NOx and SO2 emissions (convert lbs to tons)
 Yearly_Results[, total_NOx_tons := New_Fossil_Fuel_TWh * 1e6 * mean_NOx_lbs_MW * lbs_tons_conversion]
@@ -579,12 +612,13 @@ Yearly_Facility_Level_Results <- Yearly_Results[, .(
 ), by = .(Year, Simulation, Pathway)]
 
 # Total air pollutants
-Yearly_Facility_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD + 
+Yearly_Facility_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD +
                                 total_PM10_USD + total_CO_USD + total_VOC_USD]
 
 # Adjust County names
 Yearly_Results$County <- gsub(" County", "", Yearly_Results$County)
-Yearly_Facility_Level_Results$County <- gsub(" County", "", Yearly_Facility_Level_Results$County)
+# Apply the county-name cleanup only when the grouped table contains County.
+if ("County" %in% names(Yearly_Facility_Level_Results)) Yearly_Facility_Level_Results$County <- gsub(" County", "", Yearly_Facility_Level_Results$County)
 
 # Save the results
 fwrite(Yearly_Results, file = file.path(output_path, "Facility_Level_Results_New.csv"), row.names = FALSE)
@@ -632,9 +666,14 @@ conversion_rate <- cpi_2024$YearlyAvg / cpi_2006$YearlyAvg
 # 2024 mortality cost
 mortality_million_USD_2024 <- mortality_million_USD_2006 * conversion_rate
 
-# How many moralities 
+# How many moralities
 combined_npvs_new$NPV_millions <- combined_npvs_new$NPV /1e6
-combined_npvs_new$mortality <- combined_npvs_new$NPV_millions / mortality_million_USD_2024
+# same undiscounted common-four AP4 mortality definition for new sources.
+if(air_model_R1!="AP3_pipeline") {
+ mortality_R1 <- Yearly_Facility_Level_Results[,.(mortality=sum(total_NOx_USD+total_SO2_USD+total_PM2.5_USD+total_VOC_USD)/AP4_VSL_R1),by=.(Simulation,Pathway)]
+ combined_npvs_new[,Simulation:=as.integer(Simulation)]
+ combined_npvs_new <- merge(combined_npvs_new,mortality_R1,by=c("Simulation","Pathway"),all.x=TRUE)
+} else combined_npvs_new$mortality <- combined_npvs_new$NPV_millions / mortality_million_USD_2024
 
 # County level results
 # Summarize data for Sim, Pathway, year and County
@@ -648,10 +687,13 @@ Yearly_County_Level_Results <- Yearly_Results[, .(
 ), by = .(Year, Simulation, Pathway, County, State)]
 
 # Total air pollutants
-Yearly_County_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD + 
+Yearly_County_Level_Results[, total_air_emission_USD := total_NOx_USD + total_SO2_USD + total_PM2.5_USD +
                               total_PM10_USD + total_CO_USD + total_VOC_USD]
 # Annual Mortality
 Yearly_County_Level_Results[, mortality_annual_person := total_air_emission_USD/ mortality_million_USD_2024/ 1e6]
+# source-attributed, undiscounted AP4 mortality for modeled common pollutants.
+if(air_model_R1!="AP3_pipeline") Yearly_County_Level_Results[,mortality_annual_person:=(total_NOx_USD+total_SO2_USD+total_PM2.5_USD+total_VOC_USD)/AP4_VSL_R1]
+
 
 # Summarize the data by County, State, Simulation, and Pathway, and calculate NPV
 Yearly_County_Level_Results[, Year := as.numeric(as.character(Year))]
@@ -663,7 +705,7 @@ County_Level_NPV <- Yearly_County_Level_Results[, .(
   npv_PM10_USD = calculate_npv(.SD, discount_rate, base_year, "total_PM10_USD"),
   npv_CO_USD = calculate_npv(.SD, discount_rate, base_year, "total_CO_USD"),
   npv_VOC_USD = calculate_npv(.SD, discount_rate, base_year, "total_VOC_USD"),
-  npv_total_air_emission_USD = calculate_npv(.SD, discount_rate, base_year, "total_air_emission_USD"), 
+  npv_total_air_emission_USD = calculate_npv(.SD, discount_rate, base_year, "total_air_emission_USD"),
   mortality_person = sum(mortality_annual_person)
 ), by = .(County, State, Simulation, Pathway)]
 
@@ -671,47 +713,14 @@ County_Level_NPV <- Yearly_County_Level_Results[, .(
 # Save combined NPV results to a single CSV file
 fwrite(County_Level_NPV, file = file.path(output_path, "Air_Emissions_County_Level_New.csv"), row.names = FALSE)
 
-## Total NPVs
-# Assuming combined_npvs and combined_npvs_new are already data.tables
-# Remove zeros from both datasets
-combined_npvs_filtered <- combined_npvs[NPV > 0,]
-combined_npvs_new_filtered <- combined_npvs_new[NPV > 0,]
-
-# Calculate the mean for each pathway in combined_npvs (in billions $)
-mean_npvs_1 <- combined_npvs_filtered[, .(
-  NPV_mean_1 = mean(NPV, na.rm = TRUE),
-  NPV_max_1 = max(NPV, na.rm = TRUE),
-  NPV_min_1 = min(NPV, na.rm = TRUE),
-  mortality_mean_1 = mean(mortality, na.rm = TRUE),
-  mortality_max_1 = max(mortality, na.rm = TRUE),
-  mortality_min_1 = min(mortality, na.rm = TRUE)
-), by = Pathway]
-
-# Calculate the mean for each pathway in combined_npvs_new (in billions $)
-mean_npvs_2 <- combined_npvs_new_filtered[, .(
-  NPV_mean_2 = mean(NPV, na.rm = TRUE),
-  NPV_max_2 = max(NPV, na.rm = TRUE),
-  NPV_min_2 = min(NPV, na.rm = TRUE),
-  mortality_mean_2 = mean(mortality, na.rm = TRUE),
-  mortality_max_2 = max(mortality, na.rm = TRUE),
-  mortality_min_2 = min(mortality, na.rm = TRUE)
-), by = Pathway]
-
-# Combine the pathway means
-combined_pathway_means <- merge(mean_npvs_1, mean_npvs_2, by = "Pathway", all = TRUE)
-
-# Calculate the sum of the means for each pathway 
-summary_npvs <- combined_pathway_means[, .(
-  mean_NPV = sum(c(NPV_mean_1, NPV_mean_2), na.rm = TRUE),
-  max_NPV = sum(c(NPV_max_1, NPV_max_2), na.rm = TRUE),
-  min_NPV = sum(c(NPV_min_1, NPV_min_2), na.rm = TRUE),
-  mean_mortality = sum(c(mortality_mean_1, mortality_mean_2), na.rm = TRUE),
-  max_mortality = sum(c(mortality_max_1, mortality_max_2), na.rm = TRUE),
-  min_mortality = sum(c(mortality_min_1, mortality_min_2), na.rm = TRUE)
-), by = Pathway]
-
-
-fwrite(summary_npvs, file = file.path(output_path, "Air_Emissions_ALL.csv"), row.names = FALSE)
+# combine existing and new costs WITHIN each simulation before quantiles.
+combined_air_R1 <- rbindlist(list(combined_npvs[,.(Simulation,Pathway,NPV,mortality)],
+ combined_npvs_new[,.(Simulation,Pathway,NPV,mortality)]))[,.(NPV=sum(NPV),mortality=sum(mortality)),by=.(Simulation,Pathway)]
+summary_npvs <- combined_air_R1[,.(mean_NPV=mean(NPV),min_NPV=min(NPV),max_NPV=max(NPV),
+ P05_NPV=quantile(NPV,.05),P95_NPV=quantile(NPV,.95),
+ mean_mortality=mean(mortality),min_mortality=min(mortality),max_mortality=max(mortality)),by=Pathway]
+fwrite(summary_npvs,file.path(output_path,"Air_Emissions_ALL.csv"))
+fwrite(combined_air_R1,file.path(output_path,"Air_Emissions_per_simulation_R1.csv"))
 
 #---- Emissions per county per pathway
 # ------------------------------
@@ -722,55 +731,13 @@ fwrite(summary_npvs, file = file.path(output_path, "Air_Emissions_ALL.csv"), row
 existing_emissions <- fread(file.path(output_path, "Air_Emissions_County_Level_Existing.csv"))
 new_emissions      <- fread(file.path(output_path, "Air_Emissions_County_Level_New.csv"))
 
-# For each county, compute summary statistics using the NPV of total air emissions (USD)
-summary_existing <- existing_emissions[, .(
-  mean_emission = mean(npv_total_air_emission_USD, na.rm = TRUE),
-  min_emission  = min(npv_total_air_emission_USD, na.rm = TRUE),
-  max_emission  = max(npv_total_air_emission_USD, na.rm = TRUE)
-), by = .(County, State, Pathway)]
-summary_existing[, Facility_Type := "Existing"]
-
-summary_new <- new_emissions[, .(
-  mean_emission = mean(npv_total_air_emission_USD, na.rm = TRUE),
-  min_emission  = min(npv_total_air_emission_USD, na.rm = TRUE),
-  max_emission  = max(npv_total_air_emission_USD, na.rm = TRUE)
-), by = .(County, State, Pathway)]
-summary_new[, Facility_Type := "New"]
-
-# Combine the summaries for both facility types
-combined_summary <- rbind(summary_existing, summary_new)
-# Group by County, State, and Pathway and sum the emission columns across Facility_Type
-final_county_summary <- combined_summary[, .(
-  total_mean_emission = sum(mean_emission, na.rm = TRUE)/1e6,
-  total_min_emission = sum(min_emission, na.rm = TRUE)/1e6,
-  total_max_emission = sum(max_emission, na.rm = TRUE)/1e6
-), by = .(County, State, Pathway)]
-
-final_county_summary <- final_county_summary[
-  total_mean_emission != 0 & total_min_emission != 0 & total_max_emission != 0
-]
-# Save the aggregated summary to a CSV file
-fwrite(final_county_summary, file = file.path(output_path, "County_Level_Emissions_Summary_Total.csv"), row.names = FALSE)
-
-#-----
-## Cacluation of hospital vist reductions
-# Attribution factors
-# ISO-NE Economic Report 2020, Fewer hospital visits per fewer mortality per year
-high_hospital_per_mortality <- 6.6/26.1
-low_hospital_per_mortality <- 6.6/59.1
-mean_hospital_per_mortality <- (low_hospital_per_mortality + high_hospital_per_mortality)/2
-
-summary_hospital <- summary_npvs[, .(
-  mean_hospital = mean_mortality * mean_hospital_per_mortality,
-  max_hospital = max_mortality * high_hospital_per_mortality,
-  min_hospital = min_mortality * low_hospital_per_mortality
-), by = Pathway]
-
-a_vals <- summary_hospital[Pathway=="A", .(mean_hospital, max_hospital, min_hospital)]
-
-# 2. subtract and assign three new columns
-summary_hospital[, `:=`(
-  mean_diff = mean_hospital - a_vals$mean_hospital,
-  max_diff  = max_hospital  - a_vals$max_hospital,
-  min_diff  = min_hospital  - a_vals$min_hospital
-)]
+# retain county/simulation pairing before calculating intervals.
+county_air_R1 <- rbindlist(list(existing_emissions,new_emissions),fill=TRUE)[,
+ .(npv_total_air_emission_USD=sum(npv_total_air_emission_USD)),by=.(County,State,Simulation,Pathway)]
+fwrite(county_air_R1,file.path(output_path,"County_costs_per_simulation_R1.csv"))
+final_county_summary <- county_air_R1[,.(N=.N,total_mean_emission=mean(npv_total_air_emission_USD)/1e6,
+ total_min_emission=min(npv_total_air_emission_USD)/1e6,total_max_emission=max(npv_total_air_emission_USD)/1e6,
+ P05=quantile(npv_total_air_emission_USD,.05)/1e6,P95=quantile(npv_total_air_emission_USD,.95)/1e6),by=.(County,State,Pathway)]
+fwrite(final_county_summary,file.path(output_path,"County_Level_Emissions_Summary_Total.csv"))
+# no hospital-visit estimate. AP4 mortality coefficients do not validate the old
+# external hospital/mortality ratio. Source counties are not receptor locations.

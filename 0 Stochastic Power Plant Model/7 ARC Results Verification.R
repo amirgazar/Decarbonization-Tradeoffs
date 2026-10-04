@@ -1,4 +1,4 @@
-file_path <-  "/Users/amirgazar/Downloads/Fossil_Fuels.rds"
+file_path <-  Sys.getenv("PHASED_FOSSIL_FUELS_RDS", unset="")
 test <- readRDS(file_path)
 
 test <- test[test$Facility_Unit.ID == "542_13", ]

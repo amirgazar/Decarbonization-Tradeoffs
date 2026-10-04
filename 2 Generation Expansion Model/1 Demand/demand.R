@@ -14,7 +14,7 @@ fill_leap_year_data <- function(data) {
       for (hour in 0:23) {
         feb_28_data <- data[Year == year & Month == 2 & Day == 28 & Hour == hour, Demand]
         mar_1_data <- data[Year == year & Month == 3 & Day == 1 & Hour == hour, Demand]
-        
+
         if (length(feb_28_data) == 1 && length(mar_1_data) == 1) {
           leap_day_demand <- mean(c(feb_28_data, mar_1_data), na.rm = TRUE)
           data <- rbind(data, data.table(
@@ -32,7 +32,7 @@ fill_leap_year_data <- function(data) {
 }
 
 # Set the File Path
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/Massachusetts 2050 Decarbonization Roadmap Study/Massachusetts Workbook of Energy Modeling Results 2024.xlsx"
+file_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "4 External Data/Massachusetts 2050 Decarbonization Roadmap Study/Massachusetts Workbook of Energy Modeling Results 2024.xlsx")
 
 # Demand Data
 sheet_name <- "11. Hourly Electric Load"
@@ -73,7 +73,7 @@ for (hour in unique(demand_data$Hour)) {
   for (month in unique(demand_data$Month)) {
     for (day in unique(demand_data$Day)) {
       subset_data <- demand_data[Month == month & Day == day & Hour == hour]
-      
+
       # This is to fix the leap year issues as we dont have leap year data
       # Check if there are enough unique years with non-NA demand values
       if (length(unique(subset_data$Year[!is.na(subset_data$Demand)])) > 1) {
@@ -106,7 +106,7 @@ demand_data <- unique(demand_data, by = c("Date", "Hour", "Demand"))
 Count_daylight_savings<- demand_data[, .N, by = .(Date)]
 
 # Save as CSV
-csv_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/1 Demand/1 Hourly Demand/demand_data.csv"
+csv_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/1 Demand/1 Hourly Demand/demand_data.csv")
 write.csv(demand_data, file = csv_path, row.names = FALSE)
 
 # Plotting March 1st Data
@@ -172,11 +172,11 @@ print(p)
 
 # Plot annual demand
 annual_demand <- demand_data %>%
-  mutate(Year = year(ymd(Date))) %>% 
+  mutate(Year = year(ymd(Date))) %>%
   filter(Year >= 2024 & Year <= 2050) %>%
   group_by(Year) %>%
   summarize(mean_demand_GW = mean(Demand, na.rm = TRUE)/1000) %>%
-  ungroup() 
+  ungroup()
 p<-ggplot(annual_demand, aes(x = Year, y = mean_demand_GW)) +
   geom_bar(stat = "identity", fill = "black") +
   theme_minimal() +
@@ -186,15 +186,15 @@ p<-ggplot(annual_demand, aes(x = Year, y = mean_demand_GW)) +
 print(p)
 
 annual_load <- demand_data %>%
-  mutate(Year = year(ymd(Date))) %>% 
+  mutate(Year = year(ymd(Date))) %>%
   filter(Year >= 2024 & Year <= 2050) %>%
   group_by(Year) %>%
   summarize(load_TWh = sum(Demand, na.rm = TRUE)/1000000) %>%
-  ungroup() 
+  ungroup()
 
 p<-ggplot(annual_load, aes(x = Year, y = load_TWh)) +
-  geom_line(color = "steelblue", size = 1) +  
-  geom_ribbon(aes(ymin = 0, ymax = load_TWh), fill = "steelblue", alpha = 0.3) +  
+  geom_line(color = "steelblue", size = 1) +
+  geom_ribbon(aes(ymin = 0, ymax = load_TWh), fill = "steelblue", alpha = 0.3) +
   theme_minimal() +
   labs(title = "ISO NE Electricity Load Predictions from 2024 to 2050",
        x = "Year",

@@ -5,7 +5,7 @@ library(blsAPI)
 library(rjson)
 
 # Your API key (store it securely)
-api_key <- "a2c1e702f81947118e83cb8d029d6623"
+api_key <- Sys.getenv("API_KEY")
 
 # Define the series IDs you want to query
 series_ids <- c("APU011072610", "APUS11A72610","APU012072610", "APUS12A72610", "APUS12B72610")

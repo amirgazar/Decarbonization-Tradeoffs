@@ -1,3 +1,4 @@
+if (!isTRUE(getOption("phased.r1.cost_runner", FALSE))) stop("Source 1 Run full cost pipeline_R1.R, not individual cost components")
 # Load libraries
 library(data.table)
 library(readxl)
@@ -12,7 +13,7 @@ discount_rate <- 0.025
 base_year <- 2024
 
 # Load Capacity data
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
+file_path <- "__PROJECT_ROOT__/1 Decarbonization Pathways/Decarbonization_Pathways.xlsx"
 sheet_names <- excel_sheets(file_path)
 data_tables <- list()
 # Loop through each sheet, read it into a data table, and add the Pathway column
@@ -34,6 +35,10 @@ for (col in import_columns) {
 
 decarbonization_pathways[, new_capacity := round(new_capacity_Imports_QC + new_capacity_Imports_NYISO + new_capacity_Imports_NBSO, 2)]
 decarbonization_pathways[, total_capacity := round(`Imports QC` + `Imports NYISO` + `Imports NBSO`, 2)]
+
+# Exclude 2024 from costs because it supplies only the capacity baseline.
+# Retain 2024 while differencing, then value the 2025–2050 study years.
+decarbonization_pathways <- decarbonization_pathways[Year >= 2025 & Year <= 2050]
 
 # Define CAPEX and FOM costs ranges using New England Clean Energy Connect values
 CAPEX_cost_lower <- 0.7e6 # Lower range $/MW
@@ -79,7 +84,7 @@ npv_results <- rbind(npv_results_lower, npv_results_upper)
 combined_npvs_summary <- npv_results[, .(
   mean_CAPEX = mean(NPV_CAPEX, na.rm = TRUE)/1e9,
   mean_FOM = mean(NPV_FOM, na.rm = TRUE)/1e9
-), by = .(Pathway, Cost_Type)] 
+), by = .(Pathway, Cost_Type)]
 
 # Save the NPV results to a CSV file
-write.csv(npv_results, file = "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/3 Total Costs/9 Total Costs Results/CAPEX_FOM_Imports.csv", row.names = FALSE)
+write.csv(npv_results, file = "__PROJECT_ROOT__/3 Total Costs/9 Total Costs Results/CAPEX_FOM_Imports.csv", row.names = FALSE)

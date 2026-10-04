@@ -20,7 +20,7 @@ calculate_percentiles <- function(data, column) {
 }
 
 # Imports Data
-file <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/4 External Data/ISO-NE Daily Imports/daily_capacity_status.xlsx"
+file <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "4 External Data/ISO-NE Daily Imports/daily_capacity_status.xlsx")
 imports_data <- data.frame()
 years <- as.character(2011:2023)
 sheet_names <- excel_sheets(file)
@@ -28,31 +28,31 @@ sheet_names_of_interest <- sheet_names[sapply(sheet_names, function(name) name %
 
 for (sheet_name in sheet_names_of_interest) {
   sheet_data <- read_excel(file, sheet = sheet_name)
-  
+
   sheet_data$Year <- sheet_name
   sheet_data$Month <- match(sheet_data$Month, month.name)
   sheet_data$Date <- make_date(year = sheet_data$Year, month = sheet_data$Month, day = sheet_data$Day)
   sheet_data <- sheet_data %>%
     dplyr::select(
-      Date, 
-      Hour = `Hour`, 
-      Peak_load = `Actual Peak Load`, 
+      Date,
+      Hour = `Hour`,
+      Peak_load = `Actual Peak Load`,
       NYPP = 'NYPP',
       NNC = 'NNC',
       CSC = 'CSC',
       NB = 'NB',
-      Phase_II = `Phase II`, 
+      Phase_II = `Phase II`,
       Highgate = `Highgate`
     ) %>%
     mutate(
-      Hour = hour(lubridate::ymd_hms(Hour)), # Extract hour part 
+      Hour = hour(lubridate::ymd_hms(Hour)), # Extract hour part
       Peak_load = as.numeric(Peak_load)
     )
   # Combine with the existing data frame
   imports_data <- rbind(imports_data, sheet_data)
 }
 
-# Prepare data frames for dispatch curve 
+# Prepare data frames for dispatch curve
 imports_data <- imports_data %>%
   mutate(imports_QC = ifelse(-Phase_II - Highgate < 0, 0, -Phase_II - Highgate)) %>%
   mutate(imports_NYISO = ifelse(-NYPP - NNC - CSC < 0, 0, -NYPP - NNC - CSC)) %>%
@@ -99,4 +99,4 @@ hourly_stats_by_day <- imports_data %>%
   })
 
 # Save the CSV files
-fwrite(hourly_stats_by_day, "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/3 Imports/1 Imports CF/Imports_CF.csv")
+fwrite(hourly_stats_by_day, file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/3 Imports/1 Imports CF/Imports_CF.csv"))

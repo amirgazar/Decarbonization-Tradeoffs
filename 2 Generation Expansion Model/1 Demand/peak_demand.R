@@ -13,7 +13,7 @@ library(data.table)
 
 # Load demand data
 # Demand
-file_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/1 Demand/1 Hourly Demand/demand_data.csv"
+file_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/1 Demand/1 Hourly Demand/demand_data.csv")
 demand_data <- read.csv(file_path)
 setDT(demand_data)
 
@@ -23,12 +23,12 @@ calculate_dynamic_thresholds <- function(yearly_peak_demand) {
     mutate(
       Unlikely_Threshold = Peak_Demand * 0.85,
       Possible_Threshold = Peak_Demand * 0.95,
-      Likely_Threshold = Peak_Demand 
+      Likely_Threshold = Peak_Demand
     )
   return(thresholds)
 }
 
-# Function to calculate peak 
+# Function to calculate peak
 calculate_peak <- function(data, thresholds) {
   data <- data %>%
     left_join(thresholds, by = "Year") %>%
@@ -54,10 +54,10 @@ yearly_peak_demand <- demand_data %>%
 # Calculate dynamic thresholds
 thresholds <- calculate_dynamic_thresholds(yearly_peak_demand)
 
-# Calculate peak 
+# Calculate peak
 demand_data_peak <- calculate_peak(demand_data, thresholds)
 
-# Function to calculate daily peak demand 
+# Function to calculate daily peak demand
 calculate_daily_peak <- function(data) {
   daily_summary <- data %>%
     group_by(Date) %>%
@@ -86,11 +86,11 @@ print(daily_summary)
 
 # Save daily_summary
 # Save as CSV
-csv_path <- "/Users/amirgazar/Documents/GitHub/Decarbonization-Tradeoffs/2 Generation Expansion Model/1 Demand/1 Hourly Demand/peak_demand_data.csv"
+csv_path <- file.path(Sys.getenv("PHASED_R1_ROOT", unset=getwd()), "2 Generation Expansion Model/1 Demand/1 Hourly Demand/peak_demand_data.csv")
 write.csv(daily_summary, file = csv_path, row.names = FALSE)
 
 
-# Create a visualization for a specific week as an example 
+# Create a visualization for a specific week as an example
 weekly_data <- daily_summary %>%
   filter(Date >= as.Date("2050-01-23") & Date <= as.Date("2050-01-30"))
 
@@ -101,9 +101,9 @@ weekly_data <- weekly_data %>%
 
 # Generate the plot
 plot <- ggplot(weekly_data, aes(x = Formatted_Date, y = Peak_Demand)) +
-  geom_bar(stat = "identity", fill = ifelse(weekly_data$Peak == "LIKELY", "#FF0000", 
+  geom_bar(stat = "identity", fill = ifelse(weekly_data$Peak == "LIKELY", "#FF0000",
                                             ifelse(weekly_data$Peak == "POSSIBLE", "#FFA500", "#228B22")), alpha = 1) +
-  geom_text(aes(label = paste0("Peak load\n", round(Peak_Demand / 1000, 1), " GW\nat ", Peak_Hour, ":00 - ", Peak_Hour + 1, ":00 PM\n", Peak)), 
+  geom_text(aes(label = paste0("Peak load\n", round(Peak_Demand / 1000, 1), " GW\nat ", Peak_Hour, ":00 - ", Peak_Hour + 1, ":00 PM\n", Peak)),
             vjust = -0.5, size = 3, fontface = "bold") +
   theme_minimal() +
   labs(

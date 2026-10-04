@@ -1,0 +1,40 @@
+name: Source checks
+on:
+  pull_request:
+  push:
+    branches: [main, 'release/**']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.2'
+      - name: Parse Python source
+        run: |
+          python - <<'PY'
+          import ast, pathlib
+          for path in pathlib.Path('.').rglob('*.py'):
+              ast.parse(path.read_text(), filename=str(path))
+          PY
+      - name: Parse R source
+        run: Rscript -e 'for (f in list.files(".", pattern="[.][Rr]$", recursive=TRUE, full.names=TRUE)) parse(f, keep.source=FALSE)'
+      - name: Install test dependency
+        run: Rscript -e 'install.packages("data.table", repos="https://cloud.r-project.org")'
+      - name: Test operating emissions
+        run: >-
+          Rscript '2 Generation Expansion Model/7 Validation R1/Test operating emission models_R1.R'
+          '2 Generation Expansion Model/5 Dispatch Curve/2 Advanced Research Computing/1 ARC Codes/Support R1/Operating emission models_R1.R'
+          /tmp/emission-checks.txt
+      - name: Check tracked file sizes
+        run: |
+          python - <<'PYTHON'
+          import pathlib, subprocess
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          large = [p for p in paths if p and pathlib.Path(p).stat().st_size >= 100 * 1024**2]
+          if large:
+              raise SystemExit('Files exceed the upload limit: ' + ', '.join(large))
+          PYTHON
