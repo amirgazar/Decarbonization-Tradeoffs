@@ -238,40 +238,7 @@ The assistant will ask a few questions at a time, inspect the files you already 
 3. Ask the assistant to read `phased-agent-runner.json` in the repository root. You can also open the [JSON file](phased-agent-runner.json), select **Download raw file**, and attach it to your task. Attaching the JSON alone does not provide access to code, datasets or a computing account.
 4. Paste the starting prompt below. Fill in what you know and leave other items as “not sure.” The assistant should help resolve them before the affected stage starts.
 
-#### 2. Describe your study and choose how to run it
-
-The assistant will first ask about your study question, region, years and desired results. It will then check whether you have suitable data, New England reference files, or completed results that can be reused.
-
-| Choice | What to tell the assistant |
-| --- | --- |
-| **Study** | Reproduce New England, change the New England study, study another region, or explore feasibility only. |
-| **Computing** | Your own computer or hosted computing. For hosted work, name the service or cluster and describe your available storage, resources and budget. If unsure, ask for help choosing. |
-| **Who runs the code** | **Assistant runs it, suggested when it has the required access:** it runs the stages in order and checks logs and outputs. **I run it myself:** it provides the files, settings and commands one stage at a time, then helps check the results you provide. |
-
-For a new region, such as Texas, the assistant must first clarify the electricity-system boundary and assess which inputs and code need to change. The current scripts implement a New England study. Changing a region name or the JSON settings alone does not adapt the model. The assistant should explain proposed scientific changes and obtain your agreement before running the affected calculations.
-
-#### 3. Obtain data with guided help
-
-The instructions link to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). Availability and regional suitability must be checked when you run the study.
-
-The assistant should download suitable files when access and your agreed scope allow it. If a login, manual selection or unavailable tool prevents this, it should give you:
-
-- The dataset name, why it is needed and a verified source link.
-- The region, years, variables and format to select, where these are known.
-- Download steps, a destination folder and any documented archive instructions.
-- A clear way to resume after you provide the downloaded file's location.
-
-It should then check the file's contents, coverage, units and available checksums. Missing data should pause the stages that depend on it, while independent work can continue.
-
-#### 4. Review the plan, run a small check and continue
-
-Before execution, the assistant should summarize your study, required data, proposed changes and computing needs. The JSON identifies the scripts and their run order, including input preparation, emissions calibration when needed, dispatch, summaries, the 13 cost components, and figures and tables.
-
-Start with a small check suited to the selected study and computing environment. The assistant should use its measured resource needs to help plan a larger run. If you already have complete, verified dispatch summaries, it can begin with costs and figures after checking the required inputs.
-
-For hosted computing, the instructions distinguish a cluster, a hosted machine and a managed service. The assistant should check the actual environment and access before giving commands. Agree on the scope and resource limits before large downloads or paid jobs.
-
-<details open>
+<details>
 <summary><strong>Copy this starting prompt</strong></summary>
 
 ```text
@@ -311,6 +278,39 @@ Do not commit, push or publish without my instruction.
 ```
 
 </details>
+
+#### 2. Describe your study and choose how to run it
+
+The assistant will first ask about your study question, region, years and desired results. It will then check whether you have suitable data, New England reference files, or completed results that can be reused.
+
+| Choice | What to tell the assistant |
+| --- | --- |
+| **Study** | Reproduce New England, change the New England study, study another region, or explore feasibility only. |
+| **Computing** | Your own computer or hosted computing. For hosted work, name the service or cluster and describe your available storage, resources and budget. If unsure, ask for help choosing. |
+| **Who runs the code** | **Assistant runs it, suggested when it has the required access:** it runs the stages in order and checks logs and outputs. **I run it myself:** it provides the files, settings and commands one stage at a time, then helps check the results you provide. |
+
+For a new region, such as Texas, the assistant must first clarify the electricity-system boundary and assess which inputs and code need to change. The current scripts implement a New England study. Changing a region name or the JSON settings alone does not adapt the model. The assistant should explain proposed scientific changes and obtain your agreement before running the affected calculations.
+
+#### 3. Obtain data with guided help
+
+The instructions link to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). Availability and regional suitability must be checked when you run the study.
+
+The assistant should download suitable files when access and your agreed scope allow it. If a login, manual selection or unavailable tool prevents this, it should give you:
+
+- The dataset name, why it is needed and a verified source link.
+- The region, years, variables and format to select, where these are known.
+- Download steps, a destination folder and any documented archive instructions.
+- A clear way to resume after you provide the downloaded file's location.
+
+It should then check the file's contents, coverage, units and available checksums. Missing data should pause the stages that depend on it, while independent work can continue.
+
+#### 4. Review the plan, run a small check and continue
+
+Before execution, the assistant should summarize your study, required data, proposed changes and computing needs. The JSON identifies the scripts and their run order, including input preparation, emissions calibration when needed, dispatch, summaries, the 13 cost components, and figures and tables.
+
+Start with a small check suited to the selected study and computing environment. The assistant should use its measured resource needs to help plan a larger run. If you already have complete, verified dispatch summaries, it can begin with costs and figures after checking the required inputs.
+
+For hosted computing, the instructions distinguish a cluster, a hosted machine and a managed service. The assistant should check the actual environment and access before giving commands. Agree on the scope and resource limits before large downloads or paid jobs.
 
 > [!WARNING]
 > AI agents can select unsuitable data, change calculations incorrectly or report success without completing a run. Review their commands, logs and results before using outputs in a publication. Large downloads and full runs can require substantial storage, time and computing funds. Give only the access needed, keep passwords and API keys out of chat, and check your provider's data policy before sharing unpublished material. The JSON cannot enforce these limits; use the assistant's permission controls. Agent assistance does not replace scientific review.
