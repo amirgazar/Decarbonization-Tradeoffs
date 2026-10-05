@@ -227,54 +227,95 @@ Supply EPA and FRED credentials through `EPA_API_KEY` and `FRED_API_KEY`. Keep c
 
 ### Option 2: Using an AI Agent
 
-Give a coding assistant the [**PHASED agent runner instructions**](phased-agent-runner.json). This JSON file contains the script paths, run settings, data links, download checks, validation steps and reporting requirements. It is an instruction file, not an executable program or a hosted service.
+Use the [**PHASED guided study instructions**](phased-agent-runner.json) to work through study setup, data collection, analysis and results with a coding assistant. You can reproduce the New England study, change its assumptions, or plan a study for another region.
 
-> [!WARNING]
-> AI agents can choose the wrong data, change code incorrectly or claim a run succeeded when it did not. Review their commands, logs and results before using any output in a publication. Full runs and large downloads can consume substantial storage, time and computing funds. Give the agent only the access it needs, and do not share passwords, API keys or unpublished material without checking your provider's data policies. The JSON instructions do not enforce these limits; use the agent's permission controls.
+The assistant will ask a few questions at a time, inspect the files you already have, explain what is missing and guide you through the next step. You do not need to edit the JSON or know every input before starting. The JSON is an instruction file, not an executable program or a hosted service.
 
-#### Access the agent and give it the file
+#### 1. Open the repository and provide the instructions
 
-1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) to your computer using GitHub Desktop or Git.
-2. Follow the [official Codex quickstart](https://learn.chatgpt.com/docs/quickstart) to install the desktop app and sign in. Select **Codex**, open your local `Decarbonization-Tradeoffs` folder as the project, and start a task there. Another coding assistant with local file and command access can also use these instructions. 
-3. Attach `phased-agent-runner.json` to the task, or tell the agent to read that file from the repository root. To obtain it separately, open the [JSON file on GitHub](phased-agent-runner.json) and use **Download raw file**. Attaching the file alone does not give an agent access to the repository or datasets.
-4. Supply the local repository and data paths in the prompt below. The agent can fill the JSON's `user_settings` from your prompt; you do not have to edit JSON by hand. For costs and figures only, also provide the completed dispatch-summary folder.
-5. Start with **small_local_check**. Review the input and software checks before a larger run. Authorize any large downloads or cluster work within a defined scope and resource budget.
+1. Clone [this repository](https://github.com/amirgazar/Decarbonization-Tradeoffs) using GitHub Desktop or Git.
+2. Open the local repository folder in a coding assistant with file and command access. For Codex setup, use the [official quickstart](https://learn.chatgpt.com/docs/quickstart). Another coding assistant with suitable access can also follow these instructions.
+3. Ask the assistant to read `phased-agent-runner.json` in the repository root. You can also open the [JSON file](phased-agent-runner.json), select **Download raw file**, and attach it to your task. Attaching the JSON alone does not provide access to code, datasets or a computing account.
+4. Paste the starting prompt below. Fill in what you know and leave other items as “not sure.” The assistant should help resolve them before the affected stage starts.
 
-NOTE: Always use the latest AI model available to you for the best result. 
+#### 2. Describe your study and choose how to run it
 
-The JSON links to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable data catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). It explains how to find published download links and check file sizes, checksums and archive parts. Dataset availability must be checked at run time.
+The assistant will first ask about your study question, region, years and desired results. It will then check whether you have suitable data, New England reference files, or completed results that can be reused.
+
+| Choice | What to tell the assistant |
+| --- | --- |
+| **Study** | Reproduce New England, change the New England study, study another region, or explore feasibility only. |
+| **Computing** | Your own computer or hosted computing. For hosted work, name the service or cluster and describe your available storage, resources and budget. If unsure, ask for help choosing. |
+| **Who runs the code** | **Assistant runs it, suggested when it has the required access:** it runs the stages in order and checks logs and outputs. **I run it myself:** it provides the files, settings and commands one stage at a time, then helps check the results you provide. |
+
+For a new region, such as Texas, the assistant must first clarify the electricity-system boundary and assess which inputs and code need to change. The current scripts implement a New England study. Changing a region name or the JSON settings alone does not adapt the model. The assistant should explain proposed scientific changes and obtain your agreement before running the affected calculations.
+
+#### 3. Obtain data with guided help
+
+The instructions link to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). Availability and regional suitability must be checked when you run the study.
+
+The assistant should download suitable files when access and your agreed scope allow it. If a login, manual selection or unavailable tool prevents this, it should give you:
+
+- The dataset name, why it is needed and a verified source link.
+- The region, years, variables and format to select, where these are known.
+- Download steps, a destination folder and any documented archive instructions.
+- A clear way to resume after you provide the downloaded file's location.
+
+It should then check the file's contents, coverage, units and available checksums. Missing data should pause the stages that depend on it, while independent work can continue.
+
+#### 4. Review the plan, run a small check and continue
+
+Before execution, the assistant should summarize your study, required data, proposed changes and computing needs. The JSON identifies the scripts and their run order, including input preparation, emissions calibration when needed, dispatch, summaries, the 13 cost components, and figures and tables.
+
+Start with a small check suited to the selected study and computing environment. The assistant should use its measured resource needs to help plan a larger run. If you already have complete, verified dispatch summaries, it can begin with costs and figures after checking the required inputs.
+
+For hosted computing, the instructions distinguish a cluster, a hosted machine and a managed service. The assistant should check the actual environment and access before giving commands. Agree on the scope and resource limits before large downloads or paid jobs.
 
 <details open>
-<summary><strong>Copy this prompt with the JSON file</strong></summary>
+<summary><strong>Copy this starting prompt</strong></summary>
 
 ```text
-Read phased-agent-runner.json from the repository root, or use the
-attached copy. Use it as the instruction guide for running PHASED.
-Read README.md and the relevant scripts before executing a stage.
+Read phased-agent-runner.json and README.md in this repository.
+Guide me through the PHASED study workflow, a few questions at a time.
 
-Fill user_settings from these details:
-- Repository: [full local path]
-- Input data: [full local path]
-- Completed dispatch summaries: [full local path, or not available]
-- Run type: [small_local_check / costs_and_figures / full_analysis]
-- Computing environment: [local / cluster]
-- New run name: [unique name]
+Here is what I know so far:
+- Study question: [describe the decision or question]
+- Study: [reproduce New England / modify New England / another region /
+  explore feasibility / not sure]
+- Region and study years: [details, or not sure]
+- Results I need: [costs, emissions, health, ecological impacts, or not sure]
+- Data or completed results I already have: [folders or links, or none]
+- Computing: [local computer / hosted service or cluster / not sure]
+- Hosted environment, if applicable: [service, access and resource limits]
+- Who runs the code: [you run it, suggested / I run it myself / not sure]
 
-Start by checking the software, required inputs, data links and available
-resources. Report missing files and failed checks. Do not invent inputs
-or change scientific calculations to make a run pass.
+Ask about missing study details, computing choices and execution
+preferences before the relevant work. Inspect the files I already have.
+Explain which New England inputs and assumptions can be reused and
+which need replacement for my study.
 
-Proceed with the selected run when its requirements are met. Ask before
-large downloads or cluster submissions unless I have already authorized
-their scope and resource limits. Preserve existing results and user changes.
+Present the study plan and any proposed scientific changes. If you
+cannot download a required file, give me a verified source link,
+specific steps, where to save it and how to resume.
 
-Save a run report with commands, input sources, output locations,
-validation results and remaining work. Do not commit or push changes.
+Follow the script sequence in the JSON. If you run the code, check each
+stage's logs and outputs. If I run it, give me the exact files, settings
+and commands for my environment, then help me verify the results.
+Start with a suitable small check before a full run. Ask before large
+downloads or paid computing unless I have already agreed to their scope.
+
+Preserve existing files and results. Do not invent inputs, weaken checks
+to hide errors or claim an unperformed run succeeded. Save the study
+profile, data inventory, progress and run report so we can resume later.
+Do not commit, push or publish without my instruction.
 ```
 
 </details>
 
-**Expected result:** A run report saved with the outputs, stating exactly what ran, which checks passed and what remains incomplete. Agent assistance does not replace scientific review.
+> [!WARNING]
+> AI agents can select unsuitable data, change calculations incorrectly or report success without completing a run. Review their commands, logs and results before using outputs in a publication. Large downloads and full runs can require substantial storage, time and computing funds. Give only the access needed, keep passwords and API keys out of chat, and check your provider's data policy before sharing unpublished material. The JSON cannot enforce these limits; use the assistant's permission controls. Agent assistance does not replace scientific review.
+
+**What you should receive:** A study plan, a checked data inventory, clear progress and next steps, and a report stating what actually ran, which checks passed, where outputs are saved and what remains incomplete. When you return, ask the assistant to read the saved progress record and verify the files before continuing.
 
 ## Validation and interpretation
 
