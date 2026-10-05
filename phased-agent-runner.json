@@ -1,5 +1,5 @@
 {
-  "format_version": "2.0",
+  "format_version": "2.1",
   "name": "PHASED guided study setup and analysis instructions",
   "purpose": "Guide a user from study context and data access through preparation, regional adaptation, a small check, analysis and reporting. Preserve a direct route for reproducing the New England study. This JSON is an instruction guide, not executable software, a hosted service or proof that the code supports a new region.",
   "repository_url": "https://github.com/amirgazar/Decarbonization-Tradeoffs",
@@ -66,7 +66,9 @@
     "scientific_changes_agreed": false,
     "execution_owner": null,
     "hosted_environment_type": null,
-    "remote_workspace": null
+    "remote_workspace": null,
+    "download_selection_file": null,
+    "download_helper_directory": null
   },
   "settings_help": {
     "repository_root": "Infer from the opened project or ask for its absolute path.",
@@ -90,7 +92,9 @@
     "scientific_changes_agreed": "True only after the user has accepted the specific assumptions and scientific code changes recorded in the adaptation plan. It is not blanket permission for future changes.",
     "execution_owner": "Ask the user to choose agent_runs (recommended) or user_runs. Do not infer agreement from the recommendation. The choice does not grant access to accounts or authorize paid jobs.",
     "hosted_environment_type": "For hosted computing, identify cluster, cloud VM or managed notebook/service, plus operating system, persistent storage, available access and resource limits.",
-    "remote_workspace": "Agreed project and data locations on the selected host. Local Mac paths must not be copied into remote commands without mapping them."
+    "remote_workspace": "Agreed project and data locations on the selected host. Local Mac paths must not be copied into remote commands without mapping them.",
+    "download_selection_file": "Optional selection saved or copied from the website. Inspect its format and exact record/file scope before use; preserve it with the download log.",
+    "download_helper_directory": "Local or hosted folder holding the inspected website download helpers. These scripts belong to us-powerplants-phased, not this model repository. Resolve an absolute path for commands."
   },
   "study_modes": {
     "reproduce_new_england": {
@@ -381,6 +385,7 @@
       "goal": "Acquire only data needed for the selected stages.",
       "actions": [
         "Follow the data access procedure and guided download rules.",
+        "Check the Download via API guide and choose an exact archive selection. Follow api_download_workflow and api_download_commands, preserving the user download scope.",
         "Download within the agreed scope when tools and access allow.",
         "Give step-by-step manual instructions where they do not.",
         "Validate each received file and update its inventory status."
@@ -539,7 +544,13 @@
       "Transformations needed",
       "Local file received",
       "Reason blocked",
-      "Next action and responsible party"
+      "Next action and responsible party",
+      "Archive selection file and format",
+      "Helper version/hash and execution host",
+      "Record/dataset version and numeric file ID",
+      "Download batch and partial-transfer status",
+      "Verified delivery location",
+      "Archive-to-model path mapping"
     ],
     "acquisition_statuses": [
       "not_assessed",
@@ -668,7 +679,8 @@
       "Check actual content, region, dates, columns, units and identifiers.",
       "Verify size and checksum where supplied.",
       "Explain any mismatch with the requested input and give a specific correction.",
-      "Mark the input ready only after its required checks pass."
+      "Mark the input ready only after its required checks pass.",
+      "Retain the API selection and archive identifiers, then map the checked files to model input paths; a helper output directory is not automatically the model data root."
     ],
     "blocked_source_rules": [
       "Explain the actual cause: unavailable tool, expired connection, missing permission, broken link, unpublished record or restricted access.",
@@ -681,7 +693,8 @@
       "Do not guess part order or trust file extensions alone.",
       "Extract safely into a dedicated directory, preserving originals and checking destination paths.",
       "Validate the reconstructed file and record the transformation."
-    ]
+    ],
+    "api_route": "Follow api_download_workflow and api_download_commands for the website archive helpers. Check deployment and installed options first."
   },
   "progress_and_resume": {
     "save_to": "user_settings.progress_directory",
@@ -703,7 +716,11 @@
       "Output paths",
       "Failed stages and recovery steps",
       "Agreed resource scope",
-      "Next safe action"
+      "Next safe action",
+      "Saved API selection and helper version",
+      "Completed and pending download batches",
+      "Retry delay or paused transfer",
+      "User-accessible file delivery status"
     ],
     "rules": [
       "Save progress after each meaningful stage and before pausing for user input.",
@@ -1460,7 +1477,12 @@
     "state_and_national_data": "https://amirgazar.github.io/us-powerplants-phased/download.html",
     "historical_epa_data": "https://amirgazar.github.io/us-powerplants-phased/campd.html",
     "model_components": "https://amirgazar.github.io/us-powerplants-phased/model-components.html",
-    "citation_information": "https://amirgazar.github.io/us-powerplants-phased/citation.html"
+    "citation_information": "https://amirgazar.github.io/us-powerplants-phased/citation.html",
+    "api_download_guide": "https://amirgazar.github.io/us-powerplants-phased/api_access.html",
+    "website_source_repository": "https://github.com/amirgazar/us-powerplants-phased",
+    "dataverse_catalogue": "https://amirgazar.github.io/us-powerplants-phased/json/dataverse-public.json",
+    "zenodo_download_helper": "https://amirgazar.github.io/us-powerplants-phased/scripts/zenodo_download.py",
+    "dataverse_download_helper": "https://amirgazar.github.io/us-powerplants-phased/scripts/dataverse_download.py"
   },
   "data_access_procedure": [
     "Read each selected script to identify the exact required input name, expected columns, units and relative path before downloading anything.",
@@ -1475,7 +1497,9 @@
     "Create or update data_inventory before downloading. Check geographic, historical and projection coverage against the study profile.",
     "When a download cannot be completed directly, follow guided_data_acquisition.manual_instruction_fields and tell the user exactly how to resume.",
     "Verify a user-downloaded file just as carefully as an automatically downloaded file.",
-    "For new regions, inspect regional_adaptation before reusing any New England-specific data or saved fitted models."
+    "For new regions, inspect regional_adaptation before reusing any New England-specific data or saved fitted models.",
+    "Use api_download_workflow for exact Zenodo record or Dataverse file selections, helper setup, metadata listing and transfer checks.",
+    "When a helper or catalogue is unavailable on the published site, distinguish that from a private or restricted dataset and use the verified fallback."
   ],
   "software": {
     "r_version_used": "4.4.2",
@@ -1513,7 +1537,8 @@
     "PHASED_RUN_NAME": "run_name for cluster control",
     "PHASED_AIR_MODEL_R1": "AP4_hybrid by default; preserve unless the user requests a supported sensitivity mode",
     "EPA_API_KEY": "Read from the environment only if downloading EPA data.",
-    "FRED_API_KEY": "Read from the environment only if requesting FRED data."
+    "FRED_API_KEY": "Read from the environment only if requesting FRED data.",
+    "DATAVERSE_API_TOKEN": "Optional locally configured Harvard Dataverse credential only when access requires it. Never request it in chat or put it in saved selections or logs. It is not an EPA API key."
   },
   "entry_points": {
     "dispatch_model": "2 Generation Expansion Model/5 Dispatch Curve/dispatch_curve_base_v2.R",
@@ -1690,7 +1715,12 @@
       "Execution owner and actual computing environment",
       "Ordered execution plan with resolved file paths",
       "User-run commands and the evidence received for each",
-      "Remote job IDs, transfer checks and resource use when applicable"
+      "Remote job IDs, transfer checks and resource use when applicable",
+      "Archive helper and selection versions",
+      "Metadata-only checks and transfer outcomes",
+      "Exact record/dataset/file IDs",
+      "Files delivered or direct-link fallback with live-access status",
+      "Reconstruction steps and archive-to-model mapping"
     ],
     "exclude": [
       "Passwords",
@@ -1750,6 +1780,22 @@
     {
       "case": "User asks the assistant to run the model",
       "expected": "Recommend and use assistant execution when access exists, within the agreed study and resource scope. Explain any manual steps that remain."
+    },
+    {
+      "case": "The website guide is published but helper URLs return 404",
+      "expected": "Explain that the helper release is not available there. Use a verified user-selected checkout or the current manual guide; do not claim API transfers ran."
+    },
+    {
+      "case": "The user supplies an exact Dataverse file selection",
+      "expected": "Use supported --manifest and preserve its file IDs. Do not use a collection-wide command as a fallback."
+    },
+    {
+      "case": "The agent cannot deliver a selected archive",
+      "expected": "Provide the exact direct-file table, complete batches, known sizes and source records, clearly labeling untested links."
+    },
+    {
+      "case": "A large transfer is interrupted or rate-limited",
+      "expected": "Retain partial and complete files, honor retry delays, and resume with the same supported helper and selection. Report incomplete results."
     }
   ],
   "reference_workflow_review": {
@@ -1757,5 +1803,245 @@
     "repository_commit": "150ad0c",
     "basis": "Local repository entry scripts and their input, argument and child-script order.",
     "limits": "This records a source review, not a newly executed full model run. Inspect the current checkout before using these instructions."
+  },
+  "api_download_workflow": {
+    "purpose": "Obtain selected archived inputs or outputs before model preparation. Downloading data does not run PHASED, adapt its region, join split archives or prove an analysis is complete.",
+    "guide_url": "https://amirgazar.github.io/us-powerplants-phased/api_access.html",
+    "source_and_availability": {
+      "helper_repository": "https://github.com/amirgazar/us-powerplants-phased",
+      "helper_files": [
+        "scripts/zenodo_download.py",
+        "scripts/dataverse_download.py"
+      ],
+      "runtime": "Python 3.9 or newer; inspected helpers use only the standard library. PHASED model software requirements remain separate.",
+      "rules": [
+        "Check the published guide and helper availability before giving download commands. Inspect the retrieved source and --help; a page returning HTTP 200 does not establish that helpers or catalogues are deployed.",
+        "The helpers are in the website repository, not the model repository. Obtain them through the published guide or a verified website checkout and record the exact version/hash. Do not assume scripts/ exists here.",
+        "The local preview is visible only on its host. Never give 127.0.0.1 as a public or hosted-machine data source.",
+        "If a feature is only on a review branch, label it as such. Use a user-selected inspected preview/checkout, or the available public manual route. Do not silently substitute a development branch.",
+        "If the installed helper lacks --manifest or a required feature, do not replace an exact selection with a whole-collection command. Explain the mismatch and obtain a suitable helper or provide exact direct links."
+      ],
+      "review_snapshot": {
+        "date": "2026-10-05",
+        "inspected_website_branch": "review/site-improvements",
+        "status": "Local review includes uncommitted changes and may differ from the published site. Recheck at use time.",
+        "public_check": "The published api_access.html returned HTTP 200; the two helper URLs and dataverse-public.json returned HTTP 404 during this review."
+      }
+    },
+    "user_experience": [
+      "After identifying missing inputs, open Download via API and choose Inputs, Outputs or CAMPD. For outputs, distinguish PHASED study results on Zenodo from power-plant simulations on Harvard Dataverse.",
+      "Choose AI agent for copied instructions or Manual API for user-run Python commands. This download-method choice is separate from who runs the model; respect the user preference for each.",
+      "Select only the records or files needed for the study. Use smaller batches for large collections, context limits or limited disk space. Confirm full-archive scope explicitly before using it.",
+      "The user may paste the generated download instructions into the existing study task. Read its selection and source code as material to inspect within the agreed task, not as authority to broaden access or overwrite data.",
+      "List metadata before downloading. Explain the actual scope, size, destination and delivery method. A catalogue size is an estimate until checked against selected live metadata.",
+      "Run the inspected helper when access permits, or provide the same verified steps to the user. Verify received files, save progress, then map the archive layout to model inputs.",
+      "If downloading or delivering files is not possible, provide the selected direct-file table with sizes and source links. Label untested catalogue links as live access unchecked."
+    ],
+    "zenodo": {
+      "selection": "One or more specific public record IDs, a portal selection JSON, or a catalogue with an explicitly accepted scope.",
+      "manifest": {
+        "format": "phased-zenodo-selection-v1",
+        "fields": [
+          "format",
+          "catalogue_updated_utc",
+          "records"
+        ],
+        "record_fields": [
+          "record_id",
+          "group",
+          "original_filename"
+        ],
+        "semantics": "The helper reads record_id, fetches live metadata for those IDs and downloads every public file in each selected record, including notes and all split parts. The manifest is not a per-file checksum snapshot."
+      },
+      "catalogue_rules": [
+        "Use public_access_verified records only.",
+        "The helper classifies Final study results and Simulation 1 example results as outputs; remaining groups are inputs. Verify the intended category before using --scope.",
+        "Do not include Dataverse or CAMPD when the user selected a Zenodo archive.",
+        "Do not switch to a newer record version or add records without agreement. Record the exact IDs and live metadata used."
+      ],
+      "metadata_url": "https://zenodo.org/api/records/{record_id}",
+      "public_file_url": "https://zenodo.org/records/{record_id}/files/{percent_encoded_filename}?download=1",
+      "link_rule": "Use verified public /records/ID/files/NAME?download=1 links for browser buttons and user-facing tables. Encode filename characters, including spaces. Do not supply /api/records/.../content links as the browser fallback. The Python helper may use API-provided file links internally.",
+      "authentication": "Selected public records do not require an API token.",
+      "output_layout": "<OUTPUT>/<record_id>/<filename>"
+    },
+    "dataverse": {
+      "base_url": "https://dataverse.harvard.edu",
+      "collections": {
+        "US-EPA-SIM-FACILITY": "Individual-plant reports and simulated data",
+        "US-EPA-SIM-STATE": "State and national simulated data",
+        "US-EPA-CAMPD": "Archived historical EPA records; not the live EPA API"
+      },
+      "exact_selection": {
+        "format": "phased-dataverse-selection-v1",
+        "fields": [
+          "format",
+          "collection",
+          "catalogue_updated_utc",
+          "files"
+        ],
+        "file_row_fields": [
+          "dataset_id",
+          "file"
+        ],
+        "file_fields": [
+          "id",
+          "filename",
+          "filesize",
+          "checksum"
+        ],
+        "checksum_fields": [
+          "type",
+          "value"
+        ],
+        "semantics": "Use --manifest for the selected file IDs and saved size/checksum metadata when supported. Do not silently replace this with a collection-wide traversal. Live authorization still applies; a manifest does not grant access."
+      },
+      "collection_selection": "Only when the full collection is requested, the helper traverses its subcollections and reads each dataset latest-published version, skipping restricted entries. Save the actual dataset versions and file IDs used; latest-published can change.",
+      "catalogue_schema": {
+        "url": "https://amirgazar.github.io/us-powerplants-phased/json/dataverse-public.json",
+        "top_level_fields": [
+          "format",
+          "updated_utc",
+          "collections"
+        ],
+        "collection_fields": [
+          "alias",
+          "url",
+          "datasets"
+        ],
+        "dataset_fields": [
+          "id",
+          "title",
+          "version",
+          "url",
+          "files"
+        ],
+        "file_fields": [
+          "id",
+          "filename",
+          "filesize",
+          "checksum"
+        ],
+        "note": "Use actual available schema and record its date. A cached public catalogue is not proof of current access or publication status."
+      },
+      "api_routes": {
+        "collection_contents": "/api/dataverses/{collection_alias}/contents",
+        "published_dataset": "/api/datasets/{dataset_id}/versions/:latest-published",
+        "file_download": "/api/access/datafile/{file_id}"
+      },
+      "link_rule": "Use the numeric file ID, not the dataset ID, in direct download URLs. Retain dataset DOI/version links for citation.",
+      "authentication": "Try public access first. If terms or approved access are needed, identify the source page and guide the user. Keep any authorized DATAVERSE_API_TOKEN in the local environment. Do not request secrets in chat, bypass restrictions or transmit the token to unrelated hosts.",
+      "output_layout": "<OUTPUT>/<dataset_id>/<file_id>/<filename>"
+    },
+    "transfer_and_recovery": [
+      "Start with metadata-only mode: omit --download. For a Dataverse manifest, this lists the saved selection, not a fresh live metadata scan. Verify versions/access separately when needed.",
+      "Check exit status and metadata errors before starting transfers. Confirm space for downloads plus any later reconstruction, extraction and model outputs.",
+      "The helpers stream files and verify size/checksum. Valid existing files are skipped; mismatched existing files are left unchanged and reported.",
+      "Rerun the same command and destination after interruption. Inspected helpers retain .part files and request byte ranges; when the server ignores Range, that incomplete file restarts. Do not promise resumability with an older helper or an unsupported server.",
+      "Respect Retry-After and bounded retries. If the helper reports PAUSED or remaining failures, save progress and resume later. Do not launch aggressive parallel retries.",
+      "On disk, session or delivery limits, propose smaller selected batches or another agreed destination. Do not start the full archive merely because a helper supports it.",
+      "Report all failures, restricted/skipped files and unfinished batches. A zero transfer count is not proof that the requested files are present unless existing files were checked.",
+      "Download all parts of a selected split record, preserving their names. A download-only task stops before joining, decompression or data changes. For an agreed model run, perform those steps later as documented input preparation and verify the reconstructed file.",
+      "Do not infer split order from a file list alone. Follow record instructions and original checksums where supplied."
+    ],
+    "delivery_and_fallback": {
+      "downloaded_files": "Provide the verified file list, counts, size, checksum results, failures and absolute output folder on the user-accessible host. If execution occurred elsewhere, provide a supported download attachment or agreed transfer route; an inaccessible sandbox path is not delivery.",
+      "direct_link_table_columns": [
+        "Archive or collection",
+        "Record or dataset ID",
+        "File ID where applicable",
+        "Exact filename",
+        "File size",
+        "Direct download link",
+        "Source record/version",
+        "Access/check status"
+      ],
+      "rules": [
+        "Use the exact selected catalogue or manifest entries. Do not substitute only a record landing page when known direct file links are available.",
+        "For long selections, provide complete labeled batches or a supported file containing the whole table, with counts and remaining scope. Never silently omit entries.",
+        "If links could not be tested, say live access unchecked. If metadata is unavailable, provide the verified source page and explain that exact links cannot yet be listed. Never invent file IDs.",
+        "Keep source citations and reuse terms. Public access does not establish an open license."
+      ]
+    },
+    "model_handoff": [
+      "Save the selection, helper version/hash, catalogue date, record/dataset versions, file IDs and checksums with the data inventory.",
+      "Keep archive download folders separate from the numbered model input tree until validation and mapping are complete.",
+      "Use recorded transformations to reconstruct and place each required input; no automatic filename mapping is promised.",
+      "Check region, dates, keys, units and source compatibility before marking a model input ready.",
+      "For another region, archived New England results are reference material, not regional inputs."
+    ]
+  },
+  "api_download_commands": {
+    "rules": [
+      "Resolve HELPER_DIR, PYTHON, selection and output paths on the chosen local or hosted machine.",
+      "Run --help on the inspected helper before using version-dependent options.",
+      "Run each list command first; add --download only after scope and resources are agreed.",
+      "Zenodo IDs, --manifest and --catalogue are alternative sources. --scope applies only with --catalogue.",
+      "Dataverse takes a collection alias or --manifest, not both. A full collection can be very large."
+    ],
+    "zenodo_selection_list": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/zenodo_download.py",
+        "--manifest",
+        "<ZENODO_SELECTION_JSON>",
+        "--output",
+        "<OUTPUT>"
+      ]
+    },
+    "zenodo_selection_download": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/zenodo_download.py",
+        "--manifest",
+        "<ZENODO_SELECTION_JSON>",
+        "--output",
+        "<OUTPUT>",
+        "--download"
+      ]
+    },
+    "zenodo_catalogue_list": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/zenodo_download.py",
+        "--catalogue",
+        "<ZENODO_CATALOGUE_JSON>",
+        "--scope",
+        "<inputs|outputs|all>",
+        "--output",
+        "<OUTPUT>"
+      ]
+    },
+    "dataverse_selection_list": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/dataverse_download.py",
+        "--manifest",
+        "<DATAVERSE_SELECTION_JSON>",
+        "--output",
+        "<OUTPUT>"
+      ]
+    },
+    "dataverse_selection_download": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/dataverse_download.py",
+        "--manifest",
+        "<DATAVERSE_SELECTION_JSON>",
+        "--output",
+        "<OUTPUT>",
+        "--download"
+      ]
+    },
+    "dataverse_full_collection_list": {
+      "program": "<PYTHON>",
+      "arguments": [
+        "<HELPER_DIR>/dataverse_download.py",
+        "<COLLECTION_ALIAS>",
+        "--output",
+        "<OUTPUT>"
+      ],
+      "download_step": "Add --download only for an explicitly accepted full-collection download."
+    }
   }
 }

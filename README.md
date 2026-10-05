@@ -77,6 +77,7 @@ Follow the analysis from source inputs to model components and available results
 - [Browse the input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html)
 - [Explore the interactive model diagram](https://amirgazar.github.io/us-powerplants-phased/model-components.html)
 - [Browse model output downloads](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html)
+- [Download via API](https://amirgazar.github.io/us-powerplants-phased/api_access.html)
 
 </td>
 </tr>
@@ -150,7 +151,9 @@ Sys.setenv(
 <details>
 <summary><strong>2. Obtain and prepare the inputs</strong></summary>
 
-Start with the [PHASED input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and the [power-plant datasets](https://amirgazar.github.io/us-powerplants-phased/download.html). Run the preparation scripts for the stages you need. Keep the same random columns across pathways when reproducing paired results.
+Start with the [PHASED input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and the [power-plant datasets](https://amirgazar.github.io/us-powerplants-phased/download.html). For archive downloads, open [Download via API](https://amirgazar.github.io/us-powerplants-phased/api_access.html), choose the required records or files and select **Manual API**. Obtain the Python helper from that guide, list the selection first, then download it to the agreed data folder. The helpers belong to the website repository and require Python 3.9 or newer. Check that the helper version supports the chosen selection; if it is not yet published, use the available direct downloads.
+
+Run the preparation scripts for the stages you need. Keep the same random columns across pathways when reproducing paired results. Downloaded archive folders must be checked, reconstructed where needed and mapped to the input paths expected by the model.
 
 Dispatch requires capacity schedules, facility tables, generation distributions, operating limits, wind and solar capacity factors, import profiles, hourly demand, random draws and the saved operating-emissions model. The [dispatch source](2%20Generation%20Expansion%20Model/5%20Dispatch%20Curve/dispatch_curve_base_v2.R) lists their relative paths in its data-loading section.
 
@@ -261,9 +264,17 @@ preferences before the relevant work. Inspect the files I already have.
 Explain which New England inputs and assumptions can be reused and
 which need replacement for my study.
 
-Present the study plan and any proposed scientific changes. If you
-cannot download a required file, give me a verified source link,
-specific steps, where to save it and how to resume.
+Present the study plan and any proposed scientific changes. Use the
+website's Download via API guide for the required archive files.
+Check that its Python helpers are available and inspect their options.
+Use my selected records or files, list them before downloading, and
+keep the selection and checksums with the study record.
+
+If I paste download instructions from the website, preserve their
+exact selection. If you cannot download or deliver the files, give me
+complete direct-file links with sizes and clear manual steps. Label
+links you have not tested. Explain where to save files and how to resume.
+Respect retry delays and preserve completed or partial downloads.
 
 Follow the script sequence in the JSON. If you run the code, check each
 stage's logs and outputs. If I run it, give me the exact files, settings
@@ -293,16 +304,23 @@ For a new region, such as Texas, the assistant must first clarify the electricit
 
 #### 3. Obtain data with guided help
 
-The instructions link to the [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html), [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) and [machine-readable catalogue](https://amirgazar.github.io/us-powerplants-phased/json/zenodo-public.json). Availability and regional suitability must be checked when you run the study.
+Open [**Download via API**](https://amirgazar.github.io/us-powerplants-phased/api_access.html) when you or the assistant need archive files. The [input catalogue](https://amirgazar.github.io/us-powerplants-phased/model-inputs.html) and [output catalogue](https://amirgazar.github.io/us-powerplants-phased/model-outputs.html) help identify suitable records first.
 
-The assistant should download suitable files when access and your agreed scope allow it. If a login, manual selection or unavailable tool prevents this, it should give you:
+1. Choose **Inputs**, **Outputs** or **CAMPD**. For outputs, distinguish PHASED study results on Zenodo from power-plant simulations on Harvard Dataverse. CAMPD here means archived historical records, not a live EPA API request.
+2. Select only the records or files needed. Use smaller batches for large collections. A full Zenodo archive does not include the separate Dataverse collections.
+3. Choose **AI agent** and copy the generated instructions into your study task. They provide the selected scope and download guidance. The assistant should inspect the helper code and save any supplied selection file. If you prefer to run downloads yourself, choose **Manual API** and follow the displayed Python commands.
+4. Have the assistant list the selection first and check its size, destination and available space. It should verify that the helper supports your selection before downloading. A saved Dataverse selection lists its recorded metadata; live access still needs checking.
+5. After downloading, the assistant should verify sizes and checksums, report failures and tell you where the files are accessible. The files still need regional, calendar and unit checks before model use.
 
-- The dataset name, why it is needed and a verified source link.
-- The region, years, variables and format to select, where these are known.
-- Download steps, a destination folder and any documented archive instructions.
-- A clear way to resume after you provide the downloaded file's location.
+**Helper availability:** The Python helpers come from the website guide or its [source repository](https://github.com/amirgazar/us-powerplants-phased), not this model repository. They require Python 3.9 or newer with no extra download packages. Check the published guide and helper version before running commands. A local preview may contain features that have not yet been published; if a helper or catalogue is unavailable, use the verified manual links or an explicitly selected website checkout.
 
-It should then check the file's contents, coverage, units and available checksums. Missing data should pause the stages that depend on it, while independent work can continue.
+The instructions distinguish a Zenodo selection of complete records from a Dataverse selection of specific files. The assistant must keep that scope and must not replace a small selection with a whole-collection download. Public files normally need no token. If access requires terms or permission, the assistant should identify the source page and explain the steps. Keep any required credential in your local environment, never in chat.
+
+If a download is interrupted, keep the files and rerun the same command with the same selection and destination. Supported helpers check and skip completed files, and resume partial files when the server supports it; otherwise, that incomplete file restarts. Follow retry delays and resolve low disk space before continuing. Do not delete mismatched files simply to make a retry pass.
+
+**If the assistant cannot download or deliver files:** it should give you a complete table of selected filenames, sizes and direct download links, in manageable batches when needed. Zenodo browser links should use the public record's file links; Dataverse links must use the actual file IDs. Untested links should be marked as such. It should explain where to save files and how to resume, then check the files you provide. A path inside an inaccessible workspace is not a delivered file.
+
+Download all parts of a selected split record and keep their names. Download-only instructions stop before joining or decompression. For an agreed model run, the assistant should perform those later as documented input preparation, verify the reconstructed file and map it to the model's expected path. It should retain source citations and reuse terms throughout.
 
 #### 4. Review the plan, run a small check and continue
 
